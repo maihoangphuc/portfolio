@@ -1,37 +1,18 @@
-import React from "react";
+import { socialLinks } from "@/constants";
 import { Box, IconButton } from "@mui/material";
-import { FiLinkedin, FiMail, FiGithub } from "react-icons/fi";
-
-const socialLinks = [
-  {
-    icon: FiLinkedin,
-    href: "https://www.linkedin.com/in/maihoangphuc",
-    target: "_blank",
-  },
-  {
-    icon: FiMail,
-    href: "mailto:maihoangphuc9x@gmail.com",
-  },
-  {
-    icon: FiGithub,
-    href: "https://github.com/maihoangphuc",
-    target: "_blank",
-  },
-];
-
 const Social = () => {
   return (
     <Box
       sx={{
         position: "fixed",
         left: 0,
-        top: "50%",
-        transform: "translateY(-50%)",
+        bottom: "35%",
         display: "flex",
         flexDirection: "column",
         gap: 1,
+        zIndex: 1000,
       }}
-      className="!pl-4 md:!pl-10 !hidden xs:!flex"
+      className="!pl-4 md:!pl-10 !hidden sm:!flex"
     >
       {socialLinks.map((link, index) => {
         const Icon = link.icon;

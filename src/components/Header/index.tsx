@@ -26,7 +26,7 @@ const Header = () => {
       position="fixed"
       elevation={0}
       className={clsx(
-        "!transition-all !duration-300 !h-[64px] !flex !items-center !justify-center !px-4 md:!px-10",
+        "!h-[64px] !flex !items-center !justify-center !px-4 md:!px-10",
         scrolled
           ? "!bg-light-bg/80 !backdrop-blur-sm dark:!bg-dark-bg/90 !shadow-header"
           : "!bg-transparent"

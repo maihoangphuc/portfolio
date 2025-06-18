@@ -1,3 +1,5 @@
+"use client";
+
 import { useActiveSection } from "@/hooks/useActiveSection";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
 import { Images } from "@/images";
@@ -15,14 +17,7 @@ import {
 import clsx from "clsx";
 import Image from "next/image";
 import { useState } from "react";
-
-const menuItems = [
-  { text: "Home", href: "#home" },
-  { text: "About", href: "#about" },
-  { text: "Skill", href: "#skill" },
-  { text: "Project", href: "#project" },
-  { text: "Contact", href: "#contact" },
-];
+import { menuItems } from "@/constants";
 
 interface MenuProps {
   className?: string;

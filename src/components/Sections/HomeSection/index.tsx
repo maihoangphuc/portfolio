@@ -9,12 +9,8 @@ import { useState } from "react";
 import { BsMouse } from "react-icons/bs";
 import { BsArrowDownShort } from "react-icons/bs";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
-
-const INTRO_TEXTS = [
-  "I am a technology enthusiast, I love web design, it seems to be indispensable in my life",
-  "With passion for creating beautiful and user-friendly interfaces, I strive to deliver the best web experiences",
-  "I enjoy learning new technologies and applying them to solve real-world problems",
-];
+import { INTRO_TEXTS } from "@/constants";
+import SectionContainer from "@/components/SectionContainer";
 
 const HomeSection = () => {
   const [currentTextIndex, setCurrentTextIndex] = useState<number>(0);
@@ -33,27 +29,17 @@ const HomeSection = () => {
   };
 
   return (
-    <Box
-      id="home"
-      component="section"
-      className={clsx(
-        "!relative",
-        "!w-full",
-        "!h-[420px]",
-        "xs:!h-[500px]",
-        "md:!h-[600px]",
-        "!flex",
-        "!flex-col-reverse",
-        "md:!flex-row",
-        "!items-center",
-        "!justify-center"
-      )}
+    <SectionContainer
+      sectionId="home"
+      showWave={{ top: false, bottom: false }}
+      className="!flex !flex-col-reverse md:!flex-row !items-center !justify-center !min-h-[500px] md:!min-h-[600px]"
+      classChildren="!flex !flex-col-reverse md:!flex-row !items-center !justify-center"
     >
       <Box
         className={clsx(
           "!min-w-[50%]",
           "!w-full",
-          "md:!pl-20",
+          "!h-full",
           "!flex",
           "!flex-col",
           "!justify-center",
@@ -98,7 +84,7 @@ const HomeSection = () => {
             <Box className="!hidden md:!flex !flex-col-reverse md:!flex-row !justify-between !items-center !mt-4 !gap-4">
               <Box
                 className="!flex !items-center !gap-2 !cursor-pointer group"
-                onClick={() => scrollToSection("skill")}
+                onClick={() => scrollToSection("about")}
               >
                 <IconButton disableTouchRipple className="!p-0 !bg-transparent">
                   <BsMouse />
@@ -209,7 +195,7 @@ const HomeSection = () => {
           </Box>
         </Box>
       </Box>
-    </Box>
+    </SectionContainer>
   );
 };
 

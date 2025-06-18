@@ -1,6 +1,5 @@
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import Social from "@/components/Social";
 import { Box } from "@mui/material";
 import { ReactNode } from "react";
 
@@ -17,7 +16,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         width: "100%",
       }}
     >
-      <Header />
       <Box
         component="main"
         sx={{
@@ -25,12 +23,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           width: "100%",
           height: "100%",
         }}
-        className="!px-4 md:!px-10"
       >
+        <Header />
         {children}
-        <Social />
+        {/* <Social /> */}
+        <Footer />
       </Box>
-      <Footer />
     </Box>
   );
 };
