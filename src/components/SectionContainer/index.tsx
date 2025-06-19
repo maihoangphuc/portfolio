@@ -59,6 +59,11 @@ const SectionContainer = ({
           showWave.top && "!mt-6",
           showWave.bottom && "!mb-6"
         )}
+        sx={{
+          maxWidth: "1400px",
+          margin: "0 auto",
+          width: "100%",
+        }}
       >
         <Box className="!pt-6 !h-fit !flex !flex-col !items-center !justify-center">
           {titleDescription && (

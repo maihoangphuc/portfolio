@@ -1,15 +1,108 @@
 "use client";
 
 import SectionContainer from "@/components/SectionContainer";
-import { contacts } from "@/constants";
 import emailjs from "@emailjs/browser";
 import { Box, Button, FormControl, Stack, TextField } from "@mui/material";
 import clsx from "clsx";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useToast } from "@/context/ToastContext";
+import { validateField } from "@/utils/validation";
+import { FormContact } from "@/types/project";
+import { contacts } from "@/mockdata";
 
 const ContactSection = () => {
-  const form = useRef<HTMLFormElement>(null);
+  const { showSuccess, showError, showWarning } = useToast();
+
   const [activeContact, setActiveContact] = useState<string>("Email");
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+
+  const [form, setForm] = useState<FormContact>({
+    name: "",
+    email: "",
+    message: "",
+  });
+
+  const [errors, setErrors] = useState<{ [key: string]: string[] }>({
+    name: [],
+    email: [],
+    message: [],
+  });
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY as string);
+  }, []);
+
+  const validateFormField = (name: string, value: string) => {
+    const fieldErrors = validateField(name, value);
+    setErrors((prev) => ({
+      ...prev,
+      [name]: fieldErrors,
+    }));
+    return fieldErrors.length === 0;
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    validateFormField(name, value);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const nameValid = validateFormField("name", form.name);
+    const emailValid = validateFormField("email", form.email);
+    const messageValid = validateFormField("message", form.message);
+
+    if (!nameValid || !emailValid || !messageValid) {
+      if (!nameValid && nameRef.current) {
+        nameRef.current.focus();
+      } else if (!emailValid && emailRef.current) {
+        emailRef.current.focus();
+      } else if (!messageValid && messageRef.current) {
+        messageRef.current.focus();
+      }
+
+      showWarning("Please enter all fields", {
+        className: "!text-black",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    emailjs
+      .send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID as string,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID as string,
+        {
+          from_name: form.name,
+          to_name: "Phuc",
+          from_email: form.email,
+          to_email: process.env.NEXT_PUBLIC_RECIPIENT_EMAIL as string,
+          message: form.message,
+        }
+      )
+      .then(() => {
+        setLoading(false);
+        showSuccess("Message sent successfully");
+        setForm({ name: "", email: "", message: "" });
+        setErrors({ name: [], email: [], message: [] });
+      })
+      .catch((error) => {
+        setLoading(false);
+        showError("Failed to send message. Please try again.");
+        console.log(error);
+      });
+  };
 
   const handleContactClick = (contact: { title: string; href: string }) => {
     setActiveContact(contact.title);
@@ -22,37 +115,14 @@ const ContactSection = () => {
     }
   };
 
-  const sendEmail = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!form.current) return;
-
-    emailjs
-      .sendForm(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID as string,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID as string,
-        form.current,
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY as string
-      )
-      .then(
-        (result) => {
-          console.log("SUCCESS!", result.text);
-          // Reset form
-          form.current?.reset();
-        },
-        (error) => {
-          console.log("FAILED...", error.text);
-        }
-      );
-  };
-
   return (
     <SectionContainer
       sectionId="contact"
       title="Contact"
       titleDescription="Get in touch"
       showWave={{ top: false, bottom: false }}
-      className="!flex !flex-col !min-h-[950px] xs:!min-h-[750px] sm:!min-h-[650px] md:!min-h-[700px]"
+      className="!flex !flex-col !min-h-[600px]"
+      classChildren="!py-12"
     >
       <Box
         className={clsx(
@@ -85,15 +155,15 @@ const ContactSection = () => {
                   <Icon
                     className={clsx(
                       "!text-xl !mb-1",
-                      isActive ? "!text-black/80" : "!text-primary"
+                      isActive ? "!text-white" : "!text-primary"
                     )}
                   />
                   <div
                     className={clsx(
                       "!text-[15px] !font-medium",
                       isActive
-                        ? "!text-black/70"
-                        : "!text-light-text-primary dark:!text-dark-text-primary"
+                        ? "!text-white/90"
+                        : "!text-light-text-primary/90 dark:!text-dark-text-primary/90"
                     )}
                   >
                     {contact.title}
@@ -102,7 +172,7 @@ const ContactSection = () => {
                     className={clsx(
                       "!text-[13px]",
                       isActive
-                        ? "!text-black/50"
+                        ? "!text-white/80"
                         : "!text-light-text-primary/80 dark:!text-dark-text-primary/80"
                     )}
                   >
@@ -115,17 +185,22 @@ const ContactSection = () => {
         </Box>
 
         <form
-          ref={form}
-          onSubmit={sendEmail}
+          ref={formRef}
+          onSubmit={handleSubmit}
           className="!w-full !flex !flex-col !gap-4 !justify-center !items-center md:!items-start md:!justify-start"
         >
-          <FormControl fullWidth>
+          <FormControl fullWidth error={errors.name.length > 0}>
             <TextField
+              inputRef={nameRef}
               fullWidth
               size="small"
               variant="outlined"
               placeholder="Your Full Name"
-              name="from_name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              error={errors.name.length > 0}
+              helperText={errors.name[0]}
               className="!bg-transparent !rounded-md input-hover !w-full"
               sx={{
                 input: {
@@ -140,13 +215,18 @@ const ContactSection = () => {
             />
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl fullWidth error={errors.email.length > 0}>
             <TextField
+              inputRef={emailRef}
               fullWidth
               size="small"
               variant="outlined"
               placeholder="Your Email"
-              name="reply_to"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              error={errors.email.length > 0}
+              helperText={errors.email[0]}
               className="!bg-transparent !rounded-md input-hover !w-full"
               sx={{
                 input: {
@@ -161,14 +241,19 @@ const ContactSection = () => {
             />
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl fullWidth error={errors.message.length > 0}>
             <TextField
+              inputRef={messageRef}
               fullWidth
               multiline
               rows={5}
               variant="outlined"
               placeholder="Your Message"
               name="message"
+              value={form.message}
+              onChange={handleChange}
+              error={errors.message.length > 0}
+              helperText={errors.message[0]}
               className="!bg-transparent !rounded-md input-hover !w-full"
               sx={{
                 textarea: {
@@ -186,19 +271,21 @@ const ContactSection = () => {
           <Button
             type="submit"
             variant="outlined"
+            disabled={loading}
             className={clsx(
               "!bg-primary",
-              "!text-black/70",
+              "!text-white",
               "!font-medium",
               "!w-fit",
               "!rounded-md",
               "!text-base",
               "!border-none",
               "!capitalize",
-              "!hover:border-primary"
+              "!hover:border-primary",
+              loading && "!opacity-70"
             )}
           >
-            Send Message
+            {loading ? "Sending..." : "Send Message"}
           </Button>
         </form>
       </Box>

@@ -17,7 +17,8 @@ import {
 import clsx from "clsx";
 import Image from "next/image";
 import { useState } from "react";
-import { menuItems } from "@/constants";
+import { menuItems } from "@/mockdata";
+import { MenuItem } from "@/types/home";
 
 interface MenuProps {
   className?: string;
@@ -69,7 +70,7 @@ const Menu = ({ className, children }: MenuProps) => {
       </Box>
 
       <List>
-        {menuItems.map((item) => (
+        {menuItems.map((item: MenuItem) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               component="a"

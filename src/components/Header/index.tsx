@@ -32,24 +32,32 @@ const Header = () => {
           : "!bg-transparent"
       )}
     >
-      <Toolbar
-        disableGutters
-        className="!w-full !flex !items-center !justify-between"
+      <Box
+        sx={{
+          maxWidth: "1400px",
+          margin: "0 auto",
+          width: "100%",
+        }}
       >
-        <Link
-          href="#home"
-          onClick={handleClick}
-          className="!flex !items-center"
+        <Toolbar
+          disableGutters
+          className="!w-full !flex !items-center !justify-between"
         >
-          <Box className="!relative !size-[22px] sm:!size-[26px] md:!size-[32px]">
-            <Image src={Images.logo} alt="Logo" fill />
+          <Link
+            href="#home"
+            onClick={handleClick}
+            className="!flex !items-center"
+          >
+            <Box className="!relative !size-[22px] sm:!size-[26px] md:!size-[32px]">
+              <Image src={Images.logo} alt="Logo" fill />
+            </Box>
+          </Link>
+          <Box className="!flex !items-center !gap-4 md:!gap-0">
+            <Menu className="!ml-auto !mr-6" />
+            <SwitchTheme />
           </Box>
-        </Link>
-        <Box className="!flex !items-center !gap-4 md:!gap-0">
-          <Menu className="!ml-auto !mr-6" />
-          <SwitchTheme />
-        </Box>
-      </Toolbar>
+        </Toolbar>
+      </Box>
     </AppBar>
   );
 };

@@ -1,4 +1,5 @@
-import { socialLinks } from "@/constants";
+import { socialLinks } from "@/mockdata";
+import { SocialLink } from "@/types/contact";
 import { Box, IconButton } from "@mui/material";
 const Social = () => {
   return (
@@ -14,7 +15,7 @@ const Social = () => {
       }}
       className="!pl-4 md:!pl-10 !hidden sm:!flex"
     >
-      {socialLinks.map((link, index) => {
+      {socialLinks.map((link: SocialLink, index: number) => {
         const Icon = link.icon;
         return (
           <IconButton

@@ -1,9 +1,10 @@
 import "@/app/globals.css";
-import "animate.css";
 import ThemeProviderClient from "@/context/AppThemeContext";
+import { ToastProvider } from "@/context/ToastContext";
 import { ThemeMode } from "@/types/theme";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
+import "animate.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
@@ -28,7 +29,7 @@ export default async function RootLayout({
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProviderClient mode={theme}>
             <InitColorSchemeScript attribute="class" />
-            {children}
+            <ToastProvider>{children}</ToastProvider>
           </ThemeProviderClient>
         </AppRouterCacheProvider>
       </body>

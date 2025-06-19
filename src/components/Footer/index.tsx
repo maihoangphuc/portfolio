@@ -1,8 +1,10 @@
 "use client";
 
 import SectionContainer from "@/components/SectionContainer";
-import { menuItems, socialLinks } from "@/constants";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
+import { menuItems, socialLinks } from "@/mockdata";
+import { SocialLink } from "@/types/contact";
+import { MenuItem } from "@/types/home";
 import {
   Box,
   Link,
@@ -30,18 +32,20 @@ const Footer = () => {
       className="!flex !flex-col !min-h-[240px]"
       classChildren="!flex !flex-col !gap-4 !justify-center"
     >
-      <List className="!grid !grid-cols-3 xs:!flex !gap-x-1 xs:!gap-4 !p-0 !m-0">
-        {menuItems.map((item) => (
+      <List className="w-full xs:flex-nowrap xs:w-fit !flex !justify-center !items-center xs:!gap-4 !gap-2 p-0 mt-0">
+        {menuItems.map((item: MenuItem) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               component="a"
               href={item.href}
               disableTouchRipple
+              disableGutters
               onClick={handleScroll(item.href)}
-              className="!bg-transparent !p-0 !text-light-text-primary dark:!text-dark-text-primary hover:!text-primary"
+              className="!p-0 !m-0 !bg-transparent !text-light-text-primary dark:!text-dark-text-primary hover:!text-primary"
             >
               <ListItemText
                 primary={item.text}
+                className="!p-0 !m-0"
                 sx={{
                   "& .MuiTypography-root": {
                     fontWeight: "medium",
@@ -59,7 +63,7 @@ const Footer = () => {
       </List>
 
       <Box className="!flex !flex-row !gap-4">
-        {socialLinks.map((link, index) => (
+        {socialLinks.map((link: SocialLink, index: number) => (
           <Link key={index} href={link.href}>
             <link.icon
               size={16}

@@ -1,6 +1,7 @@
 "use client";
 
-import { SKILL_TABS } from "@/constants";
+import { skillTabs } from "@/mockdata";
+import { SkillTab } from "@/types/skill";
 import { Box, Stack, Tabs, Tab, Chip } from "@mui/material";
 import { useState } from "react";
 
@@ -53,13 +54,13 @@ const SkillTabs = () => {
             },
           }}
         >
-          {SKILL_TABS.map((tab, index) => (
+          {skillTabs.map((tab: SkillTab, index: number) => (
             <Tab key={index} label={tab.label} disableRipple />
           ))}
         </Tabs>
       </Box>
 
-      {SKILL_TABS.map((tab, index) => (
+      {skillTabs.map((tab: SkillTab, index: number) => (
         <TabPanel key={index} value={tabValue} index={index}>
           <Stack spacing={3} className="mb-6">
             <Box className="flex flex-wrap gap-2">
@@ -68,7 +69,7 @@ const SkillTabs = () => {
                   key={skillIndex}
                   label={skill}
                   variant="outlined"
-                  className="bg-blue-50 dark:bg-slate-800 border-none [transition:none] hover:bg-blue-100 dark:hover:bg-slate-700"
+                  className="!bg-primary dark:!bg-primary/80 !text-white !border-none [transition:none] hover:!bg-primary/80 dark:hover:!bg-primary"
                   onClick={() => {}}
                   clickable={false}
                 />

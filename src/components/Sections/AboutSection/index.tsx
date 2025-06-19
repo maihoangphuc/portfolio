@@ -1,7 +1,7 @@
-import ProjectItem from "@/components/ProjectItem";
+import TimelineItem from "@/components/TimelineItem";
 import SectionContainer from "@/components/SectionContainer";
-import { projects } from "@/constants";
 import { Box } from "@mui/material";
+import { timelines } from "@/mockdata";
 
 const AboutSection = () => {
   return (
@@ -10,11 +10,12 @@ const AboutSection = () => {
       titleDescription="Get To Know"
       title="About"
       showWave={{ top: true, bottom: true }}
-      className="!flex !flex-col !min-h-[600px]"
+      className=" !flex !flex-col !min-h-[600px]"
+      classChildren="!py-12"
     >
       <Box>
-        {projects.map((project, index) => (
-          <ProjectItem key={index} {...project} />
+        {timelines.map((timeline, index) => (
+          <TimelineItem key={index} {...timeline} />
         ))}
       </Box>
     </SectionContainer>

@@ -10,7 +10,7 @@ interface MacbookFrameProps {
 
 const MacbookFrame = ({ videoUrl, className }: MacbookFrameProps) => {
   return (
-    <Box className={clsx("!mx-auto !my-20", className)}>
+    <Box className={clsx("!mx-auto ", className)}>
       <Box className="w-full">
         <Box className="relative mx-auto w-[80%] pt-[54%] rounded-[3%_3%_0_0] bg-[#ddd]">
           <Box className="absolute top-[0.3%] bottom-0 left-[0.2%] right-[0.2%] rounded-[2.8%_2.8%_0_0] bg-black">

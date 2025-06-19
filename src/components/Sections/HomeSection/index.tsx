@@ -9,8 +9,8 @@ import { useState } from "react";
 import { BsMouse } from "react-icons/bs";
 import { BsArrowDownShort } from "react-icons/bs";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
-import { INTRO_TEXTS } from "@/constants";
 import SectionContainer from "@/components/SectionContainer";
+import { introTexts } from "@/mockdata";
 
 const HomeSection = () => {
   const [currentTextIndex, setCurrentTextIndex] = useState<number>(0);
@@ -18,13 +18,13 @@ const HomeSection = () => {
 
   const handlePrevText = () => {
     setCurrentTextIndex((prev) =>
-      prev === 0 ? INTRO_TEXTS.length - 1 : prev - 1
+      prev === 0 ? introTexts.length - 1 : prev - 1
     );
   };
 
   const handleNextText = () => {
     setCurrentTextIndex((prev) =>
-      prev === INTRO_TEXTS.length - 1 ? 0 : prev + 1
+      prev === introTexts.length - 1 ? 0 : prev + 1
     );
   };
 
@@ -78,25 +78,10 @@ const HomeSection = () => {
               key={currentTextIndex}
               className="!text-sm xs:!text-base !font-regular !text-primary animate__animated animate__flash"
             >
-              {INTRO_TEXTS[currentTextIndex]}
+              {introTexts[currentTextIndex]}
             </Typography>
 
-            <Box className="!hidden md:!flex !flex-col-reverse md:!flex-row !justify-between !items-center !mt-4 !gap-4">
-              <Box
-                className="!flex !items-center !gap-2 !cursor-pointer group"
-                onClick={() => scrollToSection("about")}
-              >
-                <IconButton disableTouchRipple className="!p-0 !bg-transparent">
-                  <BsMouse />
-                </IconButton>
-                <Typography>Sroll down</Typography>
-                <IconButton
-                  disableTouchRipple
-                  className="!p-0 !bg-transparent group-hover:animate-bounce-arrow"
-                >
-                  <BsArrowDownShort />
-                </IconButton>
-              </Box>
+            <Box className="!hidden md:!flex flex-col items-start !mt-4 !gap-4">
               <Box className="!justify-end !gap-2 !flex">
                 <Button
                   onClick={handlePrevText}
@@ -114,6 +99,21 @@ const HomeSection = () => {
                 >
                   <IoChevronForwardOutline />
                 </Button>
+              </Box>
+              <Box
+                className="!flex !items-center !gap-2 !cursor-pointer group"
+                onClick={() => scrollToSection("about")}
+              >
+                <IconButton disableTouchRipple className="!p-0 !bg-transparent">
+                  <BsMouse />
+                </IconButton>
+                <Typography>Sroll down</Typography>
+                <IconButton
+                  disableTouchRipple
+                  className="!p-0 !bg-transparent group-hover:animate-bounce-arrow"
+                >
+                  <BsArrowDownShort />
+                </IconButton>
               </Box>
             </Box>
           </Box>
