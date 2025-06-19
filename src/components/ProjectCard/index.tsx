@@ -76,14 +76,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            sx={{
-              color: "rgba(255, 255, 255, 0.7)",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                color: "white",
-                transform: "translateY(-2px)",
-              },
-            }}
+            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 hover:!text-primary"
           >
             <FaGithub size={20} />
           </IconButton>
@@ -93,14 +86,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Live Demo"
-            sx={{
-              color: "rgba(255, 255, 255, 0.7)",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                color: "white",
-                transform: "translateY(-2px)",
-              },
-            }}
+            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 hover:!text-primary"
           >
             <FiExternalLink size={20} />
           </IconButton>

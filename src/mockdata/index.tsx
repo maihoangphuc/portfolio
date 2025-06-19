@@ -109,8 +109,8 @@ export const skillTabs: SkillTab[] = [
 
 export const introTexts: string[] = [
   "I am a technology enthusiast, I love web design, it seems to be indispensable in my life",
-  "With passion for creating beautiful and user-friendly interfaces, I strive to deliver the best web experiences",
   "I enjoy learning new technologies and applying them to solve real-world problems",
+  "With passion for creating beautiful and user-friendly interfaces, I strive to deliver the best web experiences",
 ];
 
 export const projects: Project[] = [
@@ -138,5 +138,21 @@ export const projects: Project[] = [
     technologies: ["HTML5", "CSS3", "TailwindCSS", "React", "Javascript"],
     githubUrl: "https://github.com/maihoangphuc/Calculator-ReactJS",
     demoUrl: "https://calculator-reactjs-six.vercel.app",
+  },
+  {
+    id: 4,
+    name: "Music App",
+    description: "An application for listening to and playing music",
+    technologies: ["HTML5", "CSS3", "Javascript", "VueJS 3", "TailwindCSS"],
+    githubUrl: "https://github.com/maihoangphuc/Music-VueJS",
+    demoUrl: "https://music-vuejs-gray.vercel.app",
+  },
+  {
+    id: 5,
+    name: "Calendar App",
+    description: "An application for managing and scheduling events",
+    technologies: ["HTML5", "CSS3", "Javascript", "React", "TailwindCSS"],
+    githubUrl: "https://github.com/maihoangphuc/Calendar-ReactJS",
+    demoUrl: "https://calendar-reactjs.vercel.app",
   },
 ];

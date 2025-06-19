@@ -81,7 +81,7 @@ const Menu = ({ className, children }: MenuProps) => {
                 "!rounded-lg !p-0 !py-2",
                 isActive(item.href)
                   ? "!text-primary"
-                  : "!text-black dark:!text-white hover:!text-primary"
+                  : "!text-light-text-primary dark:!text-dark-text-primary hover:!text-primary"
               )}
               aria-current={isActive(item.href) ? "page" : undefined}
             >

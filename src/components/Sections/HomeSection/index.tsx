@@ -2,7 +2,7 @@
 
 import { Images } from "@/images";
 import { Box, Typography, Button, IconButton } from "@mui/material";
-import { IoChevronBackOutline, IoChevronForwardOutline } from "react-icons/io5";
+import { HiArrowLongLeft, HiArrowLongRight } from "react-icons/hi2";
 import clsx from "clsx";
 import Image from "next/image";
 import { useState } from "react";
@@ -87,17 +87,17 @@ const HomeSection = () => {
                   onClick={handlePrevText}
                   size="small"
                   variant="text"
-                  className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-lg !font-medium !text-light-text-primary/90 dark:!text-dark-text-primary/90 !bg-secondary/10 hover:!bg-secondary/15 !backdrop-blur-sm !transition-all"
+                  className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
                 >
-                  <IoChevronBackOutline />
+                  <HiArrowLongLeft />
                 </Button>
                 <Button
                   onClick={handleNextText}
                   size="small"
                   variant="text"
-                  className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-lg !font-medium !text-light-text-primary/90 dark:!text-dark-text-primary/90 !bg-secondary/10 hover:!bg-secondary/15 !backdrop-blur-sm !transition-all"
+                  className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
                 >
-                  <IoChevronForwardOutline />
+                  <HiArrowLongRight />
                 </Button>
               </Box>
               <Box
