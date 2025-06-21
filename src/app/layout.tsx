@@ -7,6 +7,7 @@ import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import "animate.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "MHP",
@@ -32,6 +33,7 @@ export default async function RootLayout({
             <ToastProvider>{children}</ToastProvider>
           </ThemeProviderClient>
         </AppRouterCacheProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
