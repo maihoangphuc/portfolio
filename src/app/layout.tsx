@@ -8,6 +8,7 @@ import "animate.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Theme } from "@/constants";
 
 export const metadata: Metadata = {
   title: "MHP",
@@ -22,7 +23,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const theme = (await cookies()).get("theme")?.value as ThemeMode;
+  const theme =
+    ((await cookies()).get("theme")?.value as ThemeMode) || Theme.DARK;
 
   return (
     <html lang="en" suppressHydrationWarning data-theme={theme}>
