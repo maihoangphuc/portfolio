@@ -64,7 +64,13 @@ const Footer = () => {
 
       <Box className="!flex !flex-row !gap-4">
         {socialLinks.map((link: SocialLink, index: number) => (
-          <Link key={index} href={link.href}>
+          <Link
+            key={index}
+            href={link.href}
+            target={link.target}
+            rel="noopener noreferrer"
+            aria-label={link.name}
+          >
             <link.icon
               size={16}
               className="!text-light-text-primary dark:!text-dark-text-primary hover:!text-primary"

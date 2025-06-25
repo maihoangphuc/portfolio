@@ -12,6 +12,7 @@ export type SocialLink = {
   icon: React.ElementType;
   href: string;
   target?: string;
+  name: string;
 };
 
 export type Contact = {

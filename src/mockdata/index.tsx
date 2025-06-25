@@ -23,15 +23,18 @@ export const socialLinks: SocialLink[] = [
     icon: FiLinkedin,
     href: "https://www.linkedin.com/in/maihoangphuc",
     target: "_blank",
+    name: "Linkedin",
   },
   {
     icon: FiMail,
     href: "mailto:maihoangphuc9x@gmail.com",
+    name: "Email",
   },
   {
     icon: FiGithub,
     href: "https://github.com/maihoangphuc",
     target: "_blank",
+    name: "Github",
   },
 ];
 

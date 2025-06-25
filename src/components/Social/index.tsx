@@ -20,6 +20,8 @@ const Social = () => {
             component="a"
             href={link.href}
             target={link.target}
+            rel="noopener noreferrer"
+            aria-label={link.name}
           >
             <Icon className="!text-lg !text-light-text-primary dark:!text-dark-text-primary" />
           </IconButton>

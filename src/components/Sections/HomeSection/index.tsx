@@ -91,6 +91,7 @@ const HomeSection = () => {
                       onClick={handlePrevText}
                       size="small"
                       variant="text"
+                      aria-label="Previous Text"
                       className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
                     >
                       <HiArrowLongLeft />
@@ -99,6 +100,7 @@ const HomeSection = () => {
                       onClick={handleNextText}
                       size="small"
                       variant="text"
+                      aria-label="Next Text"
                       className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
                     >
                       <HiArrowLongRight />
@@ -111,6 +113,7 @@ const HomeSection = () => {
                     <IconButton
                       disableTouchRipple
                       className="!p-0 !bg-transparent"
+                      aria-label="Mouse"
                     >
                       <BsMouse />
                     </IconButton>
@@ -118,6 +121,7 @@ const HomeSection = () => {
                     <IconButton
                       disableTouchRipple
                       className="!p-0 !bg-transparent group-hover:animate-bounce-arrow"
+                      aria-label="Scroll Down"
                     >
                       <BsArrowDownShort />
                     </IconButton>
