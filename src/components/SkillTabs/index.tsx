@@ -2,8 +2,20 @@
 
 import { skillTabs } from "@/mockdata";
 import { SkillTab } from "@/types/skill";
-import { Box, Stack, Tabs, Tab, Chip } from "@mui/material";
+import { Box, Stack, Chip } from "@mui/material";
 import { useState } from "react";
+import dynamic from "next/dynamic";
+
+// Dynamically import MUI components
+const Tabs = dynamic(() => import("@mui/material/Tabs"), {
+  loading: () => <div>Loading...</div>,
+  ssr: true,
+});
+
+const Tab = dynamic(() => import("@mui/material/Tab"), {
+  loading: () => <div>Loading...</div>,
+  ssr: true,
+});
 
 interface TabPanelProps {
   children?: React.ReactNode;
