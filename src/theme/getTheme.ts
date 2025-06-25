@@ -1,20 +1,16 @@
-import { createTheme, PaletteMode, ThemeOptions } from "@mui/material";
+import { Theme } from "@/constants";
+import { ThemeOptions, createTheme } from "@mui/material/styles";
 import lightTheme from "@/theme/lightTheme";
 import darkTheme from "@/theme/darkTheme";
 import { ThemeMode } from "@/types/theme";
-import { Theme } from "@/constants";
 
 export function getAppTheme(mode: ThemeMode) {
-  const paletteMode: PaletteMode =
-    mode === Theme.SYSTEM ? "light" : (mode as PaletteMode);
-
   const baseTheme: ThemeOptions = mode === Theme.LIGHT ? lightTheme : darkTheme;
 
   return createTheme({
-    palette: { mode: paletteMode },
     ...baseTheme,
     typography: {
-      fontFamily: "Quicksand, sans-serif",
+      fontFamily: "var(--font-quicksand)",
       fontWeightLight: 300,
       fontWeightRegular: 400,
       fontWeightMedium: 500,
@@ -27,6 +23,13 @@ export function getAppTheme(mode: ThemeMode) {
         md: 768,
         lg: 1024,
         xl: 1280,
+      },
+    },
+    components: {
+      MuiCssBaseline: {
+        defaultProps: {
+          enableColorScheme: true,
+        },
       },
     },
   });
