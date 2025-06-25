@@ -28,7 +28,10 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         border: "1px solid transparent",
         transition: "border-color 0.2s ease",
         "&:hover": {
-          borderColor: "var(--color-primary)",
+          borderColor: "var(--color-light-primary)",
+          "@media (prefers-color-scheme: dark)": {
+            borderColor: "var(--color-dark-primary)",
+          },
         },
         display: "flex",
         flexDirection: "column",
@@ -40,7 +43,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             variant="h6"
             component="div"
             gutterBottom
-            className="!text-primary !font-semibold !text-lg md:!text-xl !mb-2 !truncate !line-clamp-2"
+            className="!text-light-primary dark:!text-dark-primary !font-semibold !text-lg md:!text-xl !mb-2 !truncate !line-clamp-2"
           >
             {project.name}
           </Typography>
@@ -62,7 +65,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
                 key={tech}
                 label={tech}
                 size="small"
-                className="!bg-blue-50 dark:!bg-primary/20 !border-none [transition:none] group-hover:!bg-primary/80 dark:group-hover:!bg-primary"
+                className="!bg-blue-50 dark:!bg-light-primary/20 !border-none [transition:none] group-hover:!bg-light-primary/80 dark:group-hover:!bg-dark-primary"
                 onClick={() => {}}
                 clickable={false}
               />
@@ -76,7 +79,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 hover:!text-primary"
+            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 hover:!text-light-primary dark:hover:!text-dark-primary"
           >
             <FaGithub size={20} />
           </IconButton>
@@ -86,7 +89,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Live Demo"
-            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 hover:!text-primary"
+            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 hover:!text-light-primary dark:hover:!text-dark-primary"
           >
             <FiExternalLink size={20} />
           </IconButton>

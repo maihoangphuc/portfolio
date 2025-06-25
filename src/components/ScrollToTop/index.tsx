@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { IoIosArrowUp } from "react-icons/io";
 
 const ScrollToTop = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -32,7 +32,7 @@ const ScrollToTop = () => {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 p-2 rounded-full bg-primary text-white shadow-lg cursor-pointer transition-all duration-300 hover:bg-primary/80 hover:scale-110 z-50"
+          className="fixed bottom-6 right-6 p-2 rounded-full bg-light-primary dark:!bg-dark-primary text-white shadow-lg cursor-pointer transition-all duration-300 hover:bg-light-primary/80 dark:hover:bg-dark-primary/80 hover:scale-110 z-50"
           aria-label="Scroll to top"
         >
           <IoIosArrowUp size={16} />

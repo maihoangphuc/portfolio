@@ -75,7 +75,10 @@ const SectionContainer = ({
             </Typography>
           )}
           {title && (
-            <Typography variant="h5" className="!text-primary !font-bold">
+            <Typography
+              variant="h5"
+              className="!text-light-primary dark:!text-dark-primary !font-bold"
+            >
               {title}
             </Typography>
           )}

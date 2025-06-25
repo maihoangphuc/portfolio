@@ -143,19 +143,24 @@ const ContactSection = () => {
                   "!p-6",
                   "!size-full xs:!w-[150px] md:!w-full",
                   "!rounded-xl",
-                  isActive ? "!bg-primary" : "!bg-transparent",
+                  isActive
+                    ? "!bg-light-primary dark:!bg-dark-primary"
+                    : "!bg-transparent",
                   "!cursor-pointer",
                   "!border !border-light-divider dark:!border-dark-divider",
-                  isActive ? "!border-primary" : "!border-gray-700",
-                  "!transition-all !duration-300",
-                  "hover:!border-primary"
+                  isActive
+                    ? "!border-light-primary dark:!border-dark-primary"
+                    : "!border-gray-700",
+                  "hover:!border-light-primary dark:hover:!border-dark-primary"
                 )}
               >
                 <Stack spacing={0.5} alignItems="center">
                   <Icon
                     className={clsx(
                       "!text-xl !mb-1",
-                      isActive ? "!text-white" : "!text-primary"
+                      isActive
+                        ? "!text-white"
+                        : "!text-light-primary dark:!text-dark-primary"
                     )}
                   />
                   <div
@@ -163,7 +168,7 @@ const ContactSection = () => {
                       "!text-[15px] !font-medium",
                       isActive
                         ? "!text-white/90"
-                        : "!text-light-text-primary/90 dark:!text-dark-text-primary/90"
+                        : "!text-light-primary/90 dark:!text-dark-primary/90"
                     )}
                   >
                     {contact.title}
@@ -201,14 +206,28 @@ const ContactSection = () => {
               onChange={handleChange}
               error={errors.name.length > 0}
               helperText={errors.name[0]}
-              className="!bg-transparent !rounded-md input-hover !w-full"
+              className="!bg-transparent !rounded-md !w-full"
               sx={{
-                input: {
-                  color: "var(--light-text-primary)",
-                },
-                ".MuiInputBase-root": {
-                  "&.Mui-focused": {
-                    color: "var(--light-text-primary)",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "var(--color-light-divider)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "var(--color-light-primary)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--color-light-primary)",
+                  },
+                  ".dark &": {
+                    "& fieldset": {
+                      borderColor: "var(--color-dark-divider)",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "var(--color-dark-primary)",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "var(--color-dark-primary)",
+                    },
                   },
                 },
               }}
@@ -227,14 +246,28 @@ const ContactSection = () => {
               onChange={handleChange}
               error={errors.email.length > 0}
               helperText={errors.email[0]}
-              className="!bg-transparent !rounded-md input-hover !w-full"
+              className="!bg-transparent !rounded-md !w-full"
               sx={{
-                input: {
-                  color: "var(--light-text-primary)",
-                },
-                ".MuiInputBase-root": {
-                  "&.Mui-focused": {
-                    color: "var(--light-text-primary)",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "var(--color-light-divider)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "var(--color-light-primary)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--color-light-primary)",
+                  },
+                  ".dark &": {
+                    "& fieldset": {
+                      borderColor: "var(--color-dark-divider)",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "var(--color-dark-primary)",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "var(--color-dark-primary)",
+                    },
                   },
                 },
               }}
@@ -254,14 +287,28 @@ const ContactSection = () => {
               onChange={handleChange}
               error={errors.message.length > 0}
               helperText={errors.message[0]}
-              className="!bg-transparent !rounded-md input-hover !w-full"
+              className="!bg-transparent !rounded-md !w-full"
               sx={{
-                textarea: {
-                  color: "var(--light-text-primary)",
-                },
-                ".MuiInputBase-root": {
-                  "&.Mui-focused": {
-                    color: "var(--light-text-primary)",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "var(--color-light-divider)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "var(--color-light-primary)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--color-light-primary)",
+                  },
+                  ".dark &": {
+                    "& fieldset": {
+                      borderColor: "var(--color-dark-divider)",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "var(--color-dark-primary)",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "var(--color-dark-primary)",
+                    },
                   },
                 },
               }}
@@ -273,9 +320,9 @@ const ContactSection = () => {
             variant="outlined"
             disabled={loading}
             className={clsx(
-              "!bg-primary",
+              "!bg-light-primary dark:!bg-dark-primary hover:!bg-light-primary/80 dark:hover:!bg-dark-primary/80",
               "!text-white",
-              "!font-medium",
+              "!font-regular",
               "!w-fit",
               "!rounded-md",
               "!text-base",

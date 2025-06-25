@@ -2,8 +2,6 @@ import type { NextConfig } from "next";
 import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const nextConfig: NextConfig = {
-  compress: true,
-  poweredByHeader: false,
   reactStrictMode: true,
   swcMinify: true,
   compiler: {

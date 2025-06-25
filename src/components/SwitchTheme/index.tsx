@@ -9,22 +9,17 @@ const SwitchTheme = () => {
   const { mode, toggleTheme } = useThemeContext();
 
   return (
-    <Box
-      sx={{
-        borderRadius: 1,
-      }}
-    >
+    <Box className="!rounded-full">
       <IconButton
-        className="!bg-transparent !border-none"
+        component="a"
+        rel="noopener noreferrer"
         aria-label="Switch Theme"
-        size="small"
-        color="inherit"
         onClick={toggleTheme}
       >
         {mode === Theme.DARK ? (
-          <BsSun className="!text-light-text-primary dark:!text-dark-text-primary !text-lg" />
+          <BsSun className="!text-light-text-primary dark:!text-dark-text-primary !text-base" />
         ) : (
-          <BsMoon className="!text-light-text-primary dark:!text-dark-text-primary !text-lg" />
+          <BsMoon className="!text-light-text-primary dark:!text-dark-text-primary !text-base" />
         )}
       </IconButton>
     </Box>

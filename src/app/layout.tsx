@@ -1,5 +1,6 @@
 import "@/app/globals.css";
 import "@/app/animations.css";
+import "animate.css";
 import { Theme } from "@/constants";
 import ThemeProviderClient from "@/context/AppThemeContext";
 import { ToastProvider } from "@/context/ToastContext";

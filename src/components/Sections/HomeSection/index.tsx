@@ -60,7 +60,7 @@ const HomeSection = () => {
               <Typography
                 key={currentTextIndex}
                 component="span"
-                className="!text-primary !text-xl md:!text-3xl !font-bold slogan animate__animated animate__fadeInDown"
+                className="!text-light-primary dark:!text-dark-primary !text-xl md:!text-3xl !font-bold slogan animate__animated animate__fadeInDown"
               >
                 Mai Hoang Phuc
               </Typography>
@@ -80,7 +80,7 @@ const HomeSection = () => {
               <Box className="!mt-4">
                 <Typography
                   key={currentTextIndex}
-                  className="!text-sm xs:!text-base !font-regular !text-primary animate__animated animate__flash"
+                  className="!text-sm xs:!text-base !font-medium !text-light-primary dark:!text-dark-primary animate__animated animate__flash"
                 >
                   {introTexts[currentTextIndex]}
                 </Typography>
@@ -92,7 +92,7 @@ const HomeSection = () => {
                       size="small"
                       variant="text"
                       aria-label="Previous Text"
-                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
+                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-light-primary dark:hover:!text-dark-primary !text-secondary !transition-all"
                     >
                       <HiArrowLongLeft />
                     </Button>
@@ -101,7 +101,7 @@ const HomeSection = () => {
                       size="small"
                       variant="text"
                       aria-label="Next Text"
-                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
+                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-light-primary dark:hover:!text-dark-primary !text-secondary !transition-all"
                     >
                       <HiArrowLongRight />
                     </Button>
@@ -117,7 +117,7 @@ const HomeSection = () => {
                     >
                       <BsMouse />
                     </IconButton>
-                    <Typography>Sroll down</Typography>
+                    <Typography className="!font-medium">Sroll down</Typography>
                     <IconButton
                       disableTouchRipple
                       className="!p-0 !bg-transparent group-hover:animate-bounce-arrow"
@@ -170,7 +170,7 @@ const HomeSection = () => {
               "xs:!size-[270px]",
               "md:!size-[300px]",
               "lg:!size-[400px]",
-              "!bg-primary",
+              "!bg-light-primary dark:!bg-dark-primary",
               "rounded-shape",
               "translate-shape",
               "animate-border"
@@ -178,23 +178,21 @@ const HomeSection = () => {
           />
         </Box>
         <Box
-          key={currentTextIndex}
           className={clsx(
             "!absolute",
             "md:!right-0",
             "md:!-translate-x-1/1",
-            "!z-2",
-            "animate__animated animate__jackInTheBox"
+            "!z-2"
           )}
         >
           <Image
+            key={currentTextIndex}
             src={Images.person}
             alt="Person avatar"
-            priority
-            width={40}
-            height={40}
+            width={32}
+            height={32}
             quality={90}
-            className="!w-[80px] xs:!w-full !h-full !object-contain"
+            className="!w-[80px] xs:!w-full !h-full !object-contain animate__animated animate__jackInTheBox"
             sizes="(max-width: 640px) 90px, (max-width: 768px) 95px, (max-width: 1024px) 100px, 135px"
           />
         </Box>

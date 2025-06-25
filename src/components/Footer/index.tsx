@@ -41,7 +41,7 @@ const Footer = () => {
               disableTouchRipple
               disableGutters
               onClick={handleScroll(item.href)}
-              className="!p-0 !m-0 !bg-transparent !text-light-text-primary dark:!text-dark-text-primary hover:!text-primary"
+              className="!p-0 !m-0 !bg-transparent !text-light-text-primary dark:!text-dark-text-primary hover:!text-light-primary dark:hover:!text-dark-primary"
             >
               <ListItemText
                 primary={item.text}
@@ -73,7 +73,7 @@ const Footer = () => {
           >
             <link.icon
               size={16}
-              className="!text-light-text-primary dark:!text-dark-text-primary hover:!text-primary"
+              className="!text-light-text-primary dark:!text-dark-text-primary hover:!text-light-primary dark:hover:!text-dark-primary"
             />
           </Link>
         ))}
@@ -88,7 +88,10 @@ const Footer = () => {
       >
         © 2025 Design by{" "}
         <Link href="#" className=" !no-underline hover:!text-gray-300">
-          <Typography component="span" className="!text-primary">
+          <Typography
+            component="span"
+            className="!text-light-primary dark:!text-dark-primary !font-medium"
+          >
             maihoangphuc
           </Typography>
         </Link>

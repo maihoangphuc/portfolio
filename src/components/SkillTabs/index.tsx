@@ -2,11 +2,10 @@
 
 import { skillTabs } from "@/mockdata";
 import { SkillTab } from "@/types/skill";
-import { Box, Stack, Chip } from "@mui/material";
-import { useState } from "react";
+import { Box, Chip } from "@mui/material";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 
-// Dynamically import MUI components
 const Tabs = dynamic(() => import("@mui/material/Tabs"), {
   loading: () => <div>Loading...</div>,
   ssr: true,
@@ -34,7 +33,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`skill-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: 0, mt: 2 }}>{children}</Box>}
     </div>
   );
 }
@@ -55,13 +54,19 @@ const SkillTabs = () => {
           aria-label="skill tabs"
           sx={{
             "& .MuiTabs-indicator": {
-              backgroundColor: "var(--color-primary)",
+              backgroundColor: "var(--color-light-primary)",
+              "@media (prefers-color-scheme: dark)": {
+                backgroundColor: "var(--color-dark-primary)",
+              },
             },
             "& .MuiTab-root": {
               color: "text.secondary",
               textTransform: "capitalize",
               "&.Mui-selected": {
-                color: "var(--color-primary)",
+                color: "var(--color-light-primary)",
+                "@media (prefers-color-scheme: dark)": {
+                  color: "var(--color-dark-primary)",
+                },
               },
             },
           }}
@@ -74,20 +79,18 @@ const SkillTabs = () => {
 
       {skillTabs.map((tab: SkillTab, index: number) => (
         <TabPanel key={index} value={tabValue} index={index}>
-          <Stack spacing={3} className="mb-6">
-            <Box className="flex flex-wrap gap-2">
-              {tab.skills.map((skill, skillIndex) => (
-                <Chip
-                  key={skillIndex}
-                  label={skill}
-                  variant="outlined"
-                  className="!bg-primary dark:!bg-primary/80 !text-white !border-none [transition:none] hover:!bg-primary/80 dark:hover:!bg-primary"
-                  onClick={() => {}}
-                  clickable={false}
-                />
-              ))}
-            </Box>
-          </Stack>
+          <Box className="!flex !flex-wrap !gap-2">
+            {tab.skills.map((skill, skillIndex) => (
+              <Chip
+                key={skillIndex}
+                label={skill}
+                variant="outlined"
+                className="!bg-light-primary dark:!bg-dark-primary hover:!bg-light-primary/80 dark:hover:!bg-dark-primary/80 !cursor-pointer !text-white !font-semibold !border-none [transition:none]"
+                onClick={() => {}}
+                clickable={false}
+              />
+            ))}
+          </Box>
         </TabPanel>
       ))}
     </div>

@@ -4,11 +4,10 @@ import Menu from "@/components/Menu";
 import SwitchTheme from "@/components/SwitchTheme";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
-import { Images } from "@/media/images";
 import { AppBar, Box, Toolbar } from "@mui/material";
 import clsx from "clsx";
-import Image from "next/image";
 import Link from "next/link";
+import Logo from "@/components/Icons/Logo";
 
 const Header = () => {
   const scrolled = useScrollPosition();
@@ -28,7 +27,7 @@ const Header = () => {
       className={clsx(
         "!h-[64px] !flex !items-center !justify-center !px-4 md:!px-10",
         scrolled
-          ? "!bg-light-bg/80 !backdrop-blur-sm dark:!bg-dark-bg/90 !shadow-header"
+          ? "!bg-light-bg/80 !backdrop-blur-sm dark:!bg-dark-bg/80 !shadow-header"
           : "!bg-transparent"
       )}
     >
@@ -49,15 +48,7 @@ const Header = () => {
             className="!flex !items-center"
           >
             <Box className="!relative">
-              <Image
-                src={Images.logo}
-                alt="Logo"
-                width={32}
-                height={32}
-                quality={90}
-                className="!w-[24px] xs:!w-full !h-full !object-contain"
-                sizes="(max-width: 640px) 24px, (max-width: 768px) 26px, 28px"
-              />
+              <Logo className="size-[24px] lg:!size-[26px] md:!size-[30px] !object-contain !text-light-primary dark:!text-dark-primary" />
             </Box>
           </Link>
           <Box className="!flex !items-center !gap-4 md:!gap-0">

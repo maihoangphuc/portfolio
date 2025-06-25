@@ -2,9 +2,8 @@
 
 import { useActiveSection } from "@/hooks/useActiveSection";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
-import { Images } from "@/media/images";
-import { BiMenuAltRight } from "react-icons/bi";
-import { VscClose } from "react-icons/vsc";
+import { menuItems } from "@/mockdata";
+import { MenuItem } from "@/types/home";
 import {
   Box,
   Drawer,
@@ -15,10 +14,10 @@ import {
   ListItemText,
 } from "@mui/material";
 import clsx from "clsx";
-import Image from "next/image";
 import { useState } from "react";
-import { menuItems } from "@/mockdata";
-import { MenuItem } from "@/types/home";
+import { BiMenuAltRight } from "react-icons/bi";
+import { VscClose } from "react-icons/vsc";
+import Logo from "@/components/Icons/Logo";
 
 interface MenuProps {
   className?: string;
@@ -48,7 +47,11 @@ const Menu = ({ className, children }: MenuProps) => {
   };
 
   const drawer = (
-    <Box className="!h-full !p-4" role="navigation" aria-label="Mobile menu">
+    <Box
+      className="!h-full !p-4 !bg-light-bg dark:!bg-dark-bg"
+      role="navigation"
+      aria-label="Mobile menu"
+    >
       <Box className="!flex !items-center !justify-between">
         <a
           href="#home"
@@ -57,20 +60,12 @@ const Menu = ({ className, children }: MenuProps) => {
           aria-label="Go to homepage"
         >
           <Box className="!relative">
-            <Image
-              src={Images.logo}
-              alt="Logo"
-              width={32}
-              height={32}
-              quality={90}
-              className="!w-[24px] xs:!w-full !h-full !object-contain"
-              sizes="(max-width: 640px) 24px, (max-width: 768px) 26px, 28px"
-            />
+            <Logo className="size-[24px] lg:!size-[26px] md:!size-[30px] !object-contain !text-light-primary dark:!text-dark-primary" />
           </Box>
         </a>
         <IconButton
           onClick={handleDrawerToggle}
-          className="!text-primary"
+          className="!text-light-primary dark:!text-dark-primary"
           aria-label="Close menu"
         >
           <VscClose />
@@ -88,8 +83,8 @@ const Menu = ({ className, children }: MenuProps) => {
               className={clsx(
                 "!rounded-lg !p-0 !py-2",
                 isActive(item.href)
-                  ? "!text-primary"
-                  : "!text-light-text-primary dark:!text-dark-text-primary hover:!text-primary"
+                  ? "!text-light-primary dark:!text-dark-primary"
+                  : "!text-light-text-primary dark:!text-dark-text-primary hover:!text-light-primary dark:hover:!text-dark-primary"
               )}
               aria-current={isActive(item.href) ? "page" : undefined}
             >
@@ -129,8 +124,8 @@ const Menu = ({ className, children }: MenuProps) => {
                 className={clsx(
                   "!rounded-lg !size-fit !p-0 !bg-transparent",
                   isActive(item.href)
-                    ? "!text-primary"
-                    : "!text-light-text-primary dark:!text-dark-text-primary hover:!text-primary"
+                    ? "!text-light-primary dark:!text-dark-primary"
+                    : "!text-light-text-primary dark:!text-dark-text-primary hover:!text-light-primary dark:hover:!text-dark-primary"
                 )}
                 aria-current={isActive(item.href) ? "page" : undefined}
               >
@@ -158,7 +153,7 @@ const Menu = ({ className, children }: MenuProps) => {
           aria-label="Open menu"
           edge="end"
           onClick={handleDrawerToggle}
-          className="!text-secondary hover:!text-primary"
+          className="!text-secondary hover:!text-light-primary dark:hover:!text-dark-primary"
         >
           <BiMenuAltRight className="!text-2xl !text-light-text-primary dark:!text-dark-text-primary" />
         </IconButton>

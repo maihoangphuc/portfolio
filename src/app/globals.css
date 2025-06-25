@@ -4,12 +4,13 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
-  --color-primary: #54ae8b;
+  --color-primary: red;
   --color-secondary: #819199;
   --color-white: #ffffff;
   --color-black: #000000;
 
   /* Light theme */
+  --color-light-primary: #6b8ab3;
   --color-light-bg: #ffffff;
   --color-light-text-primary: #b9a2a2;
   --color-light-text-secondary: #ffffff;
@@ -17,6 +18,7 @@
   --color-light-divider: #c9c4c4a3;
 
   /* Dark theme */
+  --color-dark-primary: #5f7ea6;
   --color-dark-bg: #1e2023;
   --color-dark-text-primary: #c5c5c5;
   --color-dark-text-secondary: #000000;
@@ -84,8 +86,6 @@
   transform: translate(0, -50%);
 }
 
-/*=============== Scrollbar CSS ============== */
-/* Firefox */
 * {
   scrollbar-width: auto;
 }
@@ -104,14 +104,6 @@
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   background-color: #f5f5f5;
   border-radius: 10px;
-}
-
-.input-hover .MuiOutlinedInput-notchedOutline {
-  @apply border-light-divider dark:border-dark-divider transition-colors duration-200;
-}
-
-.input-hover:hover .MuiOutlinedInput-notchedOutline {
-  @apply !border-primary;
 }
 
 .Toastify__toast {
