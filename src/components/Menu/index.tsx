@@ -56,8 +56,16 @@ const Menu = ({ className, children }: MenuProps) => {
           onClick={handleScroll("#home")}
           aria-label="Go to homepage"
         >
-          <Box className="!relative !size-[26px]">
-            <Image src={Images.logo} alt="Logo" fill priority />
+          <Box className="!relative">
+            <Image
+              src={Images.logo}
+              alt="Logo"
+              width={32}
+              height={32}
+              quality={90}
+              className="!w-[24px] xs:!w-full !h-full !object-contain"
+              sizes="(max-width: 640px) 24px, (max-width: 768px) 26px, 28px"
+            />
           </Box>
         </a>
         <IconButton

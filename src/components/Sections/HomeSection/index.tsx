@@ -181,31 +181,22 @@ const HomeSection = () => {
           key={currentTextIndex}
           className={clsx(
             "!absolute",
-            "!left-1/2",
-            "md:!left-auto",
-            "!-translate-x-1/2",
-            "md:!translate-x-0",
             "md:!right-0",
+            "md:!-translate-x-1/1",
             "!z-2",
             "animate__animated animate__jackInTheBox"
           )}
         >
-          <Box
-            className={clsx(
-              "!size-[270px]",
-              "xs:!size-[320px]",
-              "md:!size-[350px]",
-              "lg:!size-[450px]"
-            )}
-          >
-            <Image
-              src={Images.person}
-              alt="Person"
-              fill
-              priority
-              style={{ objectFit: "contain" }}
-            />
-          </Box>
+          <Image
+            src={Images.person}
+            alt="Person avatar"
+            priority
+            width={40}
+            height={40}
+            quality={90}
+            className="!w-[80px] xs:!w-full !h-full !object-contain"
+            sizes="(max-width: 640px) 90px, (max-width: 768px) 95px, (max-width: 1024px) 100px, 135px"
+          />
         </Box>
       </Box>
     </SectionContainer>

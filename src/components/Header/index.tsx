@@ -48,19 +48,15 @@ const Header = () => {
             onClick={handleClick}
             className="!flex !items-center"
           >
-            <Box className="!relative !size-[22px] sm:!size-[26px] md:!size-[32px]">
+            <Box className="!relative">
               <Image
                 src={Images.logo}
                 alt="Logo"
                 width={32}
                 height={32}
-                sizes="(max-width: 640px) 24px, (max-width: 768px) 26px, 32px"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                }}
                 quality={90}
+                className="!w-[24px] xs:!w-full !h-full !object-contain"
+                sizes="(max-width: 640px) 24px, (max-width: 768px) 26px, 28px"
               />
             </Box>
           </Link>
