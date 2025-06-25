@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Theme } from "@/constants";
+import MainLayout from "@/layouts/MainLayout";
 
 export const metadata: Metadata = {
   title: "MHP",
@@ -32,7 +33,9 @@ export default async function RootLayout({
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProviderClient mode={theme}>
             <InitColorSchemeScript attribute="class" />
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <MainLayout>{children}</MainLayout>
+            </ToastProvider>
           </ThemeProviderClient>
         </AppRouterCacheProvider>
         <SpeedInsights />

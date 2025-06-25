@@ -11,6 +11,7 @@ import { BsArrowDownShort } from "react-icons/bs";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
 import SectionContainer from "@/components/SectionContainer";
 import { introTexts } from "@/mockdata";
+import Social from "@/components/Social";
 
 const HomeSection = () => {
   const [currentTextIndex, setCurrentTextIndex] = useState<number>(0);
@@ -47,77 +48,85 @@ const HomeSection = () => {
           "md:!text-left"
         )}
       >
-        <Typography
-          key={currentTextIndex}
-          component="span"
-          className="!text-xl md:!text-3xl !text-secondary !font-bold slogan animate__animated animate__fadeInDown"
-        >
-          Hi, I&apos;m{" "}
-          <Typography
-            key={currentTextIndex}
-            component="span"
-            className="!text-primary !text-xl md:!text-3xl !font-bold slogan animate__animated animate__fadeInDown"
-          >
-            Mai Hoang Phuc
-          </Typography>
-        </Typography>
-
-        <Typography
-          component="div"
-          className="!text-lg !text-secondary !space-y-3 !mt-2 !mx-auto !w-full xs:!w-[90%] lg:!w-[80%] md:!m-0"
-        >
-          <Typography
-            key={currentTextIndex}
-            className="!font-medium !text-secondary animate__animated animate__fadeInUp"
-          >
-            &lt;Frontend developer/&gt;
-          </Typography>
-
-          <Box className="!mt-4">
+        <Box className="!flex !items-start !justify-start !relative !gap-10">
+          <Social />
+          <Box>
             <Typography
               key={currentTextIndex}
-              className="!text-sm xs:!text-base !font-regular !text-primary animate__animated animate__flash"
+              component="span"
+              className="!text-xl md:!text-3xl !text-secondary !font-bold slogan animate__animated animate__fadeInDown"
             >
-              {introTexts[currentTextIndex]}
+              Hi, I&apos;m{" "}
+              <Typography
+                key={currentTextIndex}
+                component="span"
+                className="!text-primary !text-xl md:!text-3xl !font-bold slogan animate__animated animate__fadeInDown"
+              >
+                Mai Hoang Phuc
+              </Typography>
             </Typography>
 
-            <Box className="!hidden md:!flex flex-col items-start !mt-4 !gap-4">
-              <Box className="!justify-end !gap-2 !flex">
-                <Button
-                  onClick={handlePrevText}
-                  size="small"
-                  variant="text"
-                  className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
-                >
-                  <HiArrowLongLeft />
-                </Button>
-                <Button
-                  onClick={handleNextText}
-                  size="small"
-                  variant="text"
-                  className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
-                >
-                  <HiArrowLongRight />
-                </Button>
-              </Box>
-              <Box
-                className="!flex !items-center !gap-2 !cursor-pointer group"
-                onClick={() => scrollToSection("about")}
+            <Typography
+              component="div"
+              className="!text-lg !text-secondary !space-y-3 !mt-2 !mx-auto !w-full xs:!w-[90%] lg:!w-[80%] md:!m-0"
+            >
+              <Typography
+                key={currentTextIndex}
+                className="!font-medium !text-secondary animate__animated animate__fadeInUp"
               >
-                <IconButton disableTouchRipple className="!p-0 !bg-transparent">
-                  <BsMouse />
-                </IconButton>
-                <Typography>Sroll down</Typography>
-                <IconButton
-                  disableTouchRipple
-                  className="!p-0 !bg-transparent group-hover:animate-bounce-arrow"
+                &lt;Frontend developer/&gt;
+              </Typography>
+
+              <Box className="!mt-4">
+                <Typography
+                  key={currentTextIndex}
+                  className="!text-sm xs:!text-base !font-regular !text-primary animate__animated animate__flash"
                 >
-                  <BsArrowDownShort />
-                </IconButton>
+                  {introTexts[currentTextIndex]}
+                </Typography>
+
+                <Box className="!hidden md:!flex flex-col items-start !mt-4 !gap-4">
+                  <Box className="!justify-end !gap-2 !flex">
+                    <Button
+                      onClick={handlePrevText}
+                      size="small"
+                      variant="text"
+                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
+                    >
+                      <HiArrowLongLeft />
+                    </Button>
+                    <Button
+                      onClick={handleNextText}
+                      size="small"
+                      variant="text"
+                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-primary !text-secondary !transition-all"
+                    >
+                      <HiArrowLongRight />
+                    </Button>
+                  </Box>
+                  <Box
+                    className="!flex !items-center !gap-2 !cursor-pointer group"
+                    onClick={() => scrollToSection("about")}
+                  >
+                    <IconButton
+                      disableTouchRipple
+                      className="!p-0 !bg-transparent"
+                    >
+                      <BsMouse />
+                    </IconButton>
+                    <Typography>Sroll down</Typography>
+                    <IconButton
+                      disableTouchRipple
+                      className="!p-0 !bg-transparent group-hover:animate-bounce-arrow"
+                    >
+                      <BsArrowDownShort />
+                    </IconButton>
+                  </Box>
+                </Box>
               </Box>
-            </Box>
+            </Typography>
           </Box>
-        </Typography>
+        </Box>
       </Box>
 
       <Box

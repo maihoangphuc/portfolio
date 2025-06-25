@@ -14,7 +14,13 @@ const SwitchTheme = () => {
         borderRadius: 1,
       }}
     >
-      <IconButton size="small" color="inherit" onClick={toggleTheme}>
+      <IconButton
+        className="!bg-transparent !border-none"
+        aria-label="Switch Theme"
+        size="small"
+        color="inherit"
+        onClick={toggleTheme}
+      >
         {mode === Theme.DARK ? (
           <BsSun className="!text-light-text-primary dark:!text-dark-text-primary !text-lg" />
         ) : (

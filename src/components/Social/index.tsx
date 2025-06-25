@@ -5,15 +5,12 @@ const Social = () => {
   return (
     <Box
       sx={{
-        position: "fixed",
-        left: 0,
-        bottom: "35%",
         display: "flex",
         flexDirection: "column",
         gap: 1,
         zIndex: 1000,
       }}
-      className="!pl-4 md:!pl-10 !hidden sm:!flex"
+      className="!hidden md:!flex"
     >
       {socialLinks.map((link: SocialLink, index: number) => {
         const Icon = link.icon;
