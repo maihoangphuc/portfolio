@@ -4,7 +4,7 @@ import Menu from "@/components/Menu";
 import SwitchTheme from "@/components/SwitchTheme";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
-import { Images } from "@/images";
+import { Images } from "@/media/images";
 import { AppBar, Box, Toolbar } from "@mui/material";
 import clsx from "clsx";
 import Image from "next/image";
@@ -49,7 +49,19 @@ const Header = () => {
             className="!flex !items-center"
           >
             <Box className="!relative !size-[22px] sm:!size-[26px] md:!size-[32px]">
-              <Image src={Images.logo} alt="Logo" fill />
+              <Image
+                src={Images.logo}
+                alt="Logo"
+                width={32}
+                height={32}
+                sizes="(max-width: 640px) 24px, (max-width: 768px) 26px, 32px"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
+                quality={90}
+              />
             </Box>
           </Link>
           <Box className="!flex !items-center !gap-4 md:!gap-0">

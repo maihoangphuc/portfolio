@@ -1,15 +1,14 @@
 import "@/app/globals.css";
+import { Theme } from "@/constants";
 import ThemeProviderClient from "@/context/AppThemeContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { ThemeMode } from "@/types/theme";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "animate.css";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Theme } from "@/constants";
-import MainLayout from "@/layouts/MainLayout";
 
 export const metadata: Metadata = {
   title: "MHP",
@@ -33,9 +32,7 @@ export default async function RootLayout({
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProviderClient mode={theme}>
             <InitColorSchemeScript attribute="class" />
-            <ToastProvider>
-              <MainLayout>{children}</MainLayout>
-            </ToastProvider>
+            <ToastProvider>{children}</ToastProvider>
           </ThemeProviderClient>
         </AppRouterCacheProvider>
         <SpeedInsights />

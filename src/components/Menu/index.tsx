@@ -2,7 +2,7 @@
 
 import { useActiveSection } from "@/hooks/useActiveSection";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
-import { Images } from "@/images";
+import { Images } from "@/media/images";
 import { BiMenuAltRight } from "react-icons/bi";
 import { VscClose } from "react-icons/vsc";
 import {

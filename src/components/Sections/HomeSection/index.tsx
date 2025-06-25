@@ -1,6 +1,6 @@
 "use client";
 
-import { Images } from "@/images";
+import { Images } from "@/media/images";
 import { Box, Typography, Button, IconButton } from "@mui/material";
 import { HiArrowLongLeft, HiArrowLongRight } from "react-icons/hi2";
 import clsx from "clsx";

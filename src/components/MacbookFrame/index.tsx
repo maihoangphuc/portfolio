@@ -1,5 +1,7 @@
 "use client";
 
+import { Theme } from "@/constants";
+import { Captions } from "@/media/captions";
 import { Box } from "@mui/material";
 import clsx from "clsx";
 
@@ -22,7 +24,19 @@ const MacbookFrame = ({ videoUrl, className }: MacbookFrameProps) => {
                 muted
                 playsInline
                 className="absolute left-0 top-0 w-full h-full object-cover"
-              />
+              >
+                <track
+                  kind="captions"
+                  src={
+                    videoUrl.includes(Theme.DARK)
+                      ? Captions.dark
+                      : Captions.light
+                  }
+                  srcLang="en"
+                  label="English"
+                  default
+                />
+              </video>
             </Box>
           </Box>
         </Box>

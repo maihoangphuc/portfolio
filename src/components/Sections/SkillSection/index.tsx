@@ -5,7 +5,7 @@ import SectionContainer from "@/components/SectionContainer";
 import SkillTabs from "@/components/SkillTabs";
 import { Theme } from "@/constants";
 import { useThemeContext } from "@/context/AppThemeContext";
-import { Videos } from "@/videos";
+import { Videos } from "@/media/videos";
 import { Box } from "@mui/material";
 
 const SkillSection = () => {
