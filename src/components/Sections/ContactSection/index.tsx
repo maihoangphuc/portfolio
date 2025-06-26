@@ -159,7 +159,7 @@ const ContactSection = () => {
                     className={clsx(
                       "!text-xl !mb-1",
                       isActive
-                        ? "!text-white"
+                        ? "!text-white dark:!text-black"
                         : "!text-light-primary dark:!text-dark-primary"
                     )}
                   />
@@ -167,7 +167,7 @@ const ContactSection = () => {
                     className={clsx(
                       "!text-[15px] !font-medium",
                       isActive
-                        ? "!text-white/90"
+                        ? "!text-white/90 dark:!text-black/90"
                         : "!text-light-primary/90 dark:!text-dark-primary/90"
                     )}
                   >
@@ -177,8 +177,8 @@ const ContactSection = () => {
                     className={clsx(
                       "!text-[13px]",
                       isActive
-                        ? "!text-white/80"
-                        : "!text-light-text-primary/80 dark:!text-dark-text-primary/80"
+                        ? "!text-white/80 dark:!text-black/80"
+                        : "!text-light-primary/80 dark:!text-dark-primary/80"
                     )}
                   >
                     {contact.subtitle}
@@ -321,7 +321,7 @@ const ContactSection = () => {
             disabled={loading}
             className={clsx(
               "!bg-light-primary dark:!bg-dark-primary hover:!bg-light-primary/80 dark:hover:!bg-dark-primary/80",
-              "!text-white",
+              "!text-white dark:!text-black",
               "!font-regular",
               "!w-fit",
               "!rounded-md",

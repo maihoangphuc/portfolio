@@ -53,20 +53,26 @@ const SkillTabs = () => {
           onChange={handleTabChange}
           aria-label="skill tabs"
           sx={{
-            "& .MuiTabs-indicator": {
-              backgroundColor: "var(--color-light-primary)",
-              "@media (prefers-color-scheme: dark)": {
-                backgroundColor: "var(--color-dark-primary)",
-              },
-            },
             "& .MuiTab-root": {
-              color: "text.secondary",
               textTransform: "capitalize",
+              color: "var(--color-light-secondary)",
               "&.Mui-selected": {
                 color: "var(--color-light-primary)",
-                "@media (prefers-color-scheme: dark)": {
+                fontWeight: "bold",
+              },
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: "var(--color-light-primary)",
+            },
+            ".dark &": {
+              "& .MuiTab-root": {
+                "&.Mui-selected": {
                   color: "var(--color-dark-primary)",
+                  fontWeight: "bold",
                 },
+              },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "var(--color-dark-primary)",
               },
             },
           }}
@@ -85,7 +91,7 @@ const SkillTabs = () => {
                 key={skillIndex}
                 label={skill}
                 variant="outlined"
-                className="!bg-light-primary dark:!bg-dark-primary hover:!bg-light-primary/80 dark:hover:!bg-dark-primary/80 !cursor-pointer !text-white !font-semibold !border-none [transition:none]"
+                className="!rounded-md !bg-light-primary dark:!bg-dark-primary hover:!bg-light-primary/80 dark:hover:!bg-dark-primary/80 !cursor-pointer !text-white dark:!text-black !font-semibold !border-none [transition:none]"
                 onClick={() => {}}
                 clickable={false}
               />

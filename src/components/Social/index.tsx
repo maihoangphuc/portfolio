@@ -23,7 +23,7 @@ const Social = () => {
             rel="noopener noreferrer"
             aria-label={link.name}
           >
-            <Icon className="!text-lg !text-light-text-primary dark:!text-dark-text-primary" />
+            <Icon className="!text-lg !text-secondary" />
           </IconButton>
         );
       })}

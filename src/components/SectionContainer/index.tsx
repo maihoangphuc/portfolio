@@ -69,7 +69,7 @@ const SectionContainer = ({
           {titleDescription && (
             <Typography
               variant="subtitle1"
-              className="!text-secondary !font-regular"
+              className="!text-light-secondary dark:!text-dark-secondary !font-regular"
             >
               {titleDescription}
             </Typography>

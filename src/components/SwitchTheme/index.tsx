@@ -17,9 +17,9 @@ const SwitchTheme = () => {
         onClick={toggleTheme}
       >
         {mode === Theme.DARK ? (
-          <BsSun className="!text-light-text-primary dark:!text-dark-text-primary !text-base" />
+          <BsSun className="!text-light-primary dark:!text-dark-primary !text-base" />
         ) : (
-          <BsMoon className="!text-light-text-primary dark:!text-dark-text-primary !text-base" />
+          <BsMoon className="!text-light-primary dark:!text-dark-primary !text-base" />
         )}
       </IconButton>
     </Box>

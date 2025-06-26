@@ -54,7 +54,7 @@ const HomeSection = () => {
             <Typography
               key={currentTextIndex}
               component="span"
-              className="!text-xl md:!text-3xl !text-secondary !font-bold slogan animate__animated animate__fadeInDown"
+              className="!text-xl md:!text-3xl !text-light-secondary dark:!text-dark-secondary !font-bold slogan animate__animated animate__fadeInDown"
             >
               Hi, I&apos;m{" "}
               <Typography
@@ -68,11 +68,11 @@ const HomeSection = () => {
 
             <Typography
               component="div"
-              className="!text-lg !text-secondary !space-y-3 !mt-2 !mx-auto !w-full xs:!w-[90%] lg:!w-[80%] md:!m-0"
+              className="!text-lg !text-light-secondary dark:!text-dark-secondary !space-y-3 !mt-2 !mx-auto !w-full xs:!w-[90%] lg:!w-[80%] md:!m-0"
             >
               <Typography
                 key={currentTextIndex}
-                className="!font-medium !text-secondary animate__animated animate__fadeInUp"
+                className="!font-medium !text-light-primary dark:!text-dark-primary animate__animated animate__fadeInUp"
               >
                 &lt;Frontend developer/&gt;
               </Typography>
@@ -92,7 +92,7 @@ const HomeSection = () => {
                       size="small"
                       variant="text"
                       aria-label="Previous Text"
-                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-light-primary dark:hover:!text-dark-primary !text-secondary !transition-all"
+                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-light-primary dark:hover:!text-dark-primary !text-light-primary dark:!text-dark-primary !transition-all"
                     >
                       <HiArrowLongLeft />
                     </Button>
@@ -101,7 +101,7 @@ const HomeSection = () => {
                       size="small"
                       variant="text"
                       aria-label="Next Text"
-                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-light-primary dark:hover:!text-dark-primary !text-secondary !transition-all"
+                      className="!min-w-0 !w-8 !h-8 !rounded-full !flex !items-center !justify-center !text-2xl hover:!text-light-primary dark:hover:!text-dark-primary !text-light-primary dark:!text-dark-primary !transition-all"
                     >
                       <HiArrowLongRight />
                     </Button>
@@ -115,7 +115,7 @@ const HomeSection = () => {
                       className="!p-0 !bg-transparent"
                       aria-label="Mouse"
                     >
-                      <BsMouse />
+                      <BsMouse className="!text-light-secondary dark:!text-dark-secondary" />
                     </IconButton>
                     <Typography className="!font-medium">Sroll down</Typography>
                     <IconButton
@@ -123,7 +123,7 @@ const HomeSection = () => {
                       className="!p-0 !bg-transparent group-hover:animate-bounce-arrow"
                       aria-label="Scroll Down"
                     >
-                      <BsArrowDownShort />
+                      <BsArrowDownShort className="!text-light-secondary dark:!text-dark-secondary" />
                     </IconButton>
                   </Box>
                 </Box>

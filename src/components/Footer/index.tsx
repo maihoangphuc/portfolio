@@ -14,6 +14,7 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
+import clsx from "clsx";
 
 const Footer = () => {
   const scrollToSection = useScrollToSection();
@@ -32,7 +33,7 @@ const Footer = () => {
       className="!flex !flex-col !min-h-[240px]"
       classChildren="!flex !flex-col !gap-4 !justify-center"
     >
-      <List className="w-full xs:flex-nowrap xs:w-fit !flex !justify-center !items-center xs:!gap-4 !gap-2 p-0 mt-0">
+      <List className="!grid !grid-cols-3 xs:!flex xs:w-fit !justify-center !items-center xs:!gap-4 !gap-2 p-0 mt-0">
         {menuItems.map((item: MenuItem) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
@@ -41,7 +42,7 @@ const Footer = () => {
               disableTouchRipple
               disableGutters
               onClick={handleScroll(item.href)}
-              className="!p-0 !m-0 !bg-transparent !text-light-text-primary dark:!text-dark-text-primary hover:!text-light-primary dark:hover:!text-dark-primary"
+              className="!p-0 !m-0 !bg-transparent !font-medium !text-light-secondary dark:!text-dark-secondary hover:!text-light-primary dark:hover:!text-dark-primary"
             >
               <ListItemText
                 primary={item.text}
@@ -73,7 +74,12 @@ const Footer = () => {
           >
             <link.icon
               size={16}
-              className="!text-light-text-primary dark:!text-dark-text-primary hover:!text-light-primary dark:hover:!text-dark-primary"
+              className={clsx(
+                "!text-light-secondary dark:!text-dark-secondary",
+                link.name === "Linkedin" && "hover:!text-linkedin",
+                link.name === "Email" && "hover:!text-email",
+                link.name === "Github" && "hover:!text-github"
+              )}
             />
           </Link>
         ))}
@@ -84,7 +90,7 @@ const Footer = () => {
       <Typography
         variant="body2"
         align="center"
-        className="!text-light-text-primary dark:!text-dark-text-primary"
+        className="!text-light-secondary dark:!text-dark-secondary !font-medium"
       >
         © 2025 Design by{" "}
         <Link href="#" className=" !no-underline hover:!text-gray-300">

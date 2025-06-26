@@ -9,7 +9,7 @@ interface TimelineItemProps {
 const TimelineItem = ({ year, title, subtitle }: TimelineItemProps) => (
   <Box className="!flex !flex-col md:!flex-row !gap-6 md:!gap-10 !relative !group sm:!items-center md:!items-start !py-6">
     <Box className="!w-full xs:!w-[200px]">
-      <Typography className="!text-secondary !font-medium !text-base md:!text-lg sm:!text-center md:!text-left">
+      <Typography className="!text-light-secondary dark:!text-dark-secondary !font-medium !text-base md:!text-lg sm:!text-center md:!text-left">
         {year}
       </Typography>
     </Box>
@@ -29,7 +29,7 @@ const TimelineItem = ({ year, title, subtitle }: TimelineItemProps) => (
         <Typography className="!text-light-primary dark:!text-dark-primary !font-semibold !text-lg md:!text-xl !mb-2 sm:!text-center md:!text-left">
           {title}
         </Typography>
-        <Typography className="!text-light-text-primary dark:!text-dark-text-primary !italic !text-sm !mb-3 sm:!text-center md:!text-left">
+        <Typography className="!text-light-primary dark:!text-dark-primary !italic !text-sm !mb-3 sm:!text-center md:!text-left">
           {subtitle}
         </Typography>
       </Box>

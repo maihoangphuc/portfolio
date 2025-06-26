@@ -81,10 +81,10 @@ const Menu = ({ className, children }: MenuProps) => {
               disableTouchRipple
               onClick={handleScroll(item.href)}
               className={clsx(
-                "!rounded-lg !p-0 !py-2",
+                "!rounded-lg !p-0 !py-2 !bg-transparent",
                 isActive(item.href)
                   ? "!text-light-primary dark:!text-dark-primary"
-                  : "!text-light-text-primary dark:!text-dark-text-primary hover:!text-light-primary dark:hover:!text-dark-primary"
+                  : "!text-light-secondary/80 dark:!text-dark-secondary/80 hover:!text-light-primary dark:hover:!text-dark-primary"
               )}
               aria-current={isActive(item.href) ? "page" : undefined}
             >
@@ -125,7 +125,7 @@ const Menu = ({ className, children }: MenuProps) => {
                   "!rounded-lg !size-fit !p-0 !bg-transparent",
                   isActive(item.href)
                     ? "!text-light-primary dark:!text-dark-primary"
-                    : "!text-light-text-primary dark:!text-dark-text-primary hover:!text-light-primary dark:hover:!text-dark-primary"
+                    : "!text-light-secondary/80 dark:!text-dark-secondary/80 hover:!text-light-primary dark:hover:!text-dark-primary"
                 )}
                 aria-current={isActive(item.href) ? "page" : undefined}
               >
@@ -153,9 +153,9 @@ const Menu = ({ className, children }: MenuProps) => {
           aria-label="Open menu"
           edge="end"
           onClick={handleDrawerToggle}
-          className="!text-secondary hover:!text-light-primary dark:hover:!text-dark-primary"
+          className="!text-light-secondary dark:!text-dark-secondary hover:!text-light-secondary/80 dark:hover:!text-dark-secondary/80"
         >
-          <BiMenuAltRight className="!text-2xl !text-light-text-primary dark:!text-dark-text-primary" />
+          <BiMenuAltRight className="!text-2xl !text-light-primary dark:!text-dark-primary" />
         </IconButton>
       </Box>
 
@@ -165,9 +165,7 @@ const Menu = ({ className, children }: MenuProps) => {
         variant="temporary"
         open={mobileOpen}
         onClose={handleDrawerToggle}
-        ModalProps={{
-          keepMounted: true,
-        }}
+        ModalProps={{ keepMounted: true }}
         className="!block md:!hidden"
         slotProps={{
           paper: {

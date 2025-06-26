@@ -48,7 +48,7 @@ const Header = () => {
             className="!flex !items-center"
           >
             <Box className="!relative">
-              <Logo className="size-[24px] lg:!size-[26px] md:!size-[30px] !object-contain !text-light-primary dark:!text-dark-primary" />
+              <Logo className="size-[24px] lg:!size-[26px] md:!size-[30px] !object-contain !text-light-primary dark:!text-dark-primary/50" />
             </Box>
           </Link>
           <Box className="!flex !items-center !gap-4 md:!gap-0">

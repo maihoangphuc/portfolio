@@ -2,13 +2,12 @@
 
 import { Project } from "@/types/contact";
 import {
+  Box,
   Card,
   CardContent,
-  Typography,
   Chip,
-  Box,
   IconButton,
-  Stack,
+  Typography,
 } from "@mui/material";
 import { FaGithub } from "react-icons/fa";
 import { FiExternalLink } from "react-icons/fi";
@@ -49,28 +48,23 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
           </Typography>
           <Typography
             variant="body2"
-            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 !text-sm !mb-3 !line-clamp-2"
+            className="!font-medium !text-light-secondary dark:!text-dark-secondary !text-sm !mb-3 !line-clamp-2"
           >
             {project.description}
           </Typography>
 
-          <Stack
-            direction="row"
-            spacing={1}
-            flexWrap="wrap"
-            sx={{ mb: 3, gap: 1 }}
-          >
+          <Box className="!flex !flex-wrap !gap-2">
             {project.technologies.map((tech: string) => (
               <Chip
                 key={tech}
                 label={tech}
                 size="small"
-                className="!bg-blue-50 dark:!bg-light-primary/20 !border-none [transition:none] group-hover:!bg-light-primary/80 dark:group-hover:!bg-dark-primary"
+                className="!rounded-md !bg-light-primary dark:!bg-dark-primary hover:!bg-light-primary/80 dark:hover:!bg-dark-primary/80 !cursor-pointer !text-white dark:!text-black !font-semibold !border-none [transition:none]"
                 onClick={() => {}}
                 clickable={false}
               />
             ))}
-          </Stack>
+          </Box>
         </div>
         <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
           <IconButton
@@ -79,7 +73,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 hover:!text-light-primary dark:hover:!text-dark-primary"
+            className="!text-light-primary/90 dark:!text-dark-primary/90 hover:!text-light-primary dark:hover:!text-dark-primary"
           >
             <FaGithub size={20} />
           </IconButton>
@@ -89,7 +83,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Live Demo"
-            className="!text-light-text-primary/90 dark:!text-dark-text-primary/90 hover:!text-light-primary dark:hover:!text-dark-primary"
+            className="!text-light-primary/90 dark:!text-dark-primary/90 hover:!text-light-primary dark:hover:!text-dark-primary"
           >
             <FiExternalLink size={20} />
           </IconButton>
