@@ -46,6 +46,7 @@ const Header = () => {
             href="#home"
             onClick={handleClick}
             className="!flex !items-center"
+            aria-label="Go to home section"
           >
             <Box className="!relative">
               <Logo className="size-[24px] lg:!size-[26px] md:!size-[30px] !object-contain !text-light-primary dark:!text-dark-primary/50" />
