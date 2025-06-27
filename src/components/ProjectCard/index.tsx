@@ -19,7 +19,7 @@ interface ProjectCardProps {
 const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
     <Card
-      className="group !rounded-md !w-full h-full"
+      className="keen-slider__slide group !rounded-md !w-full !h-full xs:!min-h-[250px] !max-w-none"
       sx={{
         backgroundColor: "transparent",
         backgroundImage: "none",
@@ -36,8 +36,8 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         flexDirection: "column",
       }}
     >
-      <CardContent className="!p-4 flex flex-col flex-1">
-        <div className="flex-1">
+      <CardContent className="!p-4 !flex !flex-col !flex-1">
+        <div className="!flex-1">
           <Typography
             variant="h6"
             component="div"

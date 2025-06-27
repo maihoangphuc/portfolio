@@ -33,7 +33,7 @@ const Footer = () => {
       className="!flex !flex-col !min-h-[240px]"
       classChildren="!flex !flex-col !gap-4 !justify-center"
     >
-      <List className="!grid !grid-cols-3 xs:!flex xs:w-fit !justify-center !items-center xs:!gap-4 !gap-2 p-0 mt-0">
+      <List className="!grid !grid-cols-3 xs:!flex xs:w-fit !justify-center !items-center xs:!gap-4 !gap-y-2 !gap-x-8 p-0 mt-0">
         {menuItems.map((item: MenuItem) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
@@ -51,10 +51,7 @@ const Footer = () => {
                   "& .MuiTypography-root": {
                     fontWeight: "medium",
                     textTransform: "capitalize",
-                    fontSize: {
-                      xs: "14px",
-                      md: "16px",
-                    },
+                    fontSize: "16px",
                   },
                 }}
               />

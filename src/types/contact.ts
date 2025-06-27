@@ -12,3 +12,9 @@ export type Contact = {
   href: string;
   isPrimary: boolean;
 };
+
+export type FormContact = {
+  name: string;
+  email: string;
+  message: string;
+};

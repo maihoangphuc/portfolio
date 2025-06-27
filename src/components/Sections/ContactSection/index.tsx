@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/context/ToastContext";
 import { validateField } from "@/utils/validation";
-import { FormContact } from "@/types/project";
+import { FormContact } from "@/types/contact";
 import { contacts } from "@/mockdata";
 
 const ContactSection = () => {

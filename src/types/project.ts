@@ -6,9 +6,3 @@ export type Project = {
   githubUrl: string;
   demoUrl: string;
 };
-
-export type FormContact = {
-  name: string;
-  email: string;
-  message: string;
-};

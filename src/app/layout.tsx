@@ -1,16 +1,15 @@
-import "@/app/globals.css";
 import "@/app/animations.css";
+import "@/app/globals.css";
+import "keen-slider/keen-slider.min.css";
 import "animate.css";
 import { Theme } from "@/constants";
-import ThemeProviderClient from "@/context/AppThemeContext";
-import { ToastProvider } from "@/context/ToastContext";
+import AppProviderClient from "@/context/AppContext";
 import { ThemeMode } from "@/types/theme";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Quicksand } from "next/font/google";
+import { cookies } from "next/headers";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -52,10 +51,7 @@ export default async function RootLayout({
       </head>
       <body>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          <ThemeProviderClient mode={theme}>
-            <InitColorSchemeScript attribute="class" />
-            <ToastProvider>{children}</ToastProvider>
-          </ThemeProviderClient>
+          <AppProviderClient themeInit={theme}>{children}</AppProviderClient>
         </AppRouterCacheProvider>
         <SpeedInsights />
       </body>

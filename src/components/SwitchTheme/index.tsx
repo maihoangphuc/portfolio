@@ -1,12 +1,12 @@
 "use client";
 
 import { Theme } from "@/constants";
-import { useThemeContext } from "@/context/AppThemeContext";
+import { useAppContext } from "@/context/AppContext";
 import { Box, IconButton } from "@mui/material";
 import { BsMoon, BsSun } from "react-icons/bs";
 
 const SwitchTheme = () => {
-  const { mode, toggleTheme } = useThemeContext();
+  const { theme, toggleTheme } = useAppContext();
 
   return (
     <Box className="!rounded-full">
@@ -16,7 +16,7 @@ const SwitchTheme = () => {
         aria-label="Switch Theme"
         onClick={toggleTheme}
       >
-        {mode === Theme.DARK ? (
+        {theme === Theme.DARK ? (
           <BsSun className="!text-light-primary dark:!text-dark-primary !text-base" />
         ) : (
           <BsMoon className="!text-light-primary dark:!text-dark-primary !text-base" />
