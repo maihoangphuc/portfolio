@@ -1,13 +1,3 @@
-export type Project = {
-  id: number;
-  name: string;
-  description: string;
-  technologies: string[];
-  githubUrl: string;
-  demoUrl: string;
-  image?: string;
-};
-
 export type SocialLink = {
   icon: React.ElementType;
   href: string;

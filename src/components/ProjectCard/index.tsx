@@ -1,6 +1,6 @@
 "use client";
 
-import { Project } from "@/types/contact";
+import { Project } from "@/types/project";
 import {
   Box,
   Card,

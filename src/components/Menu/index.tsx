@@ -18,6 +18,7 @@ import { useState } from "react";
 import { BiMenuAltRight } from "react-icons/bi";
 import { VscClose } from "react-icons/vsc";
 import Logo from "@/components/Icons/Logo";
+import UnderlineIcon from "@/components/Icons/UnderlineIcon";
 
 interface MenuProps {
   className?: string;
@@ -26,6 +27,7 @@ interface MenuProps {
 
 const Menu = ({ className, children }: MenuProps) => {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const activeSection = useActiveSection();
   const scrollToSection = useScrollToSection();
 
@@ -116,30 +118,39 @@ const Menu = ({ className, children }: MenuProps) => {
         <List className="!flex !gap-7 !p-0">
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding>
-              <ListItemButton
-                component="a"
-                disableTouchRipple
-                href={item.href}
-                onClick={handleScroll(item.href)}
-                className={clsx(
-                  "!rounded-lg !size-fit !p-0 !bg-transparent",
-                  isActive(item.href)
-                    ? "!text-light-primary dark:!text-dark-primary"
-                    : "!text-light-secondary/80 dark:!text-dark-secondary/80 hover:!text-light-primary dark:hover:!text-dark-primary"
+              <Box className="!relative">
+                <ListItemButton
+                  component="a"
+                  disableTouchRipple
+                  href={item.href}
+                  onClick={handleScroll(item.href)}
+                  onMouseEnter={() => setHoveredItem(item.text)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  className={clsx(
+                    "!rounded-lg !size-fit !p-0 !bg-transparent",
+                    isActive(item.href)
+                      ? "!text-light-primary dark:!text-dark-primary"
+                      : "!text-light-secondary/80 dark:!text-dark-secondary/80 hover:!text-light-primary dark:hover:!text-dark-primary"
+                  )}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                >
+                  <ListItemText
+                    primary={item.text}
+                    sx={{
+                      "& .MuiTypography-root": {
+                        fontWeight: "bold",
+                        textTransform: "capitalize",
+                        fontSize: "16px",
+                      },
+                    }}
+                  />
+                </ListItemButton>
+                {(hoveredItem === item.text || isActive(item.href)) && (
+                  <Box className="!absolute !-bottom-1 !left-0">
+                    <UnderlineIcon className="!text-light-primary dark:!text-dark-primary" />
+                  </Box>
                 )}
-                aria-current={isActive(item.href) ? "page" : undefined}
-              >
-                <ListItemText
-                  primary={item.text}
-                  sx={{
-                    "& .MuiTypography-root": {
-                      fontWeight: "bold",
-                      textTransform: "capitalize",
-                      fontSize: "16px",
-                    },
-                  }}
-                />
-              </ListItemButton>
+              </Box>
             </ListItem>
           ))}
         </List>

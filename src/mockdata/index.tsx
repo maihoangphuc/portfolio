@@ -1,7 +1,8 @@
 import { Timeline } from "@/types/about";
-import { Contact, Project, SocialLink } from "@/types/contact";
+import { Contact, SocialLink } from "@/types/contact";
 import { MenuItem } from "@/types/home";
 import { SkillTab } from "@/types/skill";
+import { Project } from "@/types/project";
 import {
   FiLinkedin,
   FiMail,
