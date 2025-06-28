@@ -71,9 +71,9 @@ const TimelineItem = ({
     <motion.div
       className={`flex items-center relative ${
         index % 2 === 0 ? "flex-row" : "flex-row-reverse"
-      } mb-20`}
+      }`}
       style={{
-        top: `${(index * 100) / timelineData.length}%`,
+        marginTop: index === 0 ? "0" : "100px",
       }}
     >
       {/* Content */}
@@ -176,8 +176,8 @@ const AnimatedTimeline = () => {
           zIndex: 0,
           opacity: progress,
           transition: "opacity 0.3s ease-in-out",
-          top: "80px",
-          height: "calc(100% - 160px)",
+          top: "50px",
+          height: "calc(100% - 100px)",
         }}
       />
 
@@ -185,8 +185,8 @@ const AnimatedTimeline = () => {
       <motion.div
         className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-blue-500 origin-top"
         style={{
-          top: "80px",
-          height: "calc(100% - 160px)",
+          top: "50px",
+          height: "calc(100% - 100px)",
           scaleY,
           zIndex: 1,
         }}
