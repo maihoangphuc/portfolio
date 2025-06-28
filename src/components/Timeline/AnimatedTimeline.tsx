@@ -49,13 +49,16 @@ const TimelineItem = ({
 }) => {
   // Calculate visibility based on scroll position
   const itemPosition = (index + 0.5) / timelineData.length;
+  const fadeStart = itemPosition - 0.1;
+  const fadeProgress = (progress - fadeStart) / 0.1;
+  const visibility = Math.min(Math.max(fadeProgress, 0), 1);
 
-  // Calculate fade effect
-  const fadeStart = itemPosition - 0.1; // Start fading in slightly before the dot
-  const fadeProgress = (progress - fadeStart) / 0.1; // Fade over 10% of the scroll
-  const visibility = Math.min(Math.max(fadeProgress, 0), 1); // Clamp between 0 and 1
+  // Calculate line progress
+  const lineStart = itemPosition;
+  const lineProgress = (progress - lineStart) / (1 / timelineData.length);
+  const lineVisibility = Math.min(Math.max(lineProgress, 0), 1);
 
-  // Calculate position for content
+  const isLastItem = index === timelineData.length - 1;
   const x = index % 2 === 0 ? -20 : 20;
   const translateX = x * (1 - visibility);
 
@@ -66,22 +69,11 @@ const TimelineItem = ({
         flex-col items-center
       `}
       style={{
-        marginBottom: "60px",
+        marginBottom: isLastItem ? "0" : "60px",
       }}
     >
       {/* Mobile timeline container */}
       <div className="md:hidden w-full flex flex-col items-center relative">
-        {/* Vertical line for mobile */}
-        <motion.div
-          className="absolute w-0.5 bg-gray-300 dark:bg-gray-600"
-          style={{
-            top: "0",
-            height: "100%",
-            opacity: visibility,
-            zIndex: 0,
-          }}
-        />
-
         {/* Year for mobile */}
         <motion.div
           className="bg-white dark:bg-gray-900 relative z-10 mb-4"
@@ -132,6 +124,31 @@ const TimelineItem = ({
             </Typography>
           </Box>
         </motion.div>
+
+        {/* Progress line after content - hide for last item */}
+        {!isLastItem && (
+          <div
+            className="absolute w-0.5 bottom-[-60px] z-0 h-16"
+            style={{ backgroundColor: "#1e293b" }}
+          >
+            <motion.div
+              className="absolute w-full bg-blue-500"
+              style={{
+                height: `${lineVisibility * 100}%`,
+                top: 0,
+                originY: 0,
+              }}
+              initial={{ scaleY: 0 }}
+              animate={{
+                scaleY: lineVisibility,
+                transition: {
+                  duration: 0.5,
+                  ease: "easeOut",
+                },
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Desktop layout */}
@@ -232,9 +249,9 @@ const AnimatedTimeline = () => {
 
   return (
     <Box ref={containerRef} className="relative min-h-[800px] py-8">
-      {/* Background line */}
+      {/* Remove the mobile line from here since we're handling it per item */}
       <motion.div
-        className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gray-200 dark:bg-gray-700"
+        className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gray-200 dark:bg-gray-700 hidden md:block"
         style={{
           zIndex: 0,
           opacity: progress,
@@ -243,9 +260,9 @@ const AnimatedTimeline = () => {
         }}
       />
 
-      {/* Animated progress line */}
+      {/* Animated progress line (desktop only) */}
       <motion.div
-        className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-blue-500 origin-top"
+        className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-blue-500 origin-top hidden md:block"
         style={{
           top: "32px",
           height: "calc(100% - 64px)",
