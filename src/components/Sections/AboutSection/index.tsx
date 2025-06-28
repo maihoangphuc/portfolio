@@ -1,20 +1,24 @@
 "use client";
 
-import TimelineItem from "@/components/TimelineItem";
 import SectionContainer from "@/components/SectionContainer";
-import { Box } from "@mui/material";
+import TimelineItem from "@/components/TimelineItem";
 import { timelines } from "@/mockdata";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { Box } from "@mui/material";
+import { motion, useScroll, useSpring } from "framer-motion";
 import { useRef } from "react";
 
 const AboutSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "end start"],
+    offset: ["start center", "end center"],
   });
 
-  const lineHeight = useTransform(scrollYProgress, [0, 0.8], ["0%", "100%"]);
+  const scaleY = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+  });
 
   return (
     <SectionContainer
@@ -23,29 +27,41 @@ const AboutSection = () => {
       title="About"
       showWave={{ top: true, bottom: true }}
       className="!flex !flex-col !min-h-[600px]"
-      classChildren="!py-12"
+      classChildren="!py-16"
     >
-      <Box ref={containerRef} className="!relative">
-        {/* Main Timeline Line */}
-        <Box className="!hidden md:!block !absolute !left-[200px] !w-[2px] !-translate-x-1/2 !top-[13px] !bottom-[13px] !bg-light-primary/20 dark:!bg-dark-primary/20">
-          <motion.div
-            className="!absolute !top-0 !left-0 !right-0 !bg-light-primary dark:!bg-dark-primary"
-            style={{ height: lineHeight }}
-          />
-        </Box>
+      <Box className="!w-full !max-w-5xl !mx-auto !relative !mt-12">
+        {/* Main timeline line */}
+        <Box className="absolute left-[188px] w-[1px] h-[calc(100%-2rem)] bg-gradient-to-b from-gray-700/30 via-gray-700/50 to-gray-700/30" />
 
-        {/* Timeline Items */}
-        <Box>
-          {timelines.map((timeline, index) => (
-            <TimelineItem
-              key={index}
-              {...timeline}
-              isFirst={index === 0}
-              isLast={index === timelines.length - 1}
-              scrollYProgress={scrollYProgress}
-            />
-          ))}
-        </Box>
+        {/* Progress timeline line */}
+        <motion.div
+          style={{
+            scaleY,
+            originY: 0,
+          }}
+          className="!absolute !left-[188px] !w-[1px] !h-[calc(100%-2rem)] !bg-gradient-to-b !from-blue-500/50 !via-blue-500 !to-blue-500/50"
+        />
+
+        <motion.div
+          ref={containerRef}
+          className="!space-y-2 !relative !py-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {timelines.map((timeline, index) => {
+            return (
+              <TimelineItem
+                key={index}
+                data={timeline}
+                isLast={index === timelines.length - 1}
+                scrollYProgress={scrollYProgress}
+                index={index}
+                total={timelines.length}
+              />
+            );
+          })}
+        </motion.div>
       </Box>
     </SectionContainer>
   );

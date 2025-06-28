@@ -1,7 +1,5 @@
 export type Timeline = {
-  year: string;
   title: string;
+  year: string;
   subtitle: string;
-  isFirst?: boolean;
-  isLast?: boolean;
 };

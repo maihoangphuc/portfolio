@@ -1,70 +1,83 @@
-"use client";
-
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { motion, MotionValue, useTransform } from "framer-motion";
+import { Timeline } from "@/types/about";
 
 interface TimelineItemProps {
-  year: string;
-  title: string;
-  subtitle: string;
-  isFirst?: boolean;
+  data: Timeline;
   isLast?: boolean;
   scrollYProgress: MotionValue<number>;
+  index: number;
+  total: number;
 }
 
 const TimelineItem = ({
-  year,
-  title,
-  subtitle,
+  data,
+  isLast = false,
   scrollYProgress,
+  index,
+  total,
 }: TimelineItemProps) => {
-  const contentOpacity = useTransform(scrollYProgress, (value) =>
-    value > 0.2 ? 1 : 0
+  const threshold = index / total;
+
+  const opacity = useTransform(
+    scrollYProgress,
+    [threshold - 0.15, threshold, threshold + 0.15],
+    [0, 1, 1]
   );
-  const contentY = useTransform(scrollYProgress, (value) =>
-    value > 0.2 ? 0 : 50
-  );
-  const dotScale = useTransform(scrollYProgress, (value) =>
-    value > 0.2 ? 1 : 0
+
+  const yPos = useTransform(
+    scrollYProgress,
+    [threshold - 0.15, threshold],
+    [50, 0]
   );
 
   return (
-    <Box className="!flex !flex-col md:!flex-row !gap-6 md:!gap-10 !relative !group sm:!items-center md:!items-start !py-8">
-      {/* Year */}
-      <motion.div
-        className="!w-full xs:!w-[200px]"
-        style={{ opacity: contentOpacity, y: contentY }}
-      >
-        <Typography className="!text-light-secondary dark:!text-dark-secondary !font-medium !text-base md:!text-lg sm:!text-center md:!text-left">
-          {year}
-        </Typography>
-      </motion.div>
+    <motion.div
+      style={{ opacity, y: yPos }}
+      className="!flex !items-start !gap-8 !w-full !group !relative"
+    >
+      {/* Year on the left */}
+      <Box className="!w-[180px] !text-right !pt-1">
+        <motion.p className="!text-sm !font-medium !text-gray-400 !tracking-wide !font-mono !group-hover:!text-blue-400 !transition-all !duration-300">
+          {data.year}
+        </motion.p>
+      </Box>
 
-      {/* Content */}
-      <Box className="!flex !flex-col !relative sm:!items-center md:!items-start">
-        {/* Dot */}
+      {/* Timeline dot and line */}
+      <Box className="!relative !flex !flex-col !items-center !min-h-[80px]">
         <motion.div
-          className="!hidden md:!block !absolute !left-0 !top-[13px] !-translate-x-1/2 !w-3 !h-3 !rounded-full !bg-light-primary dark:!bg-dark-primary !z-10 !transition-all !duration-300
-          !before:absolute !before:w-5 !before:h-5 !before:-left-1 !before:-top-1 !before:rounded-full !before:bg-gradient-to-r !before:from-emerald-300/40 !before:to-emerald-500/40
-          !after:absolute !after:w-4 !after:h-4 !after:rounded-full !after:-left-0.5 !after:-top-0.5 !after:bg-gradient-to-r !after:from-emerald-300/60 !after:to-emerald-500/60
-          !group-hover:scale-110 !group-hover:bg-emerald-300"
-          style={{ scale: dotScale }}
+          className="!w-4 !h-4 !rounded-full !border-2 !border-blue-500 !bg-background !group-hover:!bg-blue-500 !transition-all !duration-300 !absolute !-translate-x-[8px]"
+          style={{
+            scale: useTransform(
+              scrollYProgress,
+              [threshold - 0.15, threshold],
+              [0.5, 1]
+            ),
+          }}
         />
+      </Box>
 
-        {/* Title + Subtitle */}
+      {/* Content on the right */}
+      <Box className={`!flex-1 ${!isLast ? "!pb-8" : ""}`}>
         <motion.div
-          className="md:!pl-8 !flex !flex-col sm:!items-center md:!items-start"
-          style={{ opacity: contentOpacity, y: contentY }}
+          className="!p-4 !rounded-lg !bg-gray-900/30 !backdrop-blur-sm !border !border-gray-800/50 !transform-gpu !transition-all !duration-300 !hover:!border-blue-500/30 !hover:!bg-gray-900/50"
+          style={{
+            x: useTransform(
+              scrollYProgress,
+              [threshold - 0.15, threshold],
+              [30, 0]
+            ),
+          }}
         >
-          <Typography className="!text-light-primary dark:!text-dark-primary !font-semibold !text-lg md:!text-xl !mb-2 sm:!text-center md:!text-left">
-            {title}
-          </Typography>
-          <Typography className="!text-light-primary dark:!text-dark-primary !italic !text-sm !mb-3 sm:!text-center md:!text-left">
-            {subtitle}
-          </Typography>
+          <motion.h3 className="!text-lg !font-semibold !text-gray-100 !mb-1 !group-hover:!text-blue-400 !transition-colors !duration-300">
+            {data.title}
+          </motion.h3>
+          <motion.p className="!text-sm !text-gray-400 !font-medium">
+            {data.subtitle}
+          </motion.p>
         </motion.div>
       </Box>
-    </Box>
+    </motion.div>
   );
 };
 

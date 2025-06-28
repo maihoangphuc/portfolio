@@ -1,12 +1,12 @@
 import { Timeline } from "@/types/about";
 import { Contact, SocialLink } from "@/types/contact";
 import { MenuItem } from "@/types/home";
-import { SkillTab } from "@/types/skill";
 import { Project } from "@/types/project";
+import { SkillTab } from "@/types/skill";
 import {
+  FiGithub,
   FiLinkedin,
   FiMail,
-  FiGithub,
   FiMessageSquare,
   FiPhone,
 } from "react-icons/fi";
