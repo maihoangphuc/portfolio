@@ -42,12 +42,25 @@ const TimelineItem = ({
   index: number;
   progress: number;
 }) => {
-  const opacity = Math.max(
-    0,
-    Math.min(1, progress * timelineData.length - index)
-  );
+  // Calculate thresholds for this item
+  const itemThreshold = (index + 1) / (timelineData.length + 1);
+  const prevThreshold = index / (timelineData.length + 1);
+
+  // Calculate if the progress has reached this item
+  const hasReached = progress >= itemThreshold;
+  const isApproaching = progress > prevThreshold && progress <= itemThreshold;
+
+  // Calculate the progress within this item's section
+  const sectionProgress = isApproaching
+    ? (progress - prevThreshold) / (itemThreshold - prevThreshold)
+    : hasReached
+    ? 1
+    : 0;
+
+  // Calculate content opacity and position based on dot visibility
+  const contentOpacity = sectionProgress;
   const x = index % 2 === 0 ? -50 : 50;
-  const translateX = x * (1 - opacity);
+  const translateX = x * (1 - contentOpacity);
 
   return (
     <motion.div
@@ -56,15 +69,23 @@ const TimelineItem = ({
       }`}
       style={{
         top: `${(index * 100) / (timelineData.length + 1)}%`,
-        opacity,
       }}
     >
       {/* Content */}
       <motion.div
         style={{
           x: translateX,
+          opacity: contentOpacity,
         }}
-        className="w-5/12"
+        className="w-[45%]"
+        initial={{ opacity: 0, x: translateX }}
+        animate={{
+          opacity: contentOpacity,
+          x: translateX,
+          transition: {
+            duration: 0.5,
+          },
+        }}
       >
         <Box className={`p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg`}>
           <Typography variant="h6" className="text-xl font-bold mb-2">
@@ -84,9 +105,15 @@ const TimelineItem = ({
 
       {/* Dot */}
       <motion.div
-        className="w-2/12 flex justify-center"
-        style={{
-          scale: opacity,
+        className="w-[10%] flex items-center justify-center"
+        initial={{ scale: 0 }}
+        animate={{
+          scale: sectionProgress,
+          transition: {
+            type: "spring",
+            stiffness: 200,
+            damping: 20,
+          },
         }}
       >
         <Box
@@ -96,7 +123,7 @@ const TimelineItem = ({
       </motion.div>
 
       {/* Empty space for zigzag effect */}
-      <Box className="w-5/12" />
+      <Box className="w-[45%]" />
     </motion.div>
   );
 };
