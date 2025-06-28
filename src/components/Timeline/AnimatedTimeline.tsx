@@ -1,8 +1,13 @@
 "use client";
 
-import { motion, useScroll, useSpring } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useSpring,
+  useMotionValueEvent,
+} from "framer-motion";
 import { Box, Typography } from "@mui/material";
-import { useRef, useEffect } from "react";
+import { useRef, useState } from "react";
 
 interface TimelineItem {
   year: string;
@@ -28,8 +33,78 @@ const timelineData: TimelineItem[] = [
   },
 ];
 
+const TimelineItem = ({
+  item,
+  index,
+  progress,
+}: {
+  item: TimelineItem;
+  index: number;
+  progress: number;
+}) => {
+  const opacity = Math.max(
+    0,
+    Math.min(1, progress * timelineData.length - index)
+  );
+  const x = index % 2 === 0 ? -50 : 50;
+  const translateX = x * (1 - opacity);
+
+  return (
+    <motion.div
+      className={`flex items-center mb-16 relative ${
+        index % 2 === 0 ? "flex-row" : "flex-row-reverse"
+      }`}
+      style={{
+        top: `${(index * 100) / (timelineData.length + 1)}%`,
+        opacity,
+      }}
+    >
+      {/* Content */}
+      <motion.div
+        style={{
+          x: translateX,
+        }}
+        className="w-5/12"
+      >
+        <Box className={`p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg`}>
+          <Typography variant="h6" className="text-xl font-bold mb-2">
+            {item.year}
+          </Typography>
+          <Typography variant="h5" className="font-semibold mb-2">
+            {item.title}
+          </Typography>
+          <Typography
+            variant="body1"
+            className="text-gray-600 dark:text-gray-300"
+          >
+            {item.description}
+          </Typography>
+        </Box>
+      </motion.div>
+
+      {/* Dot */}
+      <motion.div
+        className="w-2/12 flex justify-center"
+        style={{
+          scale: opacity,
+        }}
+      >
+        <Box
+          className="w-5 h-5 rounded-full bg-blue-500 relative"
+          style={{ zIndex: 2 }}
+        />
+      </motion.div>
+
+      {/* Empty space for zigzag effect */}
+      <Box className="w-5/12" />
+    </motion.div>
+  );
+};
+
 const AnimatedTimeline = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start center", "end center"],
@@ -42,14 +117,9 @@ const AnimatedTimeline = () => {
     restDelta: 0.001,
   });
 
-  useEffect(() => {
-    // Subscribe to scroll progress changes
-    const unsubscribe = scrollYProgress.on("change", (latest) => {
-      console.log("Scroll progress:", latest);
-    });
-
-    return () => unsubscribe();
-  }, [scrollYProgress]);
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setProgress(latest);
+  });
 
   return (
     <Box ref={containerRef} className="relative min-h-[800px] py-10">
@@ -71,55 +141,12 @@ const AnimatedTimeline = () => {
 
       {/* Timeline items */}
       {timelineData.map((item, index) => (
-        <Box
+        <TimelineItem
           key={item.year}
-          className={`flex items-center mb-16 relative ${
-            index % 2 === 0 ? "flex-row" : "flex-row-reverse"
-          }`}
-        >
-          {/* Content */}
-          <motion.div
-            initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.2 }}
-            className="w-5/12"
-          >
-            <Box
-              className={`p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg`}
-            >
-              <Typography variant="h6" className="text-xl font-bold mb-2">
-                {item.year}
-              </Typography>
-              <Typography variant="h5" className="font-semibold mb-2">
-                {item.title}
-              </Typography>
-              <Typography
-                variant="body1"
-                className="text-gray-600 dark:text-gray-300"
-              >
-                {item.description}
-              </Typography>
-            </Box>
-          </motion.div>
-
-          {/* Dot */}
-          <motion.div
-            initial={{ scale: 0 }}
-            whileInView={{ scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.2 }}
-            className="w-2/12 flex justify-center"
-          >
-            <Box
-              className="w-5 h-5 rounded-full bg-blue-500 relative"
-              style={{ zIndex: 2 }}
-            />
-          </motion.div>
-
-          {/* Empty space for zigzag effect */}
-          <Box className="w-5/12" />
-        </Box>
+          item={item}
+          index={index}
+          progress={progress}
+        />
       ))}
     </Box>
   );
