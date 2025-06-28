@@ -1,7 +1,7 @@
 "use client";
 
 import { skillTabs } from "@/mockdata";
-import { SkillTab } from "@/types/skill";
+import { SkillTabType } from "@/types/skill";
 import { Box, Chip } from "@mui/material";
 import dynamic from "next/dynamic";
 import { useState } from "react";
@@ -77,13 +77,13 @@ const SkillTabs = () => {
             },
           }}
         >
-          {skillTabs.map((tab: SkillTab, index: number) => (
+          {skillTabs.map((tab: SkillTabType, index: number) => (
             <Tab key={index} label={tab.label} disableRipple />
           ))}
         </Tabs>
       </Box>
 
-      {skillTabs.map((tab: SkillTab, index: number) => (
+      {skillTabs.map((tab: SkillTabType, index: number) => (
         <TabPanel key={index} value={tabValue} index={index}>
           <Box className="!flex !flex-wrap !gap-2">
             {tab.skills.map((skill, skillIndex) => (

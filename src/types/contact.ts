@@ -1,11 +1,11 @@
-export type SocialLink = {
+export type SocialLinkType = {
   icon: React.ElementType;
   href: string;
   target?: string;
   name: string;
 };
 
-export type Contact = {
+export type ContactType = {
   icon: React.ElementType;
   title: string;
   subtitle: string;
@@ -13,7 +13,7 @@ export type Contact = {
   isPrimary: boolean;
 };
 
-export type FormContact = {
+export type FormContactType = {
   name: string;
   email: string;
   message: string;

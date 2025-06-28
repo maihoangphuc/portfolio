@@ -4,7 +4,7 @@ import "keen-slider/keen-slider.min.css";
 import "animate.css";
 import { Theme } from "@/constants";
 import AppProviderClient from "@/context/AppContext";
-import { ThemeMode } from "@/types/theme";
+import { ThemeModeType } from "@/types/theme";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
@@ -32,7 +32,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const theme =
-    ((await cookies()).get("theme")?.value as ThemeMode) || Theme.DARK;
+    ((await cookies()).get("theme")?.value as ThemeModeType) || Theme.DARK;
 
   return (
     <html

@@ -1,7 +1,7 @@
 "use client";
 
 import { getAppTheme } from "@/theme/getTheme";
-import { ThemeMode } from "@/types/theme";
+import { ThemeModeType } from "@/types/theme";
 import {
   CssBaseline,
   InitColorSchemeScript,
@@ -12,7 +12,7 @@ import { useThemeMode } from "@/hooks/useThemeMode";
 import { ToastProvider } from "@/context/ToastContext";
 
 interface AppContextProps {
-  theme: ThemeMode;
+  theme: ThemeModeType;
   toggleTheme: () => void;
 }
 
@@ -30,7 +30,7 @@ export default function AppProviderClient({
   themeInit,
 }: {
   children: React.ReactNode;
-  themeInit: ThemeMode;
+  themeInit: ThemeModeType;
 }) {
   const { theme, toggleTheme } = useThemeMode(themeInit);
   const muiTheme = getAppTheme(theme);

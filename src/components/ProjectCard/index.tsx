@@ -1,6 +1,6 @@
 "use client";
 
-import { Project } from "@/types/project";
+import { ProjectType } from "@/types/project";
 import {
   Box,
   Card,
@@ -13,7 +13,7 @@ import { FaGithub } from "react-icons/fa";
 import { FiExternalLink } from "react-icons/fi";
 
 interface ProjectCardProps {
-  project: Project;
+  project: ProjectType;
 }
 
 const ProjectCard = ({ project }: ProjectCardProps) => {

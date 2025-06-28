@@ -3,7 +3,7 @@
 import { useActiveSection } from "@/hooks/useActiveSection";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
 import { menuItems } from "@/mockdata";
-import { MenuItem } from "@/types/home";
+import { MenuItemType } from "@/types/home";
 import {
   Box,
   Drawer,
@@ -75,7 +75,7 @@ const Menu = ({ className, children }: MenuProps) => {
       </Box>
 
       <List>
-        {menuItems.map((item: MenuItem) => (
+        {menuItems.map((item: MenuItemType) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               component="a"

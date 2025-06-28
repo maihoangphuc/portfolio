@@ -1,8 +1,8 @@
-import { Timeline } from "@/types/about";
-import { Contact, SocialLink } from "@/types/contact";
-import { MenuItem } from "@/types/home";
-import { Project } from "@/types/project";
-import { SkillTab } from "@/types/skill";
+import { TimelineType } from "@/types/about";
+import { ContactType, SocialLinkType } from "@/types/contact";
+import { MenuItemType } from "@/types/home";
+import { ProjectType } from "@/types/project";
+import { SkillTabType } from "@/types/skill";
 import {
   FiGithub,
   FiLinkedin,
@@ -11,7 +11,7 @@ import {
   FiPhone,
 } from "react-icons/fi";
 
-export const menuItems: MenuItem[] = [
+export const menuItems: MenuItemType[] = [
   { text: "Home", href: "#home" },
   { text: "About", href: "#about" },
   { text: "Skill", href: "#skill" },
@@ -19,7 +19,7 @@ export const menuItems: MenuItem[] = [
   { text: "Contact", href: "#contact" },
 ];
 
-export const socialLinks: SocialLink[] = [
+export const socialLinks: SocialLinkType[] = [
   {
     icon: FiLinkedin,
     href: "https://www.linkedin.com/in/maihoangphuc",
@@ -39,7 +39,7 @@ export const socialLinks: SocialLink[] = [
   },
 ];
 
-export const contacts: Contact[] = [
+export const contacts: ContactType[] = [
   {
     icon: FiMail,
     title: "Email",
@@ -63,7 +63,7 @@ export const contacts: Contact[] = [
   },
 ];
 
-export const timelines: Timeline[] = [
+export const timelines: TimelineType[] = [
   {
     year: "Apr 2024 - Jun 2025",
     title: "IES Company",
@@ -86,7 +86,7 @@ export const timelines: Timeline[] = [
   },
 ];
 
-export const skillTabs: SkillTab[] = [
+export const skillTabs: SkillTabType[] = [
   {
     label: "Frontend",
     skills: [
@@ -117,7 +117,7 @@ export const introTexts: string[] = [
   "With passion for creating beautiful and user-friendly interfaces, I strive to deliver the best web experiences",
 ];
 
-export const projects: Project[] = [
+export const projects: ProjectType[] = [
   {
     id: 1,
     name: "Weather App",

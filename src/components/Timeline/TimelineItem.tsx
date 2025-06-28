@@ -1,64 +1,29 @@
-"use client";
-
-import {
-  motion,
-  useScroll,
-  useSpring,
-  useMotionValueEvent,
-} from "framer-motion";
+import { motion } from "framer-motion";
 import { Box, Typography } from "@mui/material";
-import { useRef, useState } from "react";
-
-interface TimelineItem {
-  year: string;
-  title: string;
-  description: string;
-}
-
-const timelineData: TimelineItem[] = [
-  {
-    year: "2024",
-    title: "Senior Frontend Developer",
-    description: "Leading frontend development for enterprise applications",
-  },
-  {
-    year: "2022",
-    title: "Frontend Developer",
-    description: "Building responsive web applications with React",
-  },
-  {
-    year: "2020",
-    title: "Junior Developer",
-    description: "Started career in web development",
-  },
-  {
-    year: "2019",
-    title: "Junior Developer",
-    description: "Started career in web development",
-  },
-];
+import { TimelineType } from "@/types/about";
+import { timelines } from "@/mockdata";
 
 const TimelineItem = ({
   item,
   index,
   progress,
 }: {
-  item: TimelineItem;
+  item: TimelineType;
   index: number;
   progress: number;
 }) => {
   // Calculate visibility based on scroll position
-  const itemPosition = (index + 0.5) / timelineData.length;
+  const itemPosition = (index + 0.5) / timelines.length;
   const fadeStart = itemPosition - 0.1;
   const fadeProgress = (progress - fadeStart) / 0.1;
   const visibility = Math.min(Math.max(fadeProgress, 0), 1);
 
   // Calculate line progress
   const lineStart = itemPosition;
-  const lineProgress = (progress - lineStart) / (1 / timelineData.length);
+  const lineProgress = (progress - lineStart) / (1 / timelines.length);
   const lineVisibility = Math.min(Math.max(lineProgress, 0), 1);
 
-  const isLastItem = index === timelineData.length - 1;
+  const isLastItem = index === timelines.length - 1;
   const x = index % 2 === 0 ? -20 : 20;
   const translateX = x * (1 - visibility);
 
@@ -120,7 +85,7 @@ const TimelineItem = ({
               variant="body1"
               className="text-gray-600 dark:text-gray-300"
             >
-              {item.description}
+              {item.subtitle}
             </Typography>
           </Box>
         </motion.div>
@@ -176,7 +141,7 @@ const TimelineItem = ({
             variant="body1"
             className="text-gray-600 dark:text-gray-300"
           >
-            {item.description}
+            {item.subtitle}
           </Typography>
         </Box>
       </motion.div>
@@ -228,62 +193,4 @@ const TimelineItem = ({
   );
 };
 
-const AnimatedTimeline = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [progress, setProgress] = useState(0);
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start center", "end center"],
-  });
-
-  const scaleY = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
-
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setProgress(latest);
-  });
-
-  return (
-    <Box ref={containerRef} className="relative min-h-[800px] py-8">
-      {/* Remove the mobile line from here since we're handling it per item */}
-      <motion.div
-        className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-gray-200 dark:bg-gray-700 hidden md:block"
-        style={{
-          zIndex: 0,
-          opacity: progress,
-          top: "32px",
-          height: "calc(100% - 64px)",
-        }}
-      />
-
-      {/* Animated progress line (desktop only) */}
-      <motion.div
-        className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-blue-500 origin-top hidden md:block"
-        style={{
-          top: "32px",
-          height: "calc(100% - 64px)",
-          scaleY,
-          zIndex: 1,
-        }}
-      />
-
-      {/* Timeline items container */}
-      <div className="relative pt-8">
-        {timelineData.map((item, index) => (
-          <TimelineItem
-            key={item.year}
-            item={item}
-            index={index}
-            progress={progress}
-          />
-        ))}
-      </div>
-    </Box>
-  );
-};
-
-export default AnimatedTimeline;
+export default TimelineItem;

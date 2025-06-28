@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/context/ToastContext";
 import { validateField } from "@/utils/validation";
-import { FormContact } from "@/types/contact";
+import { FormContactType } from "@/types/contact";
 import { contacts } from "@/mockdata";
 
 const ContactSection = () => {
@@ -20,7 +20,7 @@ const ContactSection = () => {
   const emailRef = useRef<HTMLInputElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
 
-  const [form, setForm] = useState<FormContact>({
+  const [form, setForm] = useState<FormContactType>({
     name: "",
     email: "",
     message: "",

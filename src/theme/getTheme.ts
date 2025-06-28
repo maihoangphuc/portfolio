@@ -2,9 +2,9 @@ import { Theme } from "@/constants";
 import { ThemeOptions, createTheme } from "@mui/material/styles";
 import lightTheme from "@/theme/lightTheme";
 import darkTheme from "@/theme/darkTheme";
-import { ThemeMode } from "@/types/theme";
+import { ThemeModeType } from "@/types/theme";
 
-export function getAppTheme(mode: ThemeMode) {
+export function getAppTheme(mode: ThemeModeType) {
   const baseTheme: ThemeOptions = mode === Theme.LIGHT ? lightTheme : darkTheme;
 
   return createTheme({

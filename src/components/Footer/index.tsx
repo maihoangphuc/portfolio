@@ -3,8 +3,8 @@
 import SectionContainer from "@/components/SectionContainer";
 import { useScrollToSection } from "@/hooks/useScrollToSection";
 import { menuItems, socialLinks } from "@/mockdata";
-import { SocialLink } from "@/types/contact";
-import { MenuItem } from "@/types/home";
+import { SocialLinkType } from "@/types/contact";
+import { MenuItemType } from "@/types/home";
 import {
   Box,
   Link,
@@ -34,7 +34,7 @@ const Footer = () => {
       classChildren="!flex !flex-col !gap-4 !justify-center"
     >
       <List className="!grid !grid-cols-3 xs:!flex xs:w-fit !justify-center !items-center xs:!gap-4 !gap-y-2 !gap-x-8 p-0 mt-0">
-        {menuItems.map((item: MenuItem) => (
+        {menuItems.map((item: MenuItemType) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               component="a"
@@ -61,7 +61,7 @@ const Footer = () => {
       </List>
 
       <Box className="!flex !flex-row !gap-4">
-        {socialLinks.map((link: SocialLink, index: number) => (
+        {socialLinks.map((link: SocialLinkType, index: number) => (
           <Link
             key={index}
             href={link.href}

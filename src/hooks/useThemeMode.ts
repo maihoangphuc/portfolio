@@ -1,10 +1,10 @@
 import { Theme } from "@/constants";
-import { ThemeMode } from "@/types/theme";
+import { ThemeModeType } from "@/types/theme";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 
-export const useThemeMode = (initialTheme: ThemeMode) => {
-  const [theme, setTheme] = useState<ThemeMode>(initialTheme);
+export const useThemeMode = (initialTheme: ThemeModeType) => {
+  const [theme, setTheme] = useState<ThemeModeType>(initialTheme);
 
   useEffect(() => {
     Cookies.set("theme", theme);
@@ -33,7 +33,8 @@ export const useThemeMode = (initialTheme: ThemeMode) => {
 
   const toggleTheme = () => {
     setTheme(
-      (prev) => (prev === Theme.DARK ? Theme.LIGHT : Theme.DARK) as ThemeMode
+      (prev) =>
+        (prev === Theme.DARK ? Theme.LIGHT : Theme.DARK) as ThemeModeType
     );
   };
 

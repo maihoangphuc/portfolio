@@ -1,4 +1,4 @@
-export type SkillTab = {
+export type SkillTabType = {
   label: string;
   skills: string[];
 };
