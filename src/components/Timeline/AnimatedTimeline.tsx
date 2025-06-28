@@ -61,20 +61,86 @@ const TimelineItem = ({
 
   return (
     <motion.div
-      className={`flex items-center relative ${
-        index % 2 === 0 ? "flex-row" : "flex-row-reverse"
-      }`}
+      className={`flex md:items-center relative 
+        ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}
+        flex-col items-center
+      `}
       style={{
         marginBottom: "60px",
       }}
     >
-      {/* Content */}
+      {/* Mobile timeline container */}
+      <div className="md:hidden w-full flex flex-col items-center relative">
+        {/* Vertical line for mobile */}
+        <motion.div
+          className="absolute w-0.5 bg-gray-300 dark:bg-gray-600"
+          style={{
+            top: "0",
+            height: "100%",
+            opacity: visibility,
+            zIndex: 0,
+          }}
+        />
+
+        {/* Year for mobile */}
+        <motion.div
+          className="bg-white dark:bg-gray-900 relative z-10 mb-4"
+          style={{
+            opacity: visibility,
+          }}
+          initial={{ opacity: 0 }}
+          animate={{
+            opacity: visibility,
+            transition: {
+              duration: 0.5,
+              ease: "easeOut",
+            },
+          }}
+        >
+          <Typography
+            variant="h6"
+            className="text-2xl font-bold text-blue-500 px-4"
+          >
+            {item.year}
+          </Typography>
+        </motion.div>
+
+        {/* Content for mobile */}
+        <motion.div
+          style={{
+            opacity: visibility,
+          }}
+          className="w-full max-w-[500px] px-8 relative z-10"
+          initial={{ opacity: 0 }}
+          animate={{
+            opacity: visibility,
+            transition: {
+              duration: 0.5,
+              ease: "easeOut",
+            },
+          }}
+        >
+          <Box className={`p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg`}>
+            <Typography variant="h5" className="font-semibold mb-2">
+              {item.title}
+            </Typography>
+            <Typography
+              variant="body1"
+              className="text-gray-600 dark:text-gray-300"
+            >
+              {item.description}
+            </Typography>
+          </Box>
+        </motion.div>
+      </div>
+
+      {/* Desktop layout */}
       <motion.div
         style={{
           x: translateX,
           opacity: visibility,
         }}
-        className="w-[45%]"
+        className="hidden md:block w-[45%]"
         initial={{ opacity: 0, x: translateX }}
         animate={{
           opacity: visibility,
@@ -98,9 +164,9 @@ const TimelineItem = ({
         </Box>
       </motion.div>
 
-      {/* Dot */}
+      {/* Dot - for desktop */}
       <motion.div
-        className="w-[10%] flex items-center justify-center"
+        className="hidden md:flex w-[10%] items-center justify-center"
         initial={{ scale: 0 }}
         animate={{
           scale: visibility,
@@ -118,9 +184,9 @@ const TimelineItem = ({
         />
       </motion.div>
 
-      {/* Year */}
+      {/* Year for desktop */}
       <motion.div
-        className="w-[45%] flex items-center"
+        className="hidden md:flex w-[45%] items-center"
         style={{
           justifyContent: index % 2 === 0 ? "flex-start" : "flex-end",
           opacity: visibility,
