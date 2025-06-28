@@ -129,7 +129,7 @@ const TimelineItem = ({
         {!isLastItem && (
           <div
             className="absolute w-0.5 bottom-[-60px] z-0 h-16"
-            style={{ backgroundColor: "#1e293b" }}
+            style={{ backgroundColor: "transparent" }}
           >
             <motion.div
               className="absolute w-full bg-blue-500"
