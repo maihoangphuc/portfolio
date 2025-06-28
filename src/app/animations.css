@@ -35,6 +35,17 @@
   }
 }
 
+@keyframes timeline-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate__animated {
   animation-duration: 1s;
   animation-fill-mode: both;
@@ -50,4 +61,42 @@
 
 .animate__flash {
   animation-name: flash;
+}
+
+.timeline-item {
+  animation: timeline-fade-in 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.timeline-item:nth-child(odd) {
+  animation-delay: 0.2s;
+}
+
+.timeline-dot {
+  position: relative;
+}
+
+.timeline-dot::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

@@ -13,6 +13,7 @@
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@mui/lab": "^7.0.0-beta.14",
     "@mui/material": "^7.1.1",
     "@mui/material-nextjs": "^7.1.1",
     "@types/js-cookie": "^3.0.6",
@@ -27,7 +28,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
-    "react-timeline-animation": "^1.2.3",
+    "react-intersection-observer": "^9.16.0",
     "react-toastify": "^11.0.5"
   },
   "devDependencies": {
