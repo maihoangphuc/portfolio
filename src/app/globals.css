@@ -6,9 +6,9 @@
 @theme {
   --color-white: #ffffff;
   --color-black: #000000;
-  --color-github: #ca84eb;
-  --color-linkedin: #94bceb;
-  --color-email: #eb9e6f;
+  --color-github: #41f28e;
+  --color-linkedin: #518ad1;
+  --color-email: #f25641;
 
   /* Light theme */
   --color-light-primary: #525a5c;

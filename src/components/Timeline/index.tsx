@@ -49,7 +49,7 @@ const Timeline = ({ timelines }: TimelineProps) => {
 
       {/* Animated progress line (desktop only) */}
       <motion.div
-        className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-blue-500 origin-top hidden md:block"
+        className="absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-light-primary dark:bg-dark-primary origin-top hidden md:block"
         style={{
           top: "32px",
           height: "calc(100% - 64px)",

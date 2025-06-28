@@ -2,16 +2,15 @@ import { motion } from "framer-motion";
 import { Box, Typography } from "@mui/material";
 import { TimelineType } from "@/types/about";
 import { timelines } from "@/mockdata";
+import clsx from "clsx";
 
-const TimelineItem = ({
-  item,
-  index,
-  progress,
-}: {
+interface TimelineItemProps {
   item: TimelineType;
   index: number;
   progress: number;
-}) => {
+}
+
+const TimelineItem = ({ item, index, progress }: TimelineItemProps) => {
   // Calculate visibility based on scroll position
   const itemPosition = (index + 0.5) / timelines.length;
   const fadeStart = itemPosition - 0.1;
@@ -29,10 +28,11 @@ const TimelineItem = ({
 
   return (
     <motion.div
-      className={`flex md:items-center relative 
-        ${index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}
-        flex-col items-center
-      `}
+      className={clsx(
+        "flex md:items-center relative",
+        index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse",
+        "flex-col items-center"
+      )}
       style={{
         marginBottom: isLastItem ? "0" : "60px",
       }}
@@ -41,7 +41,7 @@ const TimelineItem = ({
       <div className="md:hidden w-full flex flex-col items-center relative">
         {/* Year for mobile */}
         <motion.div
-          className="bg-white dark:bg-gray-900 relative z-10 mb-4"
+          className="relative z-10 mb-4"
           style={{
             opacity: visibility,
           }}
@@ -56,7 +56,7 @@ const TimelineItem = ({
         >
           <Typography
             variant="h6"
-            className="text-2xl font-bold text-blue-500 px-4"
+            className="text-lg font-bold text-light-secondary dark:text-dark-secondary"
           >
             {item.year}
           </Typography>
@@ -67,7 +67,7 @@ const TimelineItem = ({
           style={{
             opacity: visibility,
           }}
-          className="w-full max-w-[500px] px-8 relative z-10"
+          className="w-full xs:w-2/3 relative z-10"
           initial={{ opacity: 0 }}
           animate={{
             opacity: visibility,
@@ -77,13 +77,16 @@ const TimelineItem = ({
             },
           }}
         >
-          <Box className={`p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg`}>
-            <Typography variant="h5" className="font-semibold mb-2">
+          <Box className="p-6 bg-light-bg dark:bg-dark-bg rounded-lg">
+            <Typography
+              variant="h5"
+              className="font-semibold mb-2 text-light-primary dark:text-dark-primary"
+            >
               {item.title}
             </Typography>
             <Typography
               variant="body1"
-              className="text-gray-600 dark:text-gray-300"
+              className="text-light-primary dark:text-dark-primary"
             >
               {item.subtitle}
             </Typography>
@@ -97,7 +100,7 @@ const TimelineItem = ({
             style={{ backgroundColor: "transparent" }}
           >
             <motion.div
-              className="absolute w-full bg-blue-500"
+              className="absolute w-full bg-light-primary dark:bg-dark-primary"
               style={{
                 height: `${lineVisibility * 100}%`,
                 top: 0,
@@ -133,13 +136,16 @@ const TimelineItem = ({
           },
         }}
       >
-        <Box className={`p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg`}>
-          <Typography variant="h5" className="font-semibold mb-2">
+        <Box className="p-6 bg-light-bg dark:bg-dark-bg rounded-lg">
+          <Typography
+            variant="h5"
+            className="font-semibold mb-2 text-light-primary dark:text-dark-primary"
+          >
             {item.title}
           </Typography>
           <Typography
             variant="body1"
-            className="text-gray-600 dark:text-gray-300"
+            className="text-light-primary dark:text-dark-primary"
           >
             {item.subtitle}
           </Typography>
@@ -161,7 +167,7 @@ const TimelineItem = ({
         }}
       >
         <Box
-          className="w-3 h-3 rounded-full bg-blue-500 relative"
+          className="w-3 h-3 rounded-full bg-light-primary dark:bg-dark-primary relative"
           style={{ zIndex: 2 }}
         />
       </motion.div>
@@ -184,7 +190,7 @@ const TimelineItem = ({
       >
         <Typography
           variant="h6"
-          className={`text-2xl font-bold text-blue-500 ml-4`}
+          className="text-lg font-bold text-light-secondary dark:text-dark-secondary ml-4"
         >
           {item.year}
         </Typography>
