@@ -10,6 +10,7 @@ import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { runIntroPageLineEffects, replaySocialLineEffect, introLinesDurationMs } from "@/lib/experience/runtime/effects";
 import { enterExperience, returnToExploreIntro, completeExploreReturnToIntroUi, scheduleIntroLinesWhenUiVisible } from "@/lib/experience/runtime/transitions";
 import { createAnimateLoop } from "@/lib/experience/runtime/loop";
+import { createPanels } from "@/lib/experience/runtime/panels";
 
 export function startExperience() {
   const dom = getDom();
@@ -40,6 +41,7 @@ export function startExperience() {
     pCtx,
     pState,
     figureGroup: { value: null },
+    panelGroup: new THREE.Group(),
     timers: {},
     animFlags: {
       introLinesAnimEndMs: 0,
@@ -48,7 +50,7 @@ export function startExperience() {
     },
     events: null,
   };
-
+  createPanels(ctx);
   ctx.events = bindEvents(dom, state, {
     onResize: () => {
       cam.aspect = innerWidth / innerHeight;

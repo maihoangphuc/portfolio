@@ -1,8 +1,8 @@
-export const N = 16;
+export const N = 40;
 export const C = 7;
 
-export const PW = 4.0;
-export const PH = 2.32;
+export const PW = 4.5;
+export const PH = 2.61;
 
 export const MONTHS = [
   "Aug",

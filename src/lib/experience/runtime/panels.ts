@@ -1,0 +1,214 @@
+import * as THREE from "three";
+import { RuntimeContext } from "@/lib/experience/runtime/types";
+import { N, PW, PH } from "@/constants/experience";
+
+const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
+
+const VERTEX_SHADER = `
+  #define PI 3.14159265358979323846264338327
+  varying vec2 vUv;
+  uniform float uDirection;
+  uniform float uIntensity;
+  uniform float uLimitCurve;
+  uniform float uLimitShear;
+  uniform float uHoverProgress;
+  uniform vec2 uOffsetNoise;
+  
+  // Perlin noise for the wave effect
+  vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+  vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+  vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+  vec2 fade(vec2 t) { return t*t*t*(t*(t*6.0-15.0)+10.0); }
+  float cnoise(vec2 P) {
+    vec4 Pi = floor(P.xyxy) + vec4(0.0, 0.0, 1.0, 1.0);
+    vec4 Pf = fract(P.xyxy) - vec4(0.0, 0.0, 1.0, 1.0);
+    Pi = mod289(Pi);
+    vec4 ix = Pi.xzxz; vec4 iy = Pi.yyww;
+    vec4 fx = Pf.xzxz; vec4 fy = Pf.yyww;
+    vec4 i = permute(permute(ix) + iy);
+    vec4 gx = fract(i * (1.0 / 41.0)) * 2.0 - 1.0 ;
+    vec4 gy = abs(gx) - 0.5 ;
+    vec4 tx = floor(gx + 0.5);
+    gx = gx - tx;
+    vec2 g00 = vec2(gx.x,gy.x); vec2 g10 = vec2(gx.y,gy.y);
+    vec2 g01 = vec2(gx.z,gy.z); vec2 g11 = vec2(gx.w,gy.w);
+    vec4 norm = taylorInvSqrt(vec4(dot(g00, g00), dot(g01, g01), dot(g10, g10), dot(g11, g11)));
+    g00 *= norm.x; g01 *= norm.y; g10 *= norm.z; g11 *= norm.w;
+    float n00 = dot(g00, vec2(fx.x, fy.x));
+    float n10 = dot(g10, vec2(fx.y, fy.y));
+    float n01 = dot(g01, vec2(fx.z, fy.z));
+    float n11 = dot(g11, vec2(fx.w, fy.w));
+    vec2 fade_xy = fade(Pf.xy);
+    vec2 n_x = mix(vec2(n00, n01), vec2(n10, n11), fade_xy.x);
+    return 2.3 * mix(n_x.x, n_x.y, fade_xy.y);
+  }
+
+  float normalized(float value) { return (value + 1.0) * 0.5; }
+
+  void main() {
+    vUv = uv;
+    vec3 displaced = position;
+    
+    float normalizedY = uv.y;
+    float offsetCurve = uLimitCurve * uIntensity;
+    float offsetShear = uLimitShear * uIntensity;
+    
+    float offset = sin(normalizedY * PI) * offsetCurve;
+    
+    displaced.x -= uDirection * offset;
+    displaced.x -= (normalizedY * -offsetShear) * uDirection;
+    
+    // Circle bump
+    float rX = abs(vUv.x * 2. - 1.0) * -1.;
+    displaced.z += cos(rX) * 0.04;
+    
+    // Noise wave on hover (Matched from JS 119/121)
+    float p = uHoverProgress;
+    float n = normalized(cnoise((vUv * 2.) + uOffsetNoise)) * 0.5 + 0.5;
+    float gradientSize = 0.3;
+    float skewSize = 0.2;
+    float progress = p + (p * 2.*gradientSize) + (p * 2.*skewSize) - gradientSize - skewSize;
+    float start = progress - gradientSize;
+    float end = progress + gradientSize;
+    float y = smoothstep(start, end, vUv.x + ((1.0-vUv.y) * skewSize));
+    float height = 1.0 - abs(y * 2. - 1.);
+    displaced.z += (height * n) * 0.03;
+    
+    vec4 modelViewPosition = modelViewMatrix * vec4(displaced, 1.0);
+    gl_Position = projectionMatrix * modelViewPosition;
+  }
+`;
+
+const FRAGMENT_SHADER = `
+  varying vec2 vUv;
+  uniform sampler2D uTexture;
+  uniform float uOpacity;
+  uniform float uHoverProgress;
+  uniform vec3 uColor;
+  
+  void main() {
+    vec4 tex = texture2D(uTexture, vUv);
+    
+    // Matching the grayscale/tint blend from JS 118/120
+    vec3 grayscaleTexture = mix(vec3(dot(tex.rgb, vec3(0.299, 0.587, 0.114))) * 0.95, uColor, 0.35);
+    
+    // Hover wave color transition
+    float gradientSize = 0.1;
+    float skewSize = 0.2;
+    float progress = uHoverProgress + (uHoverProgress * 2.*gradientSize) + (uHoverProgress * 2.*skewSize) - gradientSize - skewSize;
+    float start = progress - gradientSize;
+    float end = progress + gradientSize;
+    float y = smoothstep(start, end, vUv.x + ((1.0-vUv.y) * skewSize));
+    
+    vec3 gradedTexture = mix(tex.rgb, grayscaleTexture, 0.1);
+    gradedTexture.r -= 0.01;
+    
+    vec3 color = mix(gradedTexture, grayscaleTexture, y);
+    gl_FragColor = vec4(color, uOpacity);
+  }
+`;
+
+export function createPanels(ctx: RuntimeContext) {
+  const { panelGroup, scene } = ctx;
+  const textureLoader = new THREE.TextureLoader();
+  
+  const panels: THREE.Mesh[] = [];
+  
+  for (let i = 0; i < N; i++) {
+    const texture = textureLoader.load(`https://picsum.photos/seed/${i + 123}/800/464`);
+    
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTexture: { value: texture },
+        uOpacity: { value: 0 },
+        uHoverProgress: { value: 0 },
+        uDirection: { value: 0 },
+        uIntensity: { value: 0 },
+        uLimitCurve: { value: 0.05 },
+        uLimitShear: { value: 0.25 },
+        uOffsetNoise: { value: new THREE.Vector2(0, 1) },
+        uColor: { value: new THREE.Color(0x2d3e34) }, // Fixed color: 2965556 -> 0x2d3e34
+      },
+      vertexShader: VERTEX_SHADER,
+      fragmentShader: FRAGMENT_SHADER,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+    
+    const mesh = new THREE.Mesh(PANEL_GEOMETRY, material);
+    mesh.userData.index = i;
+    // Set scale to match aspect ratio and PW
+    mesh.scale.x = PW;
+    mesh.scale.y = PH;
+    
+    const panelsPerTurn = 3.5;
+    mesh.userData.angle = (i / panelsPerTurn) * Math.PI * -2;
+    
+    panelGroup.add(mesh);
+    panels.push(mesh);
+  }
+  
+  panelGroup.position.z = -2.5;
+  scene.add(panelGroup);
+  return panels;
+}
+
+export function updatePanels(ctx: RuntimeContext) {
+  const { state, panelGroup } = ctx;
+  const { scrollCurrent, scrollVelVis, introActive, experienceEntryActive } = state;
+  
+  const time = performance.now() * 0.001;
+  const yDistance = 2.8;
+  const baseRadius = 5.5;
+  const panelsPerTurn = 3.5;
+  const pt = -0.5 * Math.PI;
+  
+  const progress = scrollCurrent / (N - 1);
+  const intensity = Math.abs(scrollVelVis) * 18.0;
+  const direction = -1 * Math.sign(scrollVelVis);
+  
+  panelGroup.position.y = progress * yDistance * (N - 1);
+  panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
+  
+  panelGroup.children.forEach((child) => {
+    const mesh = child as THREE.Mesh;
+    const material = mesh.material as THREE.ShaderMaterial;
+    const index = mesh.userData.index;
+    const angle = mesh.userData.angle;
+    
+    const s = index / (N - 1);
+    const a = s - progress;
+    
+    const radius = baseRadius + 5 * a;
+    
+    mesh.position.set(
+      Math.cos(angle) * radius,
+      -1 * index * yDistance,
+      Math.sin(angle) * radius
+    );
+    
+    mesh.rotation.z = THREE.MathUtils.degToRad(-170 * Math.abs(a));
+    mesh.rotation.y = -1 * angle - 0.5 * Math.PI + Math.PI;
+    
+    // Simulate hover progress for demo (center panel gets the wave)
+    const isCenter = Math.abs(a) < 0.05;
+    const targetHover = isCenter ? 1.0 : 0.0;
+    material.uniforms.uHoverProgress.value = THREE.MathUtils.lerp(material.uniforms.uHoverProgress.value, targetHover, 0.05);
+    
+    let opacityMultiplier = 1.0;
+    if (introActive) {
+      opacityMultiplier = 0;
+    } else if (experienceEntryActive) {
+      opacityMultiplier = Math.min(1, (performance.now() - state.experienceEntryStartMs) / 1000);
+    }
+    
+    const finalOpacity = (1 - Math.abs(8 * a)) * opacityMultiplier;
+    
+    material.uniforms.uOpacity.value = Math.max(0, finalOpacity);
+    material.uniforms.uIntensity.value = Math.min(1, intensity);
+    material.uniforms.uDirection.value = direction;
+    material.uniforms.uOffsetNoise.value.set(time, time);
+    
+    mesh.visible = finalOpacity > 0;
+  });
+}

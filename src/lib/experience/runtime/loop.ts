@@ -5,6 +5,7 @@ import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_MIN_SCROLL_TRA
 import { lerp, smootherstep01 } from "@/lib/experience/runtime/math";
 import { drawParticles } from "@/lib/experience/runtime/particles";
 import { completeExploreReturnToIntroUi } from "@/lib/experience/runtime/transitions";
+import { updatePanels } from "@/lib/experience/runtime/panels";
 
 export function createAnimateLoop(ctx: RuntimeContext) {
   const { dom, state, bg, scene, cam, renderer, raycaster, mouse, pCtx, pState, figureGroup } = ctx;
@@ -104,7 +105,9 @@ export function createAnimateLoop(ctx: RuntimeContext) {
           yaw = state.exitBgYaw0 + (targetYaw - state.exitBgYaw0) * m;
         }
       } else {
-        yaw = (state.introActive ? 0 : sn * TAU * 1.25) + state.scrollVelVis * 0.15;
+        const panelsPerTurn = 3.5;
+        const totalTurns = (N - 1) / panelsPerTurn;
+        yaw = (state.introActive ? 0 : sn * TAU * totalTurns) + state.scrollVelVis * 0.15;
       }
       const r = 5;
       bg.camera.position.set(Math.sin(yaw) * r, 0, Math.cos(yaw) * r);
@@ -133,11 +136,13 @@ export function createAnimateLoop(ctx: RuntimeContext) {
         figureGroup.value.position.set(0, state.figPosY, 0);
         figureGroup.value.scale.setScalar(state.figScale);
       } else {
-        const modelRotTarget = state.introActive ? 0 : sn * -Math.PI * 2;
+        const panelsPerTurn = 3.5;
+        const totalTurns = (N - 1) / panelsPerTurn;
+        const modelRotTarget = state.introActive ? 0 : sn * -Math.PI * 2 * totalTurns;
         state.figRotY = modelRotTarget + state.scrollVelVis * -0.12;
         figureGroup.value.rotation.set(0, state.figRotY, 0);
 
-        state.figPosY = state.introActive ? -0.8 : -0.8 - sn * 1.2;
+        state.figPosY = state.introActive ? -0.8 : -0.8;
         figureGroup.value.position.set(0, state.figPosY + Math.sin(t * 0.6) * 0.015, 0);
 
         state.figScale = state.introActive ? 2.6 : 2.6 + sn * 0.6;
@@ -200,6 +205,7 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       requestAnimationFrame(() => requestAnimationFrame(() => completeExploreReturnToIntroUi(ctx)));
     }
 
+    updatePanels(ctx);
     bg.render();
     renderer.render(scene, cam);
   }

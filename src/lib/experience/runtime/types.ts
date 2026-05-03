@@ -87,6 +87,7 @@ export type RuntimeContext = {
   pCtx: CanvasRenderingContext2D;
   pState: any;
   figureGroup: { value: THREE.Group | null };
+  panelGroup: THREE.Group;
   timers: {
     introLineReveal?: number;
     exploreCommit?: number;
