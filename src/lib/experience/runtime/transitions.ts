@@ -21,7 +21,7 @@ export function enterExperience(ctx: RuntimeContext) {
     state.experienceEntryActive = true;
     state.experienceEntryStartMs = performance.now();
     state.entryScrollTo = state.scrollTarget;
-    state.entryScrollFrom = state.scrollTarget - 8;
+    state.entryScrollFrom = state.scrollTarget - 3.5;
     if (timers.introLineReveal !== undefined) {
       clearTimeout(timers.introLineReveal);
       timers.introLineReveal = undefined;

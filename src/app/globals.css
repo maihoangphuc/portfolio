@@ -743,3 +743,41 @@ html.experience-loading #model-load-pct {
 #hint.gone {
   opacity: 0;
 }
+
+#drag-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+#drag-hint.visible {
+  opacity: 1;
+}
+
+#drag-hint.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.drag-text {
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
+  font-size: clamp(80px, 15vw, 120px);
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.drag-subtext {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}

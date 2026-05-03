@@ -18,6 +18,7 @@ export type Dom = {
   sline: HTMLElement;
   exploreBtn: HTMLElement;
   brand: HTMLElement;
+  dragHint: HTMLElement;
 };
 
 export type State = {

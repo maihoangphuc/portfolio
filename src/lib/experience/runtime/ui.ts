@@ -28,6 +28,7 @@ export function getDom(): Dom {
     sline: must("sline"),
     exploreBtn: must("explore-btn"),
     brand: must("brand"),
+    dragHint: must("drag-hint"),
   };
 }
 

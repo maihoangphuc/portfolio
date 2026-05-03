@@ -155,19 +155,19 @@ export function createPanels(ctx: RuntimeContext) {
 
 export function updatePanels(ctx: RuntimeContext) {
   const { state, panelGroup } = ctx;
-  const { scrollCurrent, scrollVelVis, introActive, experienceEntryActive } = state;
+  const { scrollForLayoutLast, scrollVelVis, introActive, experienceEntryActive, experienceExitActive, experienceExitStartMs } = state;
   
   const time = performance.now() * 0.001;
   const yDistance = 2.8;
   const baseRadius = 5.5;
   const panelsPerTurn = 3.5;
-  const pt = -0.5 * Math.PI;
+  const pt = -0.5 * Math.PI - 0.07;
   
-  const progress = scrollCurrent / (N - 1);
+  const progress = scrollForLayoutLast / (N - 1);
   const intensity = Math.abs(scrollVelVis) * 18.0;
   const direction = -1 * Math.sign(scrollVelVis);
   
-  panelGroup.position.y = progress * yDistance * (N - 1);
+  panelGroup.position.y = progress * yDistance * (N - 1) + 0.3;
   panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
   
   panelGroup.children.forEach((child) => {
@@ -178,6 +178,9 @@ export function updatePanels(ctx: RuntimeContext) {
     
     const s = index / (N - 1);
     const a = s - progress;
+
+    const scaleBoost = Math.exp(-Math.pow(a * 10, 2)) * 0.15;
+    mesh.scale.set(PW * (1 + scaleBoost), PH * (1 + scaleBoost), 1);
     
     const radius = baseRadius + 5 * a;
     
@@ -200,6 +203,8 @@ export function updatePanels(ctx: RuntimeContext) {
       opacityMultiplier = 0;
     } else if (experienceEntryActive) {
       opacityMultiplier = Math.min(1, (performance.now() - state.experienceEntryStartMs) / 1000);
+    } else if (experienceExitActive) {
+      opacityMultiplier = Math.max(0, 1 - (performance.now() - experienceExitStartMs) / 500);
     }
     
     const finalOpacity = (1 - Math.abs(8 * a)) * opacityMultiplier;

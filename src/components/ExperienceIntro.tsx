@@ -44,6 +44,11 @@ export default function ExperienceIntro() {
           Read More
         </button>
       </div>
+
+      <div id="drag-hint">
+        <div className="drag-text text-web-white">Drag</div>
+        <div className="drag-subtext text-web-soft">or scroll to explore</div>
+      </div>
     </>
   );
 }
