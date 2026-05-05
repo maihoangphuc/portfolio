@@ -281,10 +281,15 @@ html.experience-loading #model-load-pct {
   animation: explore-underline-exit 0.6s cubic-bezier(0.32, 0, 0.67, 0) forwards !important;
 }
 
+#explore-btn .explore-text-wrapper {
+  font-family: inherit;
+}
+
 #explore-btn .char {
   display: inline-block;
   opacity: 0;
   white-space: pre;
+  font-family: inherit;
 }
 
 #intro-left.intro-lines-reveal #explore-btn .char {
@@ -298,8 +303,8 @@ html.experience-loading #model-load-pct {
   display: inline-block;
   font-family:
     "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(11px, 1.05vw, 12px);
-  font-weight: 600;
+  font-size: clamp(10px, 0.95vw, 11px);
+  font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
   border: none;
@@ -540,7 +545,7 @@ html.experience-loading #model-load-pct {
   position: absolute;
   left: 50%;
   transform: translateX(-50%) translateY(calc(100% + 2.5rem));
-  bottom: calc(clamp(46px, 6.6vw, 84px) * 0.56 + 28px);
+  bottom: calc(clamp(46px, 6.6vw, 84px) * 0.56 + 18px);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -557,6 +562,7 @@ html.experience-loading #model-load-pct {
   left: 50%;
   transform: translateX(-50%) translateY(calc(100% + 2.5rem));
   bottom: 0;
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(46px, 6.6vw, 84px);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -573,18 +579,18 @@ html.experience-loading #model-load-pct {
 
 #month-lbl.date-show {
   opacity: 1;
-  transform: translateX(-50%) translateY(25%);
+  transform: translateX(-50%) translateY(35%);
   animation: month-lbl-fade-in 1.8s 0.15s linear both;
 }
 
 @keyframes month-lbl-fade-in {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(25%);
+    transform: translateX(-50%) translateY(35%);
   }
   100% {
     opacity: 1;
-    transform: translateX(-50%) translateY(25%);
+    transform: translateX(-50%) translateY(35%);
   }
 }
 
@@ -596,8 +602,9 @@ html.experience-loading #model-load-pct {
 #month-lbl-ghost {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%) translateY(25%);
+  transform: translateX(-50%) translateY(35%);
   bottom: 0;
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(46px, 6.6vw, 84px);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -837,6 +844,7 @@ html.experience-loading #model-load-pct {
 .drag-char {
   display: inline-block;
   opacity: 0;
+  font-family: inherit;
 }
 
 #drag-hint.visible .drag-char {

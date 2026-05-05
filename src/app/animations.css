@@ -44,44 +44,44 @@
 @keyframes month-enter-right {
   0% {
     opacity: 0;
-    transform: translate3d(calc(-50% - 12px), 25%, 0) scale(0.995);
+    transform: translate3d(calc(-50% - 12px), 35%, 0) scale(0.995);
   }
   100% {
     opacity: 1;
-    transform: translate3d(-50%, 25%, 0) scale(1);
+    transform: translate3d(-50%, 35%, 0) scale(1);
   }
 }
 
 @keyframes month-enter-left {
   0% {
     opacity: 0;
-    transform: translate3d(calc(-50% + 12px), 25%, 0) scale(0.995);
+    transform: translate3d(calc(-50% + 12px), 35%, 0) scale(0.995);
   }
   100% {
     opacity: 1;
-    transform: translate3d(-50%, 25%, 0) scale(1);
+    transform: translate3d(-50%, 35%, 0) scale(1);
   }
 }
 
 @keyframes month-leave-right {
   0% {
     opacity: 0.9;
-    transform: translate3d(-50%, 25%, 0) scale(1);
+    transform: translate3d(-50%, 35%, 0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(-50% + 14px), 25%, 0) scale(0.996);
+    transform: translate3d(calc(-50% + 14px), 35%, 0) scale(0.996);
   }
 }
 
 @keyframes month-leave-left {
   0% {
     opacity: 0.9;
-    transform: translate3d(-50%, 25%, 0) scale(1);
+    transform: translate3d(-50%, 35%, 0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(-50% - 14px), 25%, 0) scale(0.996);
+    transform: translate3d(calc(-50% - 14px), 35%, 0) scale(0.996);
   }
 }
 

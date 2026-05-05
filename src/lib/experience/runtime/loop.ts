@@ -58,10 +58,11 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       const s0 = state.exitScroll0;
       const travel = EXPERIENCE_EXIT_FORWARD_TRAVEL;
       const u = smootherstep01(exitProgress);
+      const prevScrollCurrent = state.scrollCurrent;
       state.scrollCurrent = lerp(s0, s0 + travel, u);
       state.scrollTarget = state.scrollCurrent;
-      state.scrollVel = 0;
-      state.scrollVelVis = 0;
+      state.scrollVel = state.scrollCurrent - prevScrollCurrent;
+      state.scrollVelVis = lerp(state.scrollVelVis, state.scrollVel, 0.4);
     } else {
       state.scrollVel *= 0.82;
       state.scrollTarget = Math.max(0, Math.min(N - 1, state.scrollTarget + state.scrollVel));
@@ -132,23 +133,22 @@ export function createAnimateLoop(ctx: RuntimeContext) {
         const endSn = state.entryScrollTo / (N - 1);
         const baseRotAtEnd = endSn * -Math.PI * 2;
         const spin = (1 - entryScrollBlend) * (INTRO_PREVIEW_MODEL_ANGLE - baseRotAtEnd);
-        state.figPosY = -0.8 - endSn * 1.2;
-        state.figScale = 2.6 + endSn * 0.6;
+        state.figPosY = -0.8 - endSn * 2.5;
+        state.figScale = 2.6 + endSn * 2.0;
         figureGroup.value.rotation.set(0, baseRotAtEnd + spin, 0);
         state.figRotY = baseRotAtEnd;
         figureGroup.value.position.set(0, state.figPosY + Math.sin(t * 0.6) * 0.015, 0);
         figureGroup.value.scale.setScalar(state.figScale);
       } else {
-        const panelsPerTurn = 3.5;
-        const totalTurns = (N - 1) / panelsPerTurn;
-        const modelRotTarget = state.introActive ? 0 : sn * -Math.PI * 2 * totalTurns;
+        const modelTurns = 1;
+        const modelRotTarget = state.introActive ? 0 : sn * -Math.PI * 2 * modelTurns;
         state.figRotY = modelRotTarget + state.scrollVelVis * -0.12;
         figureGroup.value.rotation.set(0, state.figRotY, 0);
 
-        state.figPosY = state.introActive ? -0.8 : -0.8;
+        state.figPosY = state.introActive ? -0.8 : -0.8 - sn * 2.5;
         figureGroup.value.position.set(0, state.figPosY + Math.sin(t * 0.6) * 0.015, 0);
 
-        state.figScale = state.introActive ? 2.6 : 2.6 + sn * 0.6;
+        state.figScale = state.introActive ? 2.6 : 2.6 + sn * 2.0;
         figureGroup.value.scale.setScalar(state.figScale);
       }
     }
