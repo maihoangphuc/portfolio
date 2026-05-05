@@ -117,7 +117,7 @@ export function createAnimateLoop(ctx: RuntimeContext) {
         figureGroup.value.rotation.set(0, state.figRotY, 0);
         state.figPosY = lerp(state.exitFigPosY0, -0.8, m);
         state.figScale = lerp(state.exitFigScale0, 2.6, m);
-        figureGroup.value.position.set(0, state.figPosY, 0);
+        figureGroup.value.position.set(0, state.figPosY + Math.sin(t * 0.6) * 0.015, 0);
         figureGroup.value.scale.setScalar(state.figScale);
       } else if (state.introPreviewActive) {
         const elapsed = performance.now() - state.introPreviewStartMs;
@@ -136,7 +136,7 @@ export function createAnimateLoop(ctx: RuntimeContext) {
         state.figScale = 2.6 + endSn * 0.6;
         figureGroup.value.rotation.set(0, baseRotAtEnd + spin, 0);
         state.figRotY = baseRotAtEnd;
-        figureGroup.value.position.set(0, state.figPosY, 0);
+        figureGroup.value.position.set(0, state.figPosY + Math.sin(t * 0.6) * 0.015, 0);
         figureGroup.value.scale.setScalar(state.figScale);
       } else {
         const panelsPerTurn = 3.5;

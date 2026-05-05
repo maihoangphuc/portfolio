@@ -144,12 +144,13 @@ html.experience-loading #model-load-pct {
   display: flex;
   flex-direction: column;
   align-items: center;
-  animation: none;
-  transform-style: preserve-3d;
-  will-change: transform;
   opacity: 0.01;
   transition: opacity 0.9s ease;
   margin-top: 15px;
+}
+
+#bg-name.model-ready > div {
+  opacity: 1;
 }
 
 .bg-name-text {
@@ -160,7 +161,6 @@ html.experience-loading #model-load-pct {
   line-height: 1;
   white-space: nowrap;
   user-select: none;
-  animation: none;
   letter-spacing: 10px;
 }
 
@@ -170,10 +170,6 @@ html.experience-loading #model-load-pct {
 
 .bg-name-text:nth-child(2) {
   margin-left: 5vw;
-}
-
-#bg-name.model-ready > div {
-  opacity: 1;
 }
 
 #bg-name.hidden {
@@ -548,10 +544,12 @@ html.experience-loading #model-load-pct {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  opacity: 0.01;
+  opacity: 0;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
   transition:
-    opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 1s ease-out,
+    transform 1s ease-out;
 }
 
 #month-lbl {
@@ -563,18 +561,31 @@ html.experience-loading #model-load-pct {
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1;
-  opacity: 0.01;
+  opacity: 0;
   white-space: nowrap;
   user-select: none;
   will-change: opacity, transform;
+  backface-visibility: hidden;
   transition:
-    opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 1s ease-out,
+    transform 1s ease-out;
 }
 
 #month-lbl.date-show {
   opacity: 1;
   transform: translateX(-50%) translateY(25%);
+  animation: month-lbl-fade-in 1.8s 0.15s linear both;
+}
+
+@keyframes month-lbl-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(25%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(25%);
+  }
 }
 
 #month-lbl.enter-left,
@@ -658,6 +669,18 @@ html.experience-loading #model-load-pct {
 #year-lbl.date-show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+  animation: year-lbl-fade-in 1.8s linear;
+}
+
+@keyframes year-lbl-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 #sound-btn {
@@ -814,17 +837,11 @@ html.experience-loading #model-load-pct {
 .drag-char {
   display: inline-block;
   opacity: 0;
-  transform: translate3d(0, 80%, 0);
-  transition:
-    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform, opacity;
 }
 
 #drag-hint.visible .drag-char {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-  transition-delay: calc(0.42s + var(--drag-char-index) * 0.06s);
+  animation: char-reveal 0.18s both;
+  animation-delay: calc(0.1s + var(--drag-char-index) * 0.06s);
 }
 
 .drag-subtext {

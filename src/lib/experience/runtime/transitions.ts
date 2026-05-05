@@ -1,5 +1,5 @@
 import { RuntimeContext } from "@/lib/experience/runtime/types";
-import { EXPERIENCE_ENTRY_MS, INTRO_PREVIEW_BG_HIDE_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_HOLD_MS, DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
+import { EXPERIENCE_ENTRY_MS, INTRO_PREVIEW_BG_HIDE_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_HOLD_MS, DRAG_HINT_FADE_OUT_MS, DRAG_CHARS_REVEAL_MS } from "@/lib/experience/runtime/world";
 import { runIntroPageLineEffects, replaySocialLineEffect } from "@/lib/experience/runtime/effects";
 
 export function enterExperience(ctx: RuntimeContext) {
@@ -43,12 +43,9 @@ export function enterExperience(ctx: RuntimeContext) {
   }
   timers.timelineReveal = window.setTimeout(() => {
     timers.timelineReveal = undefined;
-    state.timelineDatesVisible = true;
     dom.timeline.classList.add("date-show");
-    document.getElementById("year-lbl")?.classList.add("date-show");
-    dom.month.classList.add("date-show");
     replaySocialLineEffect(ctx);
-  }, INTRO_PREVIEW_BG_HIDE_MS + INTRO_PREVIEW_ROTATE_IN_MS);
+  }, INTRO_PREVIEW_BG_HIDE_MS + DRAG_CHARS_REVEAL_MS);
 
   const proceed = () => {
     timers.exploreCommit = undefined;
@@ -89,6 +86,16 @@ export function enterExperience(ctx: RuntimeContext) {
       dom.dragHint.classList.add("hidden");
       dom.dragHint.style.setProperty("opacity", "0", "important");
     }, dragHideStartMs);
+
+    if (timers.yearMonthReveal !== undefined) {
+      clearTimeout(timers.yearMonthReveal);
+    }
+    timers.yearMonthReveal = window.setTimeout(() => {
+      timers.yearMonthReveal = undefined;
+      state.timelineDatesVisible = true;
+      document.getElementById("year-lbl")?.classList.add("date-show");
+      dom.month.classList.add("date-show");
+    }, EXPERIENCE_ENTRY_MS);
   };
 
   const totalWait = INTRO_PREVIEW_BG_HIDE_MS + INTRO_PREVIEW_ROTATE_IN_MS + INTRO_PREVIEW_HOLD_MS;
@@ -113,6 +120,10 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
   if (timers.introRotateStart !== undefined) {
     clearTimeout(timers.introRotateStart);
     timers.introRotateStart = undefined;
+  }
+  if (timers.yearMonthReveal !== undefined) {
+    clearTimeout(timers.yearMonthReveal);
+    timers.yearMonthReveal = undefined;
   }
   state.introPreviewActive = false;
   dom.dragHint.classList.remove("visible");

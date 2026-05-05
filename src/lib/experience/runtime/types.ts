@@ -98,6 +98,7 @@ export type RuntimeContext = {
     dragHintShow?: number;
     dragHintHide?: number;
     introRotateStart?: number;
+    yearMonthReveal?: number;
   };
   animFlags: {
     introLinesAnimEndMs: number;
