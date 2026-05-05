@@ -67,7 +67,8 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       state.scrollVel *= 0.82;
       state.scrollTarget = Math.max(0, Math.min(N - 1, state.scrollTarget + state.scrollVel));
       state.scrollCurrent = lerp(state.scrollCurrent, state.scrollTarget, 0.12);
-      state.scrollVelVis = lerp(state.scrollVelVis, state.scrollVel, 0.1);
+      const visLerp = Math.abs(state.scrollVel) < Math.abs(state.scrollVelVis) ? 0.35 : 0.15;
+      state.scrollVelVis = lerp(state.scrollVelVis, state.scrollVel, visLerp);
     }
 
     const theta = -0.12;

@@ -111,12 +111,12 @@ const FRAGMENT_SHADER = `
 export function createPanels(ctx: RuntimeContext) {
   const { panelGroup, scene } = ctx;
   const textureLoader = new THREE.TextureLoader();
-  
+
   const panels: THREE.Mesh[] = [];
-  
+
   for (let i = 0; i < N; i++) {
     const texture = textureLoader.load(`https://picsum.photos/seed/${i + 123}/800/464`);
-    
+
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uTexture: { value: texture },
@@ -156,51 +156,50 @@ export function createPanels(ctx: RuntimeContext) {
 export function updatePanels(ctx: RuntimeContext) {
   const { state, panelGroup } = ctx;
   const { scrollForLayoutLast, scrollVelVis, introActive, experienceEntryActive, experienceExitActive, experienceExitStartMs } = state;
-  
+
   const time = performance.now() * 0.001;
   const yDistance = 2.8;
   const baseRadius = 5.5;
   const panelsPerTurn = 3.5;
   const pt = -0.5 * Math.PI - 0.07;
-  
+
   const progress = scrollForLayoutLast / (N - 1);
   const edgeBuffer = 0.6;
   const distFromEdge = Math.min(scrollForLayoutLast, (N - 1) - scrollForLayoutLast);
   const edgeFade = Math.min(1, Math.max(0, distFromEdge / edgeBuffer));
   const intensity = Math.abs(scrollVelVis) * 18.0 * edgeFade;
   const direction = Math.sign(scrollVelVis);
-  
+
   panelGroup.position.y = progress * yDistance * (N - 1) + 0.3;
   panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
-  
+
   panelGroup.children.forEach((child) => {
     const mesh = child as THREE.Mesh;
     const material = mesh.material as THREE.ShaderMaterial;
     const index = mesh.userData.index;
     const angle = mesh.userData.angle;
-    
+
     const s = index / (N - 1);
     const a = s - progress;
 
     const scaleBoost = Math.exp(-Math.pow(a * 10, 2)) * 0.15;
     mesh.scale.set(PW * (1 + scaleBoost), PH * (1 + scaleBoost), 1);
-    
+
     const radius = baseRadius + 5 * a;
-    
+
     mesh.position.set(
       Math.cos(angle) * radius,
       -1 * index * yDistance,
       Math.sin(angle) * radius
     );
-    
+
     mesh.rotation.z = THREE.MathUtils.degToRad(-170 * Math.abs(a));
     mesh.rotation.y = -1 * angle - 0.5 * Math.PI + Math.PI;
-    
-    // Simulate hover progress for demo (center panel gets the wave)
+
     const isCenter = Math.abs(a) < 0.05;
     const targetHover = isCenter ? 1.0 : 0.0;
     material.uniforms.uHoverProgress.value = THREE.MathUtils.lerp(material.uniforms.uHoverProgress.value, targetHover, 0.05);
-    
+
     let opacityMultiplier = 1.0;
     if (introActive) {
       opacityMultiplier = 0;
@@ -209,14 +208,14 @@ export function updatePanels(ctx: RuntimeContext) {
     } else if (experienceExitActive) {
       opacityMultiplier = Math.max(0, 1 - (performance.now() - experienceExitStartMs) / 1200);
     }
-    
+
     const finalOpacity = (1 - Math.abs(8 * a)) * opacityMultiplier;
-    
+
     material.uniforms.uOpacity.value = Math.max(0, finalOpacity);
     material.uniforms.uIntensity.value = Math.min(1, intensity);
     material.uniforms.uDirection.value = direction;
     material.uniforms.uOffsetNoise.value.set(time, time);
-    
+
     mesh.visible = finalOpacity > 0;
   });
 }
