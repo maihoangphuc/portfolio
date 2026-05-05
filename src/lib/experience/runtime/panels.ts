@@ -164,8 +164,11 @@ export function updatePanels(ctx: RuntimeContext) {
   const pt = -0.5 * Math.PI - 0.07;
   
   const progress = scrollForLayoutLast / (N - 1);
-  const intensity = Math.abs(scrollVelVis) * 18.0;
-  const direction = -1 * Math.sign(scrollVelVis);
+  const edgeBuffer = 0.6;
+  const distFromEdge = Math.min(scrollForLayoutLast, (N - 1) - scrollForLayoutLast);
+  const edgeFade = Math.min(1, Math.max(0, distFromEdge / edgeBuffer));
+  const intensity = Math.abs(scrollVelVis) * 18.0 * edgeFade;
+  const direction = Math.sign(scrollVelVis);
   
   panelGroup.position.y = progress * yDistance * (N - 1) + 0.3;
   panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
