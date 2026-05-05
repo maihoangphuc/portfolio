@@ -46,7 +46,21 @@ export default function ExperienceIntro() {
       </div>
 
       <div id="drag-hint">
-        <div className="drag-text text-web-white">Drag</div>
+        <div className="drag-row">
+          <div className="drag-line drag-line-left bg-web-white" />
+          <div className="drag-text text-web-white">
+            {"Drag".split("").map((char, i) => (
+              <span
+                key={i}
+                className="drag-char"
+                style={{ "--drag-char-index": i } as React.CSSProperties}
+              >
+                {char}
+              </span>
+            ))}
+          </div>
+          <div className="drag-line drag-line-right bg-web-white" />
+        </div>
         <div className="drag-subtext text-web-soft">or scroll to explore</div>
       </div>
     </>

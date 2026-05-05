@@ -6,6 +6,18 @@ export function smootherstep01(t: number) {
   return x * x * x * (x * (x * 6 - 15) + 10);
 }
 
+/** Snappy start, gentle deceleration — natural for rotating-into-rest motion. */
+export function easeOutCubic01(t: number) {
+  const x = Math.min(1, Math.max(0, t));
+  return 1 - Math.pow(1 - x, 3);
+}
+
+/** Slow start, accelerates to peak velocity at the end — pairs with easeOut for no-pause swing. */
+export function easeInCubic01(t: number) {
+  const x = Math.min(1, Math.max(0, t));
+  return x * x * x;
+}
+
 /** Cinematic startup: approach quickly, then settle softly. */
 export function startupApproachSettle01(t: number) {
   const x = Math.min(1, Math.max(0, t));

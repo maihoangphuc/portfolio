@@ -25,6 +25,8 @@ export type State = {
   introActive: boolean;
   startupIntroSpinActive: boolean;
   startupIntroSpinStartMs: number;
+  introPreviewActive: boolean;
+  introPreviewStartMs: number;
   experienceEntryActive: boolean;
   experienceEntryStartMs: number;
   timelineDatesVisible: boolean;
@@ -93,6 +95,9 @@ export type RuntimeContext = {
     introLineReveal?: number;
     exploreCommit?: number;
     timelineReveal?: number;
+    dragHintShow?: number;
+    dragHintHide?: number;
+    introRotateStart?: number;
   };
   animFlags: {
     introLinesAnimEndMs: number;

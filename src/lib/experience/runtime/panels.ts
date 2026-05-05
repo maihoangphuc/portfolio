@@ -204,7 +204,7 @@ export function updatePanels(ctx: RuntimeContext) {
     } else if (experienceEntryActive) {
       opacityMultiplier = Math.min(1, (performance.now() - state.experienceEntryStartMs) / 1000);
     } else if (experienceExitActive) {
-      opacityMultiplier = Math.max(0, 1 - (performance.now() - experienceExitStartMs) / 500);
+      opacityMultiplier = Math.max(0, 1 - (performance.now() - experienceExitStartMs) / 1200);
     }
     
     const finalOpacity = (1 - Math.abs(8 * a)) * opacityMultiplier;

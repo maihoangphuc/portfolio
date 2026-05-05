@@ -6,6 +6,8 @@ export function createExperienceState() {
     introActive: true,
     startupIntroSpinActive: false,
     startupIntroSpinStartMs: 0,
+    introPreviewActive: false,
+    introPreviewStartMs: 0,
     experienceEntryActive: false,
     experienceEntryStartMs: 0,
     timelineDatesVisible: false,
@@ -52,8 +54,15 @@ export const STARTUP_INTRO_MODEL_Y_FROM = -1.24;
 export const STARTUP_INTRO_MODEL_Y_OVERSHOOT = -0.76;
 export const STARTUP_INTRO_MODEL_Z_FROM = -1.35;
 export const STARTUP_INTRO_MODEL_Z_OVERSHOOT = 0.08;
-export const EXPERIENCE_ENTRY_MS = 5000;
-export const EXPERIENCE_EXIT_MS = 2650;
+export const EXPERIENCE_ENTRY_MS = 1800;
+export const EXPERIENCE_EXIT_MS = 1800;
+export const EXPERIENCE_EXIT_FORWARD_TRAVEL = 3.5;
+export const INTRO_PREVIEW_BG_HIDE_MS = 700;
+export const INTRO_PREVIEW_ROTATE_IN_MS = 1100;
+export const INTRO_PREVIEW_HOLD_MS = 400;
+export const INTRO_PREVIEW_MODEL_ANGLE = 1.2;
+export const INTRO_PREVIEW_BG_YAW = -1.2;
+export const DRAG_HINT_FADE_OUT_MS = 800;
 export const EXPERIENCE_EXIT_MIN_SCROLL_TRAVEL = 5;
 export const EXPERIENCE_EXIT_SCROLL_DEEP_CAP = -12;
 export const EXPERIENCE_EXIT_UNDERSHOOT_SPLIT = 0.99;

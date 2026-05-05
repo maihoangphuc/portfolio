@@ -1,22 +1,59 @@
 import { RuntimeContext } from "@/lib/experience/runtime/types";
-import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_MIN_SCROLL_TRAVEL, EXPERIENCE_EXIT_SCROLL_DEEP_CAP, EXPERIENCE_EXIT_UNDERSHOOT_SPLIT } from "@/lib/experience/runtime/world";
-import { exitRotationTargetAtLeastOneTurn } from "@/lib/experience/runtime/math";
+import { EXPERIENCE_ENTRY_MS, INTRO_PREVIEW_BG_HIDE_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_HOLD_MS, DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
 import { runIntroPageLineEffects, replaySocialLineEffect } from "@/lib/experience/runtime/effects";
 
 export function enterExperience(ctx: RuntimeContext) {
   const { dom, state, animFlags, timers } = ctx;
   if (!state.introActive || animFlags.exploreCommitPending) return;
   animFlags.exploreCommitPending = true;
+
   dom.introLeft.classList.add("intro-lines-exit");
   dom.introLeft.classList.remove("intro-lines-reveal");
+  dom.bgName.classList.add("hidden");
   if (timers.introLineReveal !== undefined) {
     clearTimeout(timers.introLineReveal);
     timers.introLineReveal = undefined;
   }
 
+  if (timers.dragHintShow !== undefined) {
+    clearTimeout(timers.dragHintShow);
+    timers.dragHintShow = undefined;
+  }
+  if (timers.dragHintHide !== undefined) {
+    clearTimeout(timers.dragHintHide);
+    timers.dragHintHide = undefined;
+  }
+  if (timers.introRotateStart !== undefined) {
+    clearTimeout(timers.introRotateStart);
+    timers.introRotateStart = undefined;
+  }
+
+  timers.introRotateStart = window.setTimeout(() => {
+    timers.introRotateStart = undefined;
+    state.introPreviewActive = true;
+    state.introPreviewStartMs = performance.now();
+    dom.dragHint.classList.remove("hidden");
+    dom.dragHint.classList.add("visible");
+    dom.dragHint.style.setProperty("opacity", "1", "important");
+  }, INTRO_PREVIEW_BG_HIDE_MS);
+
+  if (timers.timelineReveal !== undefined) {
+    clearTimeout(timers.timelineReveal);
+    timers.timelineReveal = undefined;
+  }
+  timers.timelineReveal = window.setTimeout(() => {
+    timers.timelineReveal = undefined;
+    state.timelineDatesVisible = true;
+    dom.timeline.classList.add("date-show");
+    document.getElementById("year-lbl")?.classList.add("date-show");
+    dom.month.classList.add("date-show");
+    replaySocialLineEffect(ctx);
+  }, INTRO_PREVIEW_BG_HIDE_MS + INTRO_PREVIEW_ROTATE_IN_MS);
+
   const proceed = () => {
     timers.exploreCommit = undefined;
     animFlags.exploreCommitPending = false;
+    state.introPreviewActive = false;
     state.introActive = false;
     state.experienceEntryActive = true;
     state.experienceEntryStartMs = performance.now();
@@ -30,10 +67,6 @@ export function enterExperience(ctx: RuntimeContext) {
       clearTimeout(timers.timelineReveal);
       timers.timelineReveal = undefined;
     }
-    state.timelineDatesVisible = false;
-    dom.timeline.classList.remove("date-show");
-    document.getElementById("year-lbl")?.classList.remove("date-show");
-    dom.month.classList.remove("date-show");
     dom.introLeft.classList.remove("intro-lines-reveal", "lines-animated");
     dom.introLeft.classList.add("hidden");
     dom.introRight.classList.add("hidden");
@@ -45,21 +78,21 @@ export function enterExperience(ctx: RuntimeContext) {
     state.nextMonthSwitchAt = 0;
     dom.month.classList.remove("enter-left", "enter-right");
     dom.monthGhost.classList.remove("leave-left", "leave-right");
-    timers.timelineReveal = window.setTimeout(() => {
-      timers.timelineReveal = undefined;
-      state.timelineDatesVisible = true;
-      dom.timeline.classList.add("date-show");
-      replaySocialLineEffect(ctx);
-      document.getElementById("year-lbl")?.classList.add("date-show");
-      dom.month.classList.add("date-show");
-    }, EXPERIENCE_ENTRY_MS);
+
+    if (timers.dragHintHide !== undefined) {
+      clearTimeout(timers.dragHintHide);
+    }
+    const dragHideStartMs = Math.max(0, EXPERIENCE_ENTRY_MS - DRAG_HINT_FADE_OUT_MS);
+    timers.dragHintHide = window.setTimeout(() => {
+      timers.dragHintHide = undefined;
+      dom.dragHint.classList.remove("visible");
+      dom.dragHint.classList.add("hidden");
+      dom.dragHint.style.setProperty("opacity", "0", "important");
+    }, dragHideStartMs);
   };
 
-  const waitMs = Math.max(0, Math.ceil(animFlags.introLinesAnimEndMs - performance.now()));
-  const totalWait = Math.max(waitMs, 800);
-
-  if (totalWait > 0) timers.exploreCommit = window.setTimeout(proceed, totalWait);
-  else proceed();
+  const totalWait = INTRO_PREVIEW_BG_HIDE_MS + INTRO_PREVIEW_ROTATE_IN_MS + INTRO_PREVIEW_HOLD_MS;
+  timers.exploreCommit = window.setTimeout(proceed, totalWait);
 }
 
 export function returnToExploreIntro(ctx: RuntimeContext) {
@@ -69,6 +102,22 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
     clearTimeout(timers.exploreCommit);
     timers.exploreCommit = undefined;
   }
+  if (timers.dragHintShow !== undefined) {
+    clearTimeout(timers.dragHintShow);
+    timers.dragHintShow = undefined;
+  }
+  if (timers.dragHintHide !== undefined) {
+    clearTimeout(timers.dragHintHide);
+    timers.dragHintHide = undefined;
+  }
+  if (timers.introRotateStart !== undefined) {
+    clearTimeout(timers.introRotateStart);
+    timers.introRotateStart = undefined;
+  }
+  state.introPreviewActive = false;
+  dom.dragHint.classList.remove("visible");
+  dom.dragHint.classList.add("hidden");
+  dom.dragHint.style.setProperty("opacity", "0", "important");
   animFlags.exploreCommitPending = false;
   if (timers.timelineReveal !== undefined) {
     clearTimeout(timers.timelineReveal);
@@ -92,15 +141,9 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
 
   state.exitScroll0 = state.experienceEntryActive ? state.scrollForLayoutLast : state.scrollCurrent;
   state.exitFigRot0 = figureGroup.value ? figureGroup.value.rotation.y : state.figRotY;
-  state.exitWasEntryMidSpin = state.experienceEntryActive;
-  if (state.exitWasEntryMidSpin) {
-    const TAU = Math.PI * 2;
-    state.exitFigRot1 = Math.ceil(state.exitFigRot0 / TAU + 1e-9) * TAU;
-  } else if (Math.abs(state.scrollCurrent) < 0.1) {
-    state.exitFigRot1 = state.exitFigRot0 + Math.PI * 2;
-  } else {
-    state.exitFigRot1 = exitRotationTargetAtLeastOneTurn(state.exitFigRot0);
-  }
+  state.exitWasEntryMidSpin = false;
+  const TAU = Math.PI * 2;
+  state.exitFigRot1 = Math.round(state.exitFigRot0 / TAU) * TAU;
   state.exitFigPosY0 = state.figPosY;
   state.exitFigScale0 = state.figScale;
   state.exitBgYaw0 = state.bgYawLast;

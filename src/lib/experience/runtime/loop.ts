@@ -1,7 +1,6 @@
-import * as THREE from "three";
 import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { C, MONTHS, N } from "@/constants/experience";
-import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_MIN_SCROLL_TRAVEL, EXPERIENCE_EXIT_SCROLL_DEEP_CAP, EXPERIENCE_EXIT_UNDERSHOOT_SPLIT, MONTH_SWITCH_COOLDOWN_MS } from "@/lib/experience/runtime/world";
+import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_FORWARD_TRAVEL, MONTH_SWITCH_COOLDOWN_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_MODEL_ANGLE, INTRO_PREVIEW_BG_YAW } from "@/lib/experience/runtime/world";
 import { lerp, smootherstep01 } from "@/lib/experience/runtime/math";
 import { drawParticles } from "@/lib/experience/runtime/particles";
 import { completeExploreReturnToIntroUi } from "@/lib/experience/runtime/transitions";
@@ -57,19 +56,12 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
     if (state.experienceExitActive) {
       const s0 = state.exitScroll0;
-      const sp = EXPERIENCE_EXIT_UNDERSHOOT_SPLIT;
-      const deep = Math.min(s0 - EXPERIENCE_EXIT_MIN_SCROLL_TRAVEL, EXPERIENCE_EXIT_SCROLL_DEEP_CAP);
-      if (exitProgress < sp) {
-        const u = smootherstep01(exitProgress / sp);
-        state.scrollCurrent = lerp(s0, deep, u);
-      } else {
-        const u = smootherstep01((exitProgress - sp) / (1 - sp));
-        state.scrollCurrent = lerp(deep, 0, u);
-      }
-      state.scrollTarget = 0;
+      const travel = EXPERIENCE_EXIT_FORWARD_TRAVEL;
+      const u = smootherstep01(exitProgress);
+      state.scrollCurrent = lerp(s0, s0 + travel, u);
+      state.scrollTarget = state.scrollCurrent;
       state.scrollVel = 0;
-      const rewindStrength = Math.min(1, (Math.abs(s0) + Math.abs(deep)) / 14);
-      state.scrollVelVis = -0.022 * rewindStrength * (1 - smootherstep01(exitProgress));
+      state.scrollVelVis = 0;
     } else {
       state.scrollVel *= 0.82;
       state.scrollTarget = Math.max(0, Math.min(N - 1, state.scrollTarget + state.scrollVel));
@@ -97,13 +89,14 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       let yaw: number;
       if (state.experienceExitActive) {
         const m = smootherstep01(exitProgress);
-        if (state.exitWasEntryMidSpin) {
-          const modelTravel = state.exitFigRot1 - state.exitFigRot0;
-          yaw = state.exitBgYaw0 - modelTravel * m;
-        } else {
-          const targetYaw = Math.floor(state.exitBgYaw0 / TAU - 1e-9) * TAU;
-          yaw = state.exitBgYaw0 + (targetYaw - state.exitBgYaw0) * m;
-        }
+        const targetYaw = Math.round(state.exitBgYaw0 / TAU) * TAU;
+        yaw = lerp(state.exitBgYaw0, targetYaw, m);
+      } else if (state.introPreviewActive) {
+        const elapsed = performance.now() - state.introPreviewStartMs;
+        const u = smootherstep01(Math.min(1, elapsed / INTRO_PREVIEW_ROTATE_IN_MS));
+        yaw = u * INTRO_PREVIEW_BG_YAW;
+      } else if (!state.introActive && experienceEntryProgress < 1) {
+        yaw = lerp(INTRO_PREVIEW_BG_YAW, 0, entryScrollBlend);
       } else {
         const panelsPerTurn = 3.5;
         const totalTurns = (N - 1) / panelsPerTurn;
@@ -117,18 +110,28 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
     if (figureGroup.value) {
       if (state.experienceExitActive) {
+        const TAU = Math.PI * 2;
         const m = smootherstep01(exitProgress);
-        state.figRotY = THREE.MathUtils.lerp(state.exitFigRot0, state.exitFigRot1, m);
-        figureGroup.value.rotation.y = state.figRotY;
-        figureGroup.value.rotation.x = 0;
-        state.figPosY = THREE.MathUtils.lerp(state.exitFigPosY0, -0.8, m);
-        state.figScale = THREE.MathUtils.lerp(state.exitFigScale0, 2.6, m);
+        const targetRot = Math.round(state.exitFigRot0 / TAU) * TAU;
+        state.figRotY = lerp(state.exitFigRot0, targetRot, m);
+        figureGroup.value.rotation.set(0, state.figRotY, 0);
+        state.figPosY = lerp(state.exitFigPosY0, -0.8, m);
+        state.figScale = lerp(state.exitFigScale0, 2.6, m);
         figureGroup.value.position.set(0, state.figPosY, 0);
+        figureGroup.value.scale.setScalar(state.figScale);
+      } else if (state.introPreviewActive) {
+        const elapsed = performance.now() - state.introPreviewStartMs;
+        const u = smootherstep01(Math.min(1, elapsed / INTRO_PREVIEW_ROTATE_IN_MS));
+        state.figRotY = u * INTRO_PREVIEW_MODEL_ANGLE;
+        figureGroup.value.rotation.set(0, state.figRotY, 0);
+        state.figPosY = -0.8;
+        figureGroup.value.position.set(0, state.figPosY + Math.sin(t * 0.6) * 0.015, 0);
+        state.figScale = 2.6;
         figureGroup.value.scale.setScalar(state.figScale);
       } else if (!state.introActive && experienceEntryProgress < 1) {
         const endSn = state.entryScrollTo / (N - 1);
         const baseRotAtEnd = endSn * -Math.PI * 2;
-        const spin = (1 - entryScrollBlend) * Math.PI * 2;
+        const spin = (1 - entryScrollBlend) * (INTRO_PREVIEW_MODEL_ANGLE - baseRotAtEnd);
         state.figPosY = -0.8 - endSn * 1.2;
         state.figScale = 2.6 + endSn * 0.6;
         figureGroup.value.rotation.set(0, baseRotAtEnd + spin, 0);
@@ -151,8 +154,6 @@ export function createAnimateLoop(ctx: RuntimeContext) {
     }
 
     const centerIndex = Math.max(0, Math.min(N - 1, Math.round(scrollForLayout)));
-
-    const exitHidePanels = state.experienceExitActive && exitProgress >= EXPERIENCE_EXIT_UNDERSHOOT_SPLIT;
 
     if (!state.introActive && !state.experienceExitActive) {
       const fi = centerIndex;

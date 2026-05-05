@@ -748,7 +748,7 @@ html.experience-loading #model-load-pct {
   position: fixed;
   inset: 0;
   z-index: 999;
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -766,12 +766,65 @@ html.experience-loading #model-load-pct {
   pointer-events: none;
 }
 
+.drag-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(36px, 5vw, 72px);
+  margin-bottom: 18px;
+}
+
+
+.drag-line {
+  width: clamp(160px, 18vw, 260px);
+  height: 1px;
+  opacity: 0;
+  transform: scaleX(0);
+  transition:
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease-out;
+  will-change: transform, opacity;
+}
+
+.drag-line-left {
+  transform-origin: right center;
+}
+
+.drag-line-right {
+  transform-origin: left center;
+}
+
+#drag-hint.visible .drag-line {
+  transform: scaleX(1);
+  opacity: 0.55;
+  transition-delay: 0s;
+}
+
 .drag-text {
   font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
   font-size: clamp(80px, 15vw, 120px);
   font-weight: 700;
   line-height: 1;
-  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  overflow: hidden;
+  padding: 0 0.05em;
+}
+
+.drag-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 80%, 0);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+#drag-hint.visible .drag-char {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-delay: calc(0.42s + var(--drag-char-index) * 0.06s);
 }
 
 .drag-subtext {
