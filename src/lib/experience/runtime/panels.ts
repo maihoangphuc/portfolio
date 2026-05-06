@@ -110,6 +110,17 @@ const FRAGMENT_SHADER = `
   }
 `;
 
+// Title plane local size, used to match canvas aspect to world plane aspect
+// so the rasterized text isn't stretched.
+const TITLE_PLANE_W = 0.6;
+const TITLE_PLANE_H = 0.3;
+const TITLE_CANVAS_W = 1024;
+const TITLE_CANVAS_H = Math.round(
+  (TITLE_CANVAS_W * TITLE_PLANE_H * PH) / (TITLE_PLANE_W * PW)
+);
+const TITLE_FONT_PX = Math.round(64 * (TITLE_CANVAS_H / 256));
+const TITLE_LINE_H = Math.round(72 * (TITLE_CANVAS_H / 256));
+
 function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
   const ctx2d = canvas.getContext("2d")!;
   const W = canvas.width;
@@ -120,30 +131,28 @@ function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-roboto")
       .trim() || "sans-serif";
-  ctx2d.font = `700 64px "Blaak", ${fontStack}, ui-sans-serif, sans-serif`;
+  ctx2d.font = `700 ${TITLE_FONT_PX}px "Blaak", ${fontStack}, ui-sans-serif, sans-serif`;
   ctx2d.textAlign = "center";
   ctx2d.textBaseline = "middle";
   const lines = title.split("\n");
-  const lineH = 72;
-  const blockH = (lines.length - 1) * lineH;
+  const blockH = (lines.length - 1) * TITLE_LINE_H;
   lines.forEach((line, i) =>
-    ctx2d.fillText(line, W / 2, H / 2 - blockH / 2 + i * lineH)
+    ctx2d.fillText(line, W / 2, H / 2 - blockH / 2 + i * TITLE_LINE_H)
   );
 }
 
 function createTitleTexture(title: string): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 256;
+  canvas.width = TITLE_CANVAS_W;
+  canvas.height = TITLE_CANVAS_H;
   drawTitleOnCanvas(canvas, title);
   const tex = new THREE.CanvasTexture(canvas);
   tex.minFilter = THREE.LinearFilter;
   tex.magFilter = THREE.LinearFilter;
   tex.anisotropy = 4;
 
-  // If Blaak hasn't loaded yet, redraw once it's available.
   if (typeof document !== "undefined" && "fonts" in document) {
-    document.fonts.load(`700 64px "Blaak"`).then(() => {
+    document.fonts.load(`700 ${TITLE_FONT_PX}px "Blaak"`).then(() => {
       drawTitleOnCanvas(canvas, title);
       tex.needsUpdate = true;
     });
@@ -198,6 +207,7 @@ export function createPanels(ctx: RuntimeContext) {
       vertexShader: VERTEX_SHADER,
       fragmentShader: FRAGMENT_SHADER,
       transparent: true,
+      depthWrite: false,
       side: THREE.DoubleSide,
     });
     
@@ -229,7 +239,7 @@ export function createPanels(ctx: RuntimeContext) {
     );
     // Title centered vertically on the panel, half over the left edge.
     // Canvas aspect is 2:1 (512x256), so scale matches that ratio.
-    titleMesh.scale.set(0.6, 0.3, 1);
+    titleMesh.scale.set(TITLE_PLANE_W, TITLE_PLANE_H, 1);
     titleMesh.position.set(-0.5, 0, 0.015);
     titleMesh.renderOrder = 5;
     mesh.userData.titleMesh = titleMesh;
