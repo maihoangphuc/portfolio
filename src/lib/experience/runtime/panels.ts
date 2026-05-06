@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { N, PW, PH } from "@/constants/experience";
+import { DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
 
 const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
 
@@ -155,7 +156,7 @@ export function createPanels(ctx: RuntimeContext) {
 
 export function updatePanels(ctx: RuntimeContext) {
   const { state, panelGroup } = ctx;
-  const { scrollForLayoutLast, scrollVelVis, introActive, experienceEntryActive, experienceExitActive, experienceExitStartMs } = state;
+  const { scrollForLayoutLast, scrollVelVis, introActive, experienceEntryActive, experienceExitActive, experienceExitStartMs, exitReverseMode } = state;
 
   const time = performance.now() * 0.001;
   const yDistance = 2.8;
@@ -204,9 +205,16 @@ export function updatePanels(ctx: RuntimeContext) {
     if (introActive) {
       opacityMultiplier = 0;
     } else if (experienceEntryActive) {
-      opacityMultiplier = Math.min(1, (performance.now() - state.experienceEntryStartMs) / 1000);
+      // Hold panels invisible while the drag hint is fading out, then fade them in
+      const elapsed = performance.now() - state.experienceEntryStartMs;
+      const start = DRAG_HINT_FADE_OUT_MS;
+      opacityMultiplier = elapsed < start
+        ? 0
+        : Math.min(1, (elapsed - start) / 1000);
     } else if (experienceExitActive) {
-      opacityMultiplier = Math.max(0, 1 - (performance.now() - experienceExitStartMs) / 1200);
+      opacityMultiplier = exitReverseMode
+        ? 0
+        : Math.max(0, 1 - (performance.now() - experienceExitStartMs) / 1200);
     }
 
     const finalOpacity = (1 - Math.abs(8 * a)) * opacityMultiplier;

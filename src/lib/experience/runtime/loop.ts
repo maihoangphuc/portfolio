@@ -1,6 +1,6 @@
 import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { C, MONTHS, N } from "@/constants/experience";
-import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_FORWARD_TRAVEL, MONTH_SWITCH_COOLDOWN_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_MODEL_ANGLE, INTRO_PREVIEW_BG_YAW } from "@/lib/experience/runtime/world";
+import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_REVERSE_MS, EXPERIENCE_EXIT_FORWARD_TRAVEL, MONTH_SWITCH_COOLDOWN_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_MODEL_ANGLE, INTRO_PREVIEW_BG_YAW } from "@/lib/experience/runtime/world";
 import { lerp, smootherstep01 } from "@/lib/experience/runtime/math";
 import { drawParticles } from "@/lib/experience/runtime/particles";
 import { completeExploreReturnToIntroUi } from "@/lib/experience/runtime/transitions";
@@ -49,23 +49,43 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
     let exitProgress = 0;
     if (state.experienceExitActive) {
-      exitProgress = Math.min(1, (performance.now() - state.experienceExitStartMs) / EXPERIENCE_EXIT_MS);
+      const exitDuration = state.exitReverseMode ? EXPERIENCE_EXIT_REVERSE_MS : EXPERIENCE_EXIT_MS;
+      exitProgress = Math.min(1, (performance.now() - state.experienceExitStartMs) / exitDuration);
     }
 
     drawParticles(dom, pCtx, pState);
 
     if (state.experienceExitActive) {
       const s0 = state.exitScroll0;
-      const travel = EXPERIENCE_EXIT_FORWARD_TRAVEL;
       const u = smootherstep01(exitProgress);
       const prevScrollCurrent = state.scrollCurrent;
-      state.scrollCurrent = lerp(s0, s0 + travel, u);
+      if (state.exitReverseMode) {
+        state.scrollCurrent = lerp(s0, 0, u);
+      } else {
+        const travel = EXPERIENCE_EXIT_FORWARD_TRAVEL;
+        state.scrollCurrent = lerp(s0, s0 + travel, u);
+      }
       state.scrollTarget = state.scrollCurrent;
       state.scrollVel = state.scrollCurrent - prevScrollCurrent;
       state.scrollVelVis = lerp(state.scrollVelVis, state.scrollVel, 0.4);
     } else {
       state.scrollVel *= 0.82;
-      state.scrollTarget = Math.max(0, Math.min(N - 1, state.scrollTarget + state.scrollVel));
+      const beforeClampTarget = state.scrollTarget + state.scrollVel;
+      state.scrollTarget = Math.max(0, Math.min(N - 1, beforeClampTarget));
+      if (beforeClampTarget !== state.scrollTarget) {
+        state.scrollVel = 0;
+        state.scrollVelVis = 0;
+      }
+      // Snap to nearest panel index when scroll is settling (velocity very low and not actively dragging)
+      if (
+        !state.introActive &&
+        !state.experienceEntryActive &&
+        !state.isDragging &&
+        Math.abs(state.scrollVel) < 0.0008
+      ) {
+        const snapTarget = Math.round(state.scrollTarget);
+        state.scrollTarget = lerp(state.scrollTarget, snapTarget, 0.18);
+      }
       state.scrollCurrent = lerp(state.scrollCurrent, state.scrollTarget, 0.12);
       const visLerp = Math.abs(state.scrollVel) < Math.abs(state.scrollVelVis) ? 0.35 : 0.15;
       state.scrollVelVis = lerp(state.scrollVelVis, state.scrollVel, visLerp);
@@ -102,7 +122,9 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       } else {
         const panelsPerTurn = 3.5;
         const totalTurns = (N - 1) / panelsPerTurn;
-        yaw = (state.introActive ? 0 : sn * TAU * totalTurns) + state.scrollVelVis * 0.15;
+        const distFromEdge = Math.min(state.scrollCurrent, (N - 1) - state.scrollCurrent);
+        const velEdgeFade = Math.min(1, Math.max(0, distFromEdge / 0.6));
+        yaw = (state.introActive ? 0 : sn * TAU * totalTurns) + state.scrollVelVis * 0.15 * velEdgeFade;
       }
       const r = 5;
       bg.camera.position.set(Math.sin(yaw) * r, 0, Math.cos(yaw) * r);
@@ -143,7 +165,9 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       } else {
         const modelTurns = 1;
         const modelRotTarget = state.introActive ? 0 : sn * -Math.PI * 2 * modelTurns;
-        state.figRotY = modelRotTarget + state.scrollVelVis * -0.12;
+        const distFromEdge = Math.min(state.scrollCurrent, (N - 1) - state.scrollCurrent);
+        const velEdgeFade = Math.min(1, Math.max(0, distFromEdge / 0.6));
+        state.figRotY = modelRotTarget + state.scrollVelVis * -0.12 * velEdgeFade;
         figureGroup.value.rotation.set(0, state.figRotY, 0);
 
         state.figPosY = state.introActive ? -0.8 : -0.8 - sn * 2.5;
@@ -196,6 +220,7 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
     if (state.experienceExitActive && exitProgress >= 1) {
       state.experienceExitActive = false; state.introActive = true;
+      state.exitReverseMode = false;
       state.figRotY = 0; state.figPosY = -0.8; state.figScale = 2.6;
       if (figureGroup.value) {
         figureGroup.value.rotation.set(0, 0, 0);

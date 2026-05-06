@@ -52,6 +52,7 @@ export type State = {
   exitFigRot0: number;
   exitFigRot1: number;
   exitWasEntryMidSpin: boolean;
+  exitReverseMode: boolean;
   scrollForLayoutLast: number;
   exitFigPosY0: number;
   exitFigScale0: number;
@@ -99,6 +100,7 @@ export type RuntimeContext = {
     dragHintHide?: number;
     introRotateStart?: number;
     yearMonthReveal?: number;
+    entryStart?: number;
   };
   animFlags: {
     introLinesAnimEndMs: number;

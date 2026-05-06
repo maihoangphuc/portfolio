@@ -33,6 +33,7 @@ export function createExperienceState() {
     exitFigRot0: 0,
     exitFigRot1: 0,
     exitWasEntryMidSpin: false,
+    exitReverseMode: false,
     scrollForLayoutLast: 0,
     exitFigPosY0: -0.8,
     exitFigScale0: 2.6,
@@ -56,6 +57,7 @@ export const STARTUP_INTRO_MODEL_Z_FROM = -1.35;
 export const STARTUP_INTRO_MODEL_Z_OVERSHOOT = 0.08;
 export const EXPERIENCE_ENTRY_MS = 1800;
 export const EXPERIENCE_EXIT_MS = 1800;
+export const EXPERIENCE_EXIT_REVERSE_MS = 700;
 export const EXPERIENCE_EXIT_FORWARD_TRAVEL = 5;
 export const INTRO_PREVIEW_BG_HIDE_MS = 700;
 export const INTRO_PREVIEW_ROTATE_IN_MS = 1100;

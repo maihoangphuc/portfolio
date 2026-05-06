@@ -56,6 +56,12 @@ export function enterExperience(ctx: RuntimeContext) {
     state.experienceEntryStartMs = performance.now();
     state.entryScrollTo = state.scrollTarget;
     state.entryScrollFrom = state.scrollTarget - 3.5;
+
+    // Hide drag-hint immediately so model rotation back is paired with the drag fade
+    dom.dragHint.classList.remove("visible");
+    dom.dragHint.classList.add("hidden");
+    dom.dragHint.style.setProperty("opacity", "0", "important");
+
     if (timers.introLineReveal !== undefined) {
       clearTimeout(timers.introLineReveal);
       timers.introLineReveal = undefined;
@@ -76,17 +82,6 @@ export function enterExperience(ctx: RuntimeContext) {
     dom.month.classList.remove("enter-left", "enter-right");
     dom.monthGhost.classList.remove("leave-left", "leave-right");
 
-    if (timers.dragHintHide !== undefined) {
-      clearTimeout(timers.dragHintHide);
-    }
-    const dragHideStartMs = Math.max(0, EXPERIENCE_ENTRY_MS - DRAG_HINT_FADE_OUT_MS);
-    timers.dragHintHide = window.setTimeout(() => {
-      timers.dragHintHide = undefined;
-      dom.dragHint.classList.remove("visible");
-      dom.dragHint.classList.add("hidden");
-      dom.dragHint.style.setProperty("opacity", "0", "important");
-    }, dragHideStartMs);
-
     if (timers.yearMonthReveal !== undefined) {
       clearTimeout(timers.yearMonthReveal);
     }
@@ -104,7 +99,15 @@ export function enterExperience(ctx: RuntimeContext) {
 
 export function returnToExploreIntro(ctx: RuntimeContext) {
   const { dom, state, animFlags, timers, figureGroup } = ctx;
-  if (state.introActive || state.experienceExitActive) return;
+  if (state.experienceExitActive) return;
+
+  const inExploreSequence =
+    state.introPreviewActive ||
+    animFlags.exploreCommitPending ||
+    state.experienceEntryActive;
+
+  if (state.introActive && !inExploreSequence) return;
+
   if (timers.exploreCommit !== undefined) {
     clearTimeout(timers.exploreCommit);
     timers.exploreCommit = undefined;
@@ -125,20 +128,26 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
     clearTimeout(timers.yearMonthReveal);
     timers.yearMonthReveal = undefined;
   }
-  state.introPreviewActive = false;
-  dom.dragHint.classList.remove("visible");
-  dom.dragHint.classList.add("hidden");
-  dom.dragHint.style.setProperty("opacity", "0", "important");
-  animFlags.exploreCommitPending = false;
   if (timers.timelineReveal !== undefined) {
     clearTimeout(timers.timelineReveal);
     timers.timelineReveal = undefined;
   }
-  state.timelineDatesVisible = false;
   if (timers.introLineReveal !== undefined) {
     clearTimeout(timers.introLineReveal);
     timers.introLineReveal = undefined;
   }
+  if (timers.entryStart !== undefined) {
+    clearTimeout(timers.entryStart);
+    timers.entryStart = undefined;
+  }
+
+  state.introPreviewActive = false;
+  animFlags.exploreCommitPending = false;
+  state.timelineDatesVisible = false;
+
+  dom.dragHint.classList.remove("visible");
+  dom.dragHint.classList.add("hidden");
+  dom.dragHint.style.setProperty("opacity", "0", "important");
   dom.timeline.classList.remove("date-show");
   document.getElementById("year-lbl")?.classList.remove("date-show");
   dom.month.classList.remove("date-show");
@@ -150,9 +159,18 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
   dom.month.classList.remove("enter-left", "enter-right");
   dom.monthGhost.classList.remove("leave-left", "leave-right");
 
-  state.exitScroll0 = state.experienceEntryActive ? state.scrollForLayoutLast : state.scrollCurrent;
+  // Reverse mode only when in preview/hold (no panels visible yet);
+  // during entry (panels rising) and stable, use the forward-scroll exit
+  const inPreviewPhase = state.introActive && inExploreSequence;
+
+  // Always trigger smooth exit animation — interrupt any in-flight explore phase.
+  // Use scrollForLayoutLast (the visually-rendered scroll) so the exit picks up
+  // exactly where the panels are currently positioned — avoids any jump if user
+  // interrupts mid-entry while scrollCurrent and the entry-blended scroll diverge.
+  state.exitScroll0 = state.scrollForLayoutLast;
   state.exitFigRot0 = figureGroup.value ? figureGroup.value.rotation.y : state.figRotY;
   state.exitWasEntryMidSpin = false;
+  state.exitReverseMode = inPreviewPhase;
   const TAU = Math.PI * 2;
   state.exitFigRot1 = Math.round(state.exitFigRot0 / TAU) * TAU;
   state.exitFigPosY0 = state.figPosY;
@@ -160,11 +178,13 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
   state.exitBgYaw0 = state.bgYawLast;
   state.experienceExitStartMs = performance.now();
   state.experienceExitActive = true;
+  state.introActive = false;
   state.experienceEntryActive = false;
   state.scrolled = false;
   state.scrollVel = 0;
   state.scrollVelVis = 0;
-  state.scrollTarget = 0;
+  state.scrollCurrent = state.scrollForLayoutLast;
+  state.scrollTarget = state.scrollForLayoutLast;
 }
 
 export function completeExploreReturnToIntroUi(ctx: RuntimeContext) {
