@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { N, PW, PH } from "@/constants/experience";
+import { PANELS } from "@/constants/panels";
 import { DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
 
 const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
@@ -109,6 +110,69 @@ const FRAGMENT_SHADER = `
   }
 `;
 
+function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
+  const ctx2d = canvas.getContext("2d")!;
+  const W = canvas.width;
+  const H = canvas.height;
+  ctx2d.clearRect(0, 0, W, H);
+  ctx2d.fillStyle = "rgba(255,255,255,0.95)";
+  const fontStack =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--font-roboto")
+      .trim() || "sans-serif";
+  ctx2d.font = `700 64px "Blaak", ${fontStack}, ui-sans-serif, sans-serif`;
+  ctx2d.textAlign = "center";
+  ctx2d.textBaseline = "middle";
+  const lines = title.split("\n");
+  const lineH = 72;
+  const blockH = (lines.length - 1) * lineH;
+  lines.forEach((line, i) =>
+    ctx2d.fillText(line, W / 2, H / 2 - blockH / 2 + i * lineH)
+  );
+}
+
+function createTitleTexture(title: string): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  drawTitleOnCanvas(canvas, title);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.anisotropy = 4;
+
+  // If Blaak hasn't loaded yet, redraw once it's available.
+  if (typeof document !== "undefined" && "fonts" in document) {
+    document.fonts.load(`700 64px "Blaak"`).then(() => {
+      drawTitleOnCanvas(canvas, title);
+      tex.needsUpdate = true;
+    });
+  }
+
+  return tex;
+}
+
+const TITLE_VERTEX_SHADER = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    vec3 d = position;
+    float rX = abs(vUv.x * 2.0 - 1.0) * -1.0;
+    d.z += cos(rX) * 0.04;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(d, 1.0);
+  }
+`;
+
+const TITLE_FRAGMENT_SHADER = `
+  varying vec2 vUv;
+  uniform sampler2D uTitleTex;
+  uniform float uTitleOpacity;
+  void main() {
+    vec4 t = texture2D(uTitleTex, vUv);
+    gl_FragColor = vec4(t.rgb, t.a * uTitleOpacity);
+  }
+`;
+
 export function createPanels(ctx: RuntimeContext) {
   const { panelGroup, scene } = ctx;
   const textureLoader = new THREE.TextureLoader();
@@ -116,7 +180,8 @@ export function createPanels(ctx: RuntimeContext) {
   const panels: THREE.Mesh[] = [];
 
   for (let i = 0; i < N; i++) {
-    const texture = textureLoader.load(`https://picsum.photos/seed/${i + 123}/800/464`);
+    const item = PANELS[i % PANELS.length];
+    const texture = textureLoader.load(item.url);
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -141,10 +206,35 @@ export function createPanels(ctx: RuntimeContext) {
     // Set scale to match aspect ratio and PW
     mesh.scale.x = PW;
     mesh.scale.y = PH;
-    
+
     const panelsPerTurn = 3.5;
     mesh.userData.angle = (i / panelsPerTurn) * Math.PI * -2;
-    
+
+    // Title plane: child of the panel so it inherits rotation/curve.
+    // Local size relative to panel: ~half the panel's width, sits at upper-left.
+    const titleMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTitleTex: { value: createTitleTexture(item.title) },
+        uTitleOpacity: { value: 0 },
+      },
+      vertexShader: TITLE_VERTEX_SHADER,
+      fragmentShader: TITLE_FRAGMENT_SHADER,
+      transparent: true,
+      depthTest: true,
+      side: THREE.DoubleSide,
+    });
+    const titleMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1, 32, 8),
+      titleMat
+    );
+    // Title centered vertically on the panel, half over the left edge.
+    // Canvas aspect is 2:1 (512x256), so scale matches that ratio.
+    titleMesh.scale.set(0.6, 0.3, 1);
+    titleMesh.position.set(-0.5, 0, 0.015);
+    titleMesh.renderOrder = 5;
+    mesh.userData.titleMesh = titleMesh;
+    mesh.add(titleMesh);
+
     panelGroup.add(mesh);
     panels.push(mesh);
   }
@@ -208,8 +298,28 @@ export function updatePanels(ctx: RuntimeContext) {
   cam.updateMatrixWorld(true);
   panelGroup.updateMatrixWorld(true);
 
+  // Identify the panel currently in front of the 3D model so only its title shows.
+  let frontIndex = -1;
+  {
+    let frontAbsA = Infinity;
+    const wp = new THREE.Vector3();
+    panelGroup.children.forEach((child) => {
+      const mesh = child as THREE.Mesh;
+      const idx = mesh.userData.index as number;
+      const sIdx = idx / (N - 1);
+      const absA = Math.abs(sIdx - progress);
+      mesh.getWorldPosition(wp);
+      if (absA < frontAbsA && wp.z > 0) {
+        frontAbsA = absA;
+        frontIndex = idx;
+      }
+    });
+    if (frontAbsA > 0.04) frontIndex = -1;
+  }
+  const inExperience = !introActive && !experienceEntryActive && !experienceExitActive;
+
   let hoveredMesh: THREE.Object3D | null = null;
-  if (!introActive && !experienceEntryActive && !experienceExitActive) {
+  if (inExperience) {
     mouse.set(state.mouseX, state.mouseY);
     raycaster.setFromCamera(mouse, cam);
     // Only allow hover on panels in front of the figure (worldZ > 0) and visible.
@@ -263,5 +373,18 @@ export function updatePanels(ctx: RuntimeContext) {
     material.uniforms.uOffsetNoise.value.set(hp * 3, hp * 3);
 
     mesh.visible = finalOpacity > 0;
+
+    // Title visibility: only the front panel shows its title.
+    const titleMesh = mesh.userData.titleMesh as THREE.Mesh | undefined;
+    if (titleMesh) {
+      const titleMat = titleMesh.material as THREE.ShaderMaterial;
+      const target = inExperience && index === frontIndex ? 1 : 0;
+      titleMat.uniforms.uTitleOpacity.value = THREE.MathUtils.lerp(
+        titleMat.uniforms.uTitleOpacity.value,
+        target,
+        0.12
+      );
+      titleMesh.visible = titleMat.uniforms.uTitleOpacity.value > 0.01;
+    }
   });
 }
