@@ -8,7 +8,6 @@ const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
 const VERTEX_SHADER = `
   #define PI 3.14159265358979323846264338327
   varying vec2 vUv;
-  uniform sampler2D uTexture;
   uniform float uDirection;
   uniform float uIntensity;
   uniform float uLimitCurve;
@@ -74,16 +73,8 @@ const VERTEX_SHADER = `
     float end = progress + gradientSize;
     float y = smoothstep(start, end, vUv.x + ((1.0-vUv.y) * skewSize));
     float height = 1.0 - abs(y * 2. - 1.);
-    displaced.z += (height * n) * 0.03;
+    displaced.z += (height * n) * 0.06;
 
-    // Brightness-driven flutter: lighter parts of the image flap, darker parts stay still.
-    // Sample the texture in the vertex shader and use luminance as the flutter mask.
-    float brightness = dot(texture2D(uTexture, vUv).rgb, vec3(0.299, 0.587, 0.114));
-    float t = uOffsetNoise.x * 2.5;
-    float flutter = sin((vUv.x + vUv.y * 0.35) * 5.0 - t)
-                  + sin((vUv.x * 1.4 - vUv.y * 0.7) * 7.5 - t * 1.3) * 0.5;
-    displaced.z += flutter * brightness * 0.035 * p;
-    
     vec4 modelViewPosition = modelViewMatrix * vec4(displaced, 1.0);
     gl_Position = projectionMatrix * modelViewPosition;
   }
@@ -167,7 +158,6 @@ export function updatePanels(ctx: RuntimeContext) {
   const { state, panelGroup, raycaster, cam, mouse } = ctx;
   const { scrollForLayoutLast, scrollVelVis, introActive, experienceEntryActive, experienceExitActive, experienceExitStartMs, exitReverseMode } = state;
 
-  const time = performance.now() * 0.001;
   const yDistance = 2.8;
   const baseRadius = 5.5;
   const panelsPerTurn = 3.5;
@@ -246,7 +236,7 @@ export function updatePanels(ctx: RuntimeContext) {
 
     const isHovered = hoveredMesh === mesh;
     const targetHover = isHovered ? 1.0 : 0.0;
-    material.uniforms.uHoverProgress.value = THREE.MathUtils.lerp(material.uniforms.uHoverProgress.value, targetHover, 0.15);
+    material.uniforms.uHoverProgress.value = THREE.MathUtils.lerp(material.uniforms.uHoverProgress.value, targetHover, 0.07);
 
     let opacityMultiplier = 1.0;
     if (introActive) {
@@ -269,7 +259,8 @@ export function updatePanels(ctx: RuntimeContext) {
     material.uniforms.uOpacity.value = Math.max(0, finalOpacity);
     material.uniforms.uIntensity.value = Math.min(1, intensity);
     material.uniforms.uDirection.value = direction;
-    material.uniforms.uOffsetNoise.value.set(time, time);
+    const hp = material.uniforms.uHoverProgress.value;
+    material.uniforms.uOffsetNoise.value.set(hp * 3, hp * 3);
 
     mesh.visible = finalOpacity > 0;
   });
