@@ -8,6 +8,7 @@ const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
 const VERTEX_SHADER = `
   #define PI 3.14159265358979323846264338327
   varying vec2 vUv;
+  uniform sampler2D uTexture;
   uniform float uDirection;
   uniform float uIntensity;
   uniform float uLimitCurve;
@@ -74,6 +75,14 @@ const VERTEX_SHADER = `
     float y = smoothstep(start, end, vUv.x + ((1.0-vUv.y) * skewSize));
     float height = 1.0 - abs(y * 2. - 1.);
     displaced.z += (height * n) * 0.03;
+
+    // Brightness-driven flutter: lighter parts of the image flap, darker parts stay still.
+    // Sample the texture in the vertex shader and use luminance as the flutter mask.
+    float brightness = dot(texture2D(uTexture, vUv).rgb, vec3(0.299, 0.587, 0.114));
+    float t = uOffsetNoise.x * 2.5;
+    float flutter = sin((vUv.x + vUv.y * 0.35) * 5.0 - t)
+                  + sin((vUv.x * 1.4 - vUv.y * 0.7) * 7.5 - t * 1.3) * 0.5;
+    displaced.z += flutter * brightness * 0.035 * p;
     
     vec4 modelViewPosition = modelViewMatrix * vec4(displaced, 1.0);
     gl_Position = projectionMatrix * modelViewPosition;
@@ -86,7 +95,7 @@ const FRAGMENT_SHADER = `
   uniform float uOpacity;
   uniform float uHoverProgress;
   uniform vec3 uColor;
-  
+
   void main() {
     vec4 tex = texture2D(uTexture, vUv);
     
@@ -103,7 +112,7 @@ const FRAGMENT_SHADER = `
     
     vec3 gradedTexture = mix(tex.rgb, grayscaleTexture, 0.1);
     gradedTexture.r -= 0.01;
-    
+
     vec3 color = mix(gradedTexture, grayscaleTexture, y);
     gl_FragColor = vec4(color, uOpacity);
   }
@@ -155,7 +164,7 @@ export function createPanels(ctx: RuntimeContext) {
 }
 
 export function updatePanels(ctx: RuntimeContext) {
-  const { state, panelGroup } = ctx;
+  const { state, panelGroup, raycaster, cam, mouse } = ctx;
   const { scrollForLayoutLast, scrollVelVis, introActive, experienceEntryActive, experienceExitActive, experienceExitStartMs, exitReverseMode } = state;
 
   const time = performance.now() * 0.001;
@@ -174,9 +183,9 @@ export function updatePanels(ctx: RuntimeContext) {
   panelGroup.position.y = progress * yDistance * (N - 1) + 0.3;
   panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
 
+  // Pass 1: write each panel's transform.
   panelGroup.children.forEach((child) => {
     const mesh = child as THREE.Mesh;
-    const material = mesh.material as THREE.ShaderMaterial;
     const index = mesh.userData.index;
     const angle = mesh.userData.angle;
 
@@ -199,10 +208,41 @@ export function updatePanels(ctx: RuntimeContext) {
 
     mesh.rotation.z = THREE.MathUtils.degToRad(-170 * Math.abs(a));
     mesh.rotation.y = -1 * angle - 0.5 * Math.PI + Math.PI;
+  });
 
-    const isCenter = Math.abs(a) < 0.05;
-    const targetHover = isCenter ? 1.0 : 0.0;
-    material.uniforms.uHoverProgress.value = THREE.MathUtils.lerp(material.uniforms.uHoverProgress.value, targetHover, 0.05);
+  // Force matrix refresh so the raycaster sees this frame's positions.
+  cam.updateMatrixWorld(true);
+  panelGroup.updateMatrixWorld(true);
+
+  let hoveredMesh: THREE.Object3D | null = null;
+  if (!introActive && !experienceEntryActive && !experienceExitActive) {
+    mouse.set(state.mouseX, state.mouseY);
+    raycaster.setFromCamera(mouse, cam);
+    // Only allow hover on panels in front of the figure (worldZ > 0) and visible.
+    const meshWorldPos = new THREE.Vector3();
+    const hittable = panelGroup.children.filter((c) => {
+      const m = c as THREE.Mesh;
+      const mat = m.material as THREE.ShaderMaterial;
+      if (mat.uniforms.uOpacity.value < 0.05) return false;
+      m.getWorldPosition(meshWorldPos);
+      return meshWorldPos.z > 0;
+    });
+    const hits = raycaster.intersectObjects(hittable, false);
+    if (hits.length > 0) hoveredMesh = hits[0].object;
+  }
+
+  // Pass 2: hover + opacity uniforms.
+  panelGroup.children.forEach((child) => {
+    const mesh = child as THREE.Mesh;
+    const material = mesh.material as THREE.ShaderMaterial;
+    const index = mesh.userData.index;
+
+    const s = index / (N - 1);
+    const a = s - progress;
+
+    const isHovered = hoveredMesh === mesh;
+    const targetHover = isHovered ? 1.0 : 0.0;
+    material.uniforms.uHoverProgress.value = THREE.MathUtils.lerp(material.uniforms.uHoverProgress.value, targetHover, 0.15);
 
     let opacityMultiplier = 1.0;
     if (introActive) {

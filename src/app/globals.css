@@ -427,12 +427,19 @@ html.experience-loading #model-load-pct {
   font-weight: 600;
   letter-spacing: 0.15em;
   opacity: 0;
-  transition: opacity 1s ease-out;
+  visibility: hidden;
+  transition:
+    opacity 1s ease-out,
+    visibility 0s linear 1s;
   pointer-events: none;
 }
 
 #timeline.date-show {
   opacity: 0.8;
+  visibility: visible;
+  transition:
+    opacity 1s ease-out,
+    visibility 0s linear 0s;
 }
 
 #tl-bar {
