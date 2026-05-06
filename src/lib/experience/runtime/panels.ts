@@ -186,7 +186,10 @@ export function updatePanels(ctx: RuntimeContext) {
     const scaleBoost = Math.exp(-Math.pow(a * 10, 2)) * 0.15;
     mesh.scale.set(PW * (1 + scaleBoost), PH * (1 + scaleBoost), 1);
 
-    const radius = baseRadius + 5 * a;
+    const belowBoost = a > 0 ? THREE.MathUtils.smoothstep(a, 0, 0.1) * 4.0 : 0;
+    const rightSideCos = Math.cos(angle - panelGroup.rotation.y);
+    const rightBoost = Math.max(0, rightSideCos) * 1.5;
+    const radius = baseRadius + belowBoost + rightBoost + 5 * a;
 
     mesh.position.set(
       Math.cos(angle) * radius,

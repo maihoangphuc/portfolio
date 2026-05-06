@@ -76,16 +76,6 @@ export function createAnimateLoop(ctx: RuntimeContext) {
         state.scrollVel = 0;
         state.scrollVelVis = 0;
       }
-      // Snap to nearest panel index when scroll is settling (velocity very low and not actively dragging)
-      if (
-        !state.introActive &&
-        !state.experienceEntryActive &&
-        !state.isDragging &&
-        Math.abs(state.scrollVel) < 0.0008
-      ) {
-        const snapTarget = Math.round(state.scrollTarget);
-        state.scrollTarget = lerp(state.scrollTarget, snapTarget, 0.18);
-      }
       state.scrollCurrent = lerp(state.scrollCurrent, state.scrollTarget, 0.12);
       const visLerp = Math.abs(state.scrollVel) < Math.abs(state.scrollVelVis) ? 0.35 : 0.15;
       state.scrollVelVis = lerp(state.scrollVelVis, state.scrollVel, visLerp);
