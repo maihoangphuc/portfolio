@@ -61,7 +61,17 @@ export default function ExperienceIntro() {
           </div>
           <div className="drag-line drag-line-right bg-web-white" />
         </div>
-        <div className="drag-subtext text-web-soft">or scroll to explore</div>
+        <div className="drag-subtext text-web-white">
+          {"or scroll to explore".split("").map((char, i) => (
+            <span
+              key={i}
+              className="drag-subchar"
+              style={{ "--drag-subchar-index": i } as React.CSSProperties}
+            >
+              {char === " " ? " " : char}
+            </span>
+          ))}
+        </div>
       </div>
     </>
   );

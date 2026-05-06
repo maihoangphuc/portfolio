@@ -41,19 +41,19 @@ export default function ExperienceUi() {
         ))}
       </div>
 
-      <div id="year-lbl" className="text-web-year">
+      <div id="year-lbl" className="text-web-white">
         2019
       </div>
-      <div id="month-lbl" className="text-web-strong">
+      <div id="month-lbl" className="text-web-white">
         Jan
       </div>
-      <div id="month-lbl-ghost" className="text-web-strong" aria-hidden="true">
+      <div id="month-lbl-ghost" className="text-web-white" aria-hidden="true">
         Jan
       </div>
 
       <div
         id="model-load-pct"
-        className="text-web-strong model-loading"
+        className="text-web-white model-loading"
         aria-live="polite"
         aria-busy="true"
       >

@@ -800,19 +800,15 @@ html.experience-loading #model-load-pct {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(36px, 5vw, 72px);
-  margin-bottom: 18px;
+  gap: clamp(6px, 0.9vw, 14px);
+  margin-bottom: -8px;
 }
 
-
 .drag-line {
-  width: clamp(160px, 18vw, 260px);
+  width: clamp(140px, 16vw, 220px);
   height: 1px;
   opacity: 0;
-  transform: scaleX(0);
-  transition:
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.35s ease-out;
+  transform: scaleX(0.05);
   will-change: transform, opacity;
 }
 
@@ -825,19 +821,48 @@ html.experience-loading #model-load-pct {
 }
 
 #drag-hint.visible .drag-line {
-  transform: scaleX(1);
-  opacity: 0.55;
-  transition-delay: 0s;
+  animation: drag-line-show 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+#drag-hint.hidden .drag-line {
+  animation: drag-line-hide 0.7s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+
+@keyframes drag-line-show {
+  0% {
+    transform: scaleX(0.05);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0.15;
+  }
+}
+
+@keyframes drag-line-hide {
+  0% {
+    transform: scaleX(1);
+    opacity: 0.15;
+  }
+  85% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: scaleX(0.05);
+    opacity: 0;
+  }
 }
 
 .drag-text {
   font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
   font-size: clamp(80px, 15vw, 120px);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.15;
   letter-spacing: 0.02em;
   display: inline-flex;
-  overflow: hidden;
   padding: 0 0.05em;
 }
 
@@ -849,14 +874,35 @@ html.experience-loading #model-load-pct {
 
 #drag-hint.visible .drag-char {
   animation: char-reveal 0.18s both;
-  animation-delay: calc(0.1s + var(--drag-char-index) * 0.06s);
+  animation-delay: calc(0.42s + var(--drag-char-index) * 0.06s);
+}
+
+#drag-hint.hidden .drag-char {
+  animation: char-exit 0.2s both;
+  animation-delay: calc(var(--drag-char-index) * 0.04s);
 }
 
 .drag-subtext {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.6;
+  opacity: 0.85;
+}
+
+.drag-subchar {
+  display: inline-block;
+  opacity: 0;
+  white-space: pre;
+}
+
+#drag-hint.visible .drag-subchar {
+  animation: char-reveal 0.18s both;
+  animation-delay: calc(0.42s + var(--drag-subchar-index) * 0.02s);
+}
+
+#drag-hint.hidden .drag-subchar {
+  animation: char-exit 0.2s both;
+  animation-delay: calc(var(--drag-subchar-index) * 0.015s);
 }
 
