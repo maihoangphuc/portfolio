@@ -60,9 +60,9 @@ const VERTEX_SHADER = `
     displaced.x -= uDirection * offset;
     displaced.x -= (normalizedY * -offsetShear) * uDirection;
     
-    // Circle bump
-    float rX = abs(vUv.x * 2. - 1.0) * -1.;
-    displaced.z += cos(rX) * 0.04;
+    // Gentle horizontal curve: parabolic, center protrudes ~0.04 over edges
+    float curveU = vUv.x * 2.0 - 1.0;
+    displaced.z += (1.0 - curveU * curveU) * 0.04;
     
     // Noise wave on hover (Matched from JS 119/121)
     float p = uHoverProgress;
@@ -166,8 +166,11 @@ const TITLE_VERTEX_SHADER = `
   void main() {
     vUv = uv;
     vec3 d = position;
-    float rX = abs(vUv.x * 2.0 - 1.0) * -1.0;
-    d.z += cos(rX) * 0.04;
+    // Follow the panel's curve at this title's panel-local x.
+    // Title is positioned at panel-local x = -0.5 with scale.x = 0.6,
+    // so panel_local_x = 0.6 * position.x - 0.5  ->  curveU = 1.2*position.x - 1.0
+    float panelCurveU = 1.2 * position.x - 1.0;
+    d.z += (1.0 - panelCurveU * panelCurveU) * 0.04;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(d, 1.0);
   }
 `;
