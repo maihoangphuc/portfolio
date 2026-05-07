@@ -575,19 +575,26 @@ html.experience-loading #model-load-pct {
   letter-spacing: -0.01em;
   line-height: 1;
   opacity: 0;
+  visibility: hidden;
   white-space: nowrap;
   user-select: none;
   will-change: opacity, transform;
   backface-visibility: hidden;
   transition:
     opacity 1s ease-out,
-    transform 1s ease-out;
+    transform 1s ease-out,
+    visibility 0s linear 1s;
 }
 
 #month-lbl.date-show {
   opacity: 1;
+  visibility: visible;
   transform: translateX(-50%) translateY(35%);
   animation: month-lbl-fade-in 1.8s 0.15s linear both;
+  transition:
+    opacity 1s ease-out,
+    transform 1s ease-out,
+    visibility 0s linear 0s;
 }
 
 @keyframes month-lbl-fade-in {
@@ -617,6 +624,7 @@ html.experience-loading #model-load-pct {
   letter-spacing: -0.01em;
   line-height: 1;
   opacity: 0;
+  visibility: hidden;
   white-space: nowrap;
   user-select: none;
   pointer-events: none;

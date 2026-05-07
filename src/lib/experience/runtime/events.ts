@@ -54,9 +54,9 @@ export function bindEvents(
   // Two different gestures:
   //   - Hold + slow drag = direct 1:1 mapping to scrollTarget (no inertia)
   //   - Quick flick + release = sets scrollVel for momentum after release
-  const PIXELS_PER_PANEL = 520;
+  const PIXELS_PER_PANEL = 750;
   const FLICK_PX_PER_MS = 0.5;
-  const FLICK_MOMENTUM_GAIN = 0.018;
+  const FLICK_MOMENTUM_GAIN = 0.01;
   let dragHistory: { dx: number; t: number }[] = [];
 
   const onMouseDown = (e: MouseEvent) => {
