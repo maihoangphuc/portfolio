@@ -47,7 +47,10 @@ export default function ExperienceIntro() {
 
       <div id="drag-hint">
         <div className="drag-row">
-          <div className="drag-line drag-line-left bg-web-white" />
+          <div
+            className="drag-line drag-line-left bg-web-white"
+            style={{ transformOrigin: "100% 50%" }}
+          />
           <div className="drag-text text-web-white">
             {"Drag".split("").map((char, i) => (
               <span
@@ -59,7 +62,10 @@ export default function ExperienceIntro() {
               </span>
             ))}
           </div>
-          <div className="drag-line drag-line-right bg-web-white" />
+          <div
+            className="drag-line drag-line-right bg-web-white"
+            style={{ transformOrigin: "0% 50%" }}
+          />
         </div>
         <div className="drag-subtext text-web-white">
           {"or scroll to explore".split("").map((char, i) => (

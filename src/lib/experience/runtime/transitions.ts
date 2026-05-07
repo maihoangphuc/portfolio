@@ -1,5 +1,5 @@
 import { RuntimeContext } from "@/lib/experience/runtime/types";
-import { EXPERIENCE_ENTRY_MS, INTRO_PREVIEW_BG_HIDE_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_HOLD_MS, DRAG_HINT_FADE_OUT_MS, DRAG_CHARS_REVEAL_MS } from "@/lib/experience/runtime/world";
+import { EXPERIENCE_ENTRY_MS, INTRO_PREVIEW_BG_HIDE_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_HOLD_MS, DRAG_HINT_FADE_OUT_MS, DRAG_LINE_HEAD_START_MS } from "@/lib/experience/runtime/world";
 import { runIntroPageLineEffects, replaySocialLineEffect } from "@/lib/experience/runtime/effects";
 
 export function enterExperience(ctx: RuntimeContext) {
@@ -28,6 +28,11 @@ export function enterExperience(ctx: RuntimeContext) {
     timers.introRotateStart = undefined;
   }
 
+  if (timers.timelineReveal !== undefined) {
+    clearTimeout(timers.timelineReveal);
+    timers.timelineReveal = undefined;
+  }
+
   timers.introRotateStart = window.setTimeout(() => {
     timers.introRotateStart = undefined;
     state.introPreviewActive = true;
@@ -37,15 +42,12 @@ export function enterExperience(ctx: RuntimeContext) {
     dom.dragHint.style.setProperty("opacity", "1", "important");
   }, INTRO_PREVIEW_BG_HIDE_MS);
 
-  if (timers.timelineReveal !== undefined) {
-    clearTimeout(timers.timelineReveal);
-    timers.timelineReveal = undefined;
-  }
+  // Lines run alone for a beat, then drag text + timeline join in together.
   timers.timelineReveal = window.setTimeout(() => {
     timers.timelineReveal = undefined;
     dom.timeline.classList.add("date-show");
     replaySocialLineEffect(ctx);
-  }, INTRO_PREVIEW_BG_HIDE_MS + DRAG_CHARS_REVEAL_MS);
+  }, INTRO_PREVIEW_BG_HIDE_MS + DRAG_LINE_HEAD_START_MS);
 
   const proceed = () => {
     timers.exploreCommit = undefined;
@@ -57,10 +59,12 @@ export function enterExperience(ctx: RuntimeContext) {
     state.entryScrollTo = state.scrollTarget;
     state.entryScrollFrom = state.scrollTarget - 3.5;
 
-    // Hide drag-hint immediately so model rotation back is paired with the drag fade
+    // Lines retract first; only after that fade out the drag text + container.
     dom.dragHint.classList.remove("visible");
     dom.dragHint.classList.add("hidden");
-    dom.dragHint.style.setProperty("opacity", "0", "important");
+    window.setTimeout(() => {
+      dom.dragHint.style.removeProperty("opacity");
+    }, 700);
 
     if (timers.introLineReveal !== undefined) {
       clearTimeout(timers.introLineReveal);

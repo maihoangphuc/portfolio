@@ -66,6 +66,10 @@ export const INTRO_PREVIEW_MODEL_ANGLE = 0.7;
 export const INTRO_PREVIEW_BG_YAW = -0.7;
 export const DRAG_HINT_FADE_OUT_MS = 800;
 export const DRAG_CHARS_REVEAL_MS = 1050;
+// Matches the `drag-line-show` keyframe duration in globals.css (1.5s).
+export const DRAG_LINE_REVEAL_MS = 1500;
+// Head start for the drag lines before drag text + timeline join in.
+export const DRAG_LINE_HEAD_START_MS = 550;
 export const EXPERIENCE_EXIT_MIN_SCROLL_TRAVEL = 5;
 export const EXPERIENCE_EXIT_SCROLL_DEEP_CAP = -12;
 export const EXPERIENCE_EXIT_UNDERSHOOT_SPLIT = 0.99;
