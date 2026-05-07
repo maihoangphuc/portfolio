@@ -2,6 +2,7 @@ import { Dom } from "@/lib/experience/runtime/types";
 import { positionSocialLine } from "@/lib/experience/runtime/ui";
 import { exitRotationTargetAtLeastOneTurn } from "@/lib/experience/runtime/math";
 import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS } from "@/lib/experience/runtime/world";
+import { N } from "@/constants/experience";
 
 export function bindEvents(
   dom: Dom,
@@ -50,13 +51,39 @@ export function bindEvents(
   };
   window.addEventListener("wheel", onWheel, { passive: false });
 
+  // Two different gestures:
+  //   - Hold + slow drag = direct 1:1 mapping to scrollTarget (no inertia)
+  //   - Quick flick + release = sets scrollVel for momentum after release
+  const PIXELS_PER_PANEL = 520;
+  const FLICK_PX_PER_MS = 0.5;
+  const FLICK_MOMENTUM_GAIN = 0.018;
+  let dragHistory: { dx: number; t: number }[] = [];
+
   const onMouseDown = (e: MouseEvent) => {
     state.isDragging = true;
     state.lastX = e.clientX;
+    dragHistory = [];
+    state.scrollVel = 0; // cancel any prior momentum
     if (!state.scrolled) state.scrolled = true;
   };
   const onMouseUp = () => {
     state.isDragging = false;
+    // Detect a flick: average px/ms over the last ~120ms.
+    if (dragHistory.length >= 2) {
+      const last = dragHistory[dragHistory.length - 1];
+      const recent = dragHistory.filter((m) => last.t - m.t < 120);
+      if (recent.length >= 2) {
+        const totalDx = recent.reduce((a, m) => a + m.dx, 0);
+        const dt = last.t - recent[0].t;
+        if (dt > 0) {
+          const pxPerMs = totalDx / dt;
+          if (Math.abs(pxPerMs) > FLICK_PX_PER_MS) {
+            state.scrollVel = pxPerMs * FLICK_MOMENTUM_GAIN;
+          }
+        }
+      }
+    }
+    dragHistory = [];
   };
   const onMouseMove = (e: MouseEvent) => {
     state.mouseX = (e.clientX / innerWidth) * 2 - 1;
@@ -64,7 +91,11 @@ export function bindEvents(
     if (state.isDragging && !state.introActive && !state.experienceExitActive && !state.experienceEntryActive) {
       const dx = state.lastX - e.clientX;
       state.lastX = e.clientX;
-      state.scrollVel += dx * 0.002;
+      dragHistory.push({ dx, t: performance.now() });
+      if (dragHistory.length > 24) dragHistory.shift();
+      // Hold-drag: 1:1 advance of scrollTarget — no momentum during the drag.
+      state.scrollTarget = Math.max(0, Math.min(N - 1, state.scrollTarget + dx / PIXELS_PER_PANEL));
+      state.scrollVel = 0;
     }
   };
   window.addEventListener("mousedown", onMouseDown);
