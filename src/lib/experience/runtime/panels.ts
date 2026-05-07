@@ -285,7 +285,12 @@ export function updatePanels(ctx: RuntimeContext) {
     const s = index / (N - 1);
     const a = s - progress;
 
-    const scaleBoost = Math.exp(-Math.pow(a * 10, 2)) * 0.15;
+    // Smaller boost for panels rising from the right (a > 0) so they don't
+    // balloon as they approach the active center. Active panel still gets a
+    // mild boost from the symmetric falloff on the negative side.
+    const scaleBoost = a >= 0
+      ? Math.exp(-Math.pow(a * 10, 2)) * 0.0
+      : Math.exp(-Math.pow(a * 10, 2)) * 0.1;
     mesh.scale.set(PW * (1 + scaleBoost), PH * (1 + scaleBoost), 1);
 
     const belowBoost = a > 0 ? THREE.MathUtils.smoothstep(a, 0, 0.1) * 4.0 : 0;

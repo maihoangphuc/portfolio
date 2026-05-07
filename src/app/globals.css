@@ -812,7 +812,7 @@ html.experience-loading #model-load-pct {
 }
 
 .drag-line {
-  width: clamp(260px, 28vw, 350px);
+  width: clamp(260px, 28vw, 320px);
   height: 1px;
   opacity: 0;
   transform: scaleX(0);
