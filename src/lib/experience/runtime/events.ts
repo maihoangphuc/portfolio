@@ -93,9 +93,9 @@ export function bindEvents(
       state.lastX = e.clientX;
       dragHistory.push({ dx, t: performance.now() });
       if (dragHistory.length > 24) dragHistory.shift();
-      // Hold-drag: 1:1 advance of scrollTarget — no momentum during the drag.
-      state.scrollTarget = Math.max(0, Math.min(N - 1, state.scrollTarget + dx / PIXELS_PER_PANEL));
-      state.scrollVel = 0;
+      // Add to scrollVel so motion is smooth (no per-event jitter) and the
+      // panel stretch/shear shader effect also tracks drag speed naturally.
+      state.scrollVel += dx * 0.0006;
     }
   };
   window.addEventListener("mousedown", onMouseDown);

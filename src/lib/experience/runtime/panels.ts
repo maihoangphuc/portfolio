@@ -272,7 +272,10 @@ export function updatePanels(ctx: RuntimeContext) {
   const edgeFade = Math.min(1, Math.max(0, distFromEdge / edgeBuffer));
   const intensity = Math.abs(scrollVelVis) * 18.0 * edgeFade;
   const direction = Math.sign(scrollVelVis);
+  const inExperience = !introActive && !experienceEntryActive && !experienceExitActive;
 
+  // Panels keep their natural helix motion past the last panel (rising and
+  // rotating); only the timeline UI hides at progress = 1.
   panelGroup.position.y = progress * yDistance * (N - 1) + 0.3;
   panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
 
@@ -330,7 +333,6 @@ export function updatePanels(ctx: RuntimeContext) {
     });
     if (frontAbsA > 0.04) frontIndex = -1;
   }
-  const inExperience = !introActive && !experienceEntryActive && !experienceExitActive;
 
   let hoveredMesh: THREE.Object3D | null = null;
   if (inExperience) {

@@ -146,7 +146,19 @@ html.experience-loading #model-load-pct {
   align-items: center;
   opacity: 0.01;
   transition: opacity 0.9s ease;
-  margin-top: 15px;
+  margin-top: -60px;
+}
+
+#bg-name.outro-large {
+  /* Disable opacity transition in outro so inline opacity tracks scroll
+     directly — no smoothing, no perceived slide. */
+  transition: none;
+}
+
+#bg-name.outro-large > div {
+  transform: translateX(5vw) !important;
+  margin-top: 180px;
+  transition: none;
 }
 
 #bg-name.model-ready > div {
@@ -165,11 +177,24 @@ html.experience-loading #model-load-pct {
 }
 
 .bg-name-text:nth-child(1) {
-  margin-right: 10vw;
+  margin-right: 7.5vw;
 }
 
 .bg-name-text:nth-child(2) {
-  margin-left: 5vw;
+  margin-left: 4vw;
+}
+
+#bg-name.outro-large .bg-name-text {
+  font-size: clamp(160px, 32vw, 140px);
+  letter-spacing: 18px;
+}
+
+#bg-name.outro-large .bg-name-text:nth-child(1) {
+  margin-right: 20vw;
+}
+
+#bg-name.outro-large .bg-name-text:nth-child(2) {
+  margin-left: -6vw;
 }
 
 #bg-name.hidden {

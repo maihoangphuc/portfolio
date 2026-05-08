@@ -9,6 +9,8 @@ import { updatePanels } from "@/lib/experience/runtime/panels";
 export function createAnimateLoop(ctx: RuntimeContext) {
   const { dom, state, bg, scene, cam, renderer, raycaster, mouse, pCtx, pState, figureGroup } = ctx;
   let raf = 0;
+  // Tracks whether we've claimed bg-name visibility for the outro zone.
+  let bgNameInEndZone = false;
 
   function animate() {
     raf = requestAnimationFrame(animate);
@@ -71,7 +73,10 @@ export function createAnimateLoop(ctx: RuntimeContext) {
     } else {
       state.scrollVel *= 0.82;
       const beforeClampTarget = state.scrollTarget + state.scrollVel;
-      state.scrollTarget = Math.max(0, Math.min(N - 1, beforeClampTarget));
+      // Allow scrolling past the last panel into an "outro" buffer zone
+      // where the panels fully rise out and bg-name fades in behind the model.
+      const END_BUFFER = 4;
+      state.scrollTarget = Math.max(0, Math.min(N - 1 + END_BUFFER, beforeClampTarget));
       if (beforeClampTarget !== state.scrollTarget) {
         state.scrollVel = 0;
         state.scrollVelVis = 0;
@@ -96,6 +101,41 @@ export function createAnimateLoop(ctx: RuntimeContext) {
     state.scrollForLayoutLast = scrollForLayout;
     const sn = scrollForLayout / (N - 1);
 
+    // Outro zone: scroll past the last panel (sn > 1). Panels lift out and
+    // bg-name fades in behind the model. Model freezes at its end pose.
+    const introActiveOrTransition = state.introActive || state.experienceEntryActive || state.experienceExitActive;
+    const END_BUFFER = 4;
+    const outroProgress = !introActiveOrTransition
+      ? Math.max(0, Math.min(1, (scrollForLayout - (N - 1)) / END_BUFFER))
+      : 0;
+    const snClamped = Math.min(1, sn);
+    if (outroProgress > 0) {
+      // Timeline / month / year are hidden the moment we cross into the outro
+      // zone — !important to win over the .date-show keyframe animation.
+      dom.timeline.style.setProperty("opacity", "0", "important");
+      dom.month.style.setProperty("opacity", "0", "important");
+      const yearLbl = document.getElementById("year-lbl");
+      if (yearLbl) yearLbl.style.setProperty("opacity", "0", "important");
+      // bg-name fades in gradually with outroProgress, bigger + wider in outro.
+      if (!bgNameInEndZone) {
+        bgNameInEndZone = true;
+        dom.bgName.classList.remove("hidden");
+      }
+      dom.bgName.classList.add("outro-large");
+      dom.bgName.style.setProperty("opacity", String(outroProgress), "important");
+    } else {
+      dom.timeline.style.removeProperty("opacity");
+      dom.month.style.removeProperty("opacity");
+      const yearLbl = document.getElementById("year-lbl");
+      if (yearLbl) yearLbl.style.removeProperty("opacity");
+      dom.bgName.style.removeProperty("opacity");
+      dom.bgName.classList.remove("outro-large");
+      if (bgNameInEndZone) {
+        bgNameInEndZone = false;
+        dom.bgName.classList.add("hidden");
+      }
+    }
+
     if (bg.camera) {
       const TAU = Math.PI * 2;
       let yaw: number;
@@ -110,8 +150,9 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       } else if (!state.introActive && experienceEntryProgress < 1) {
         yaw = lerp(INTRO_PREVIEW_BG_YAW, 0, entryScrollBlend);
       } else {
-        const panelsPerTurn = 3.5;
-        const totalTurns = (N - 1) / panelsPerTurn;
+        // bg shader rotation is much slower than the panel helix — reduce
+        // total turns so background drifts gently while scrolling.
+        const totalTurns = 1.5;
         const distFromEdge = Math.min(state.scrollCurrent, (N - 1) - state.scrollCurrent);
         const velEdgeFade = Math.min(1, Math.max(0, distFromEdge / 0.6));
         yaw = (state.introActive ? 0 : sn * TAU * totalTurns) + state.scrollVelVis * 0.15 * velEdgeFade;
@@ -154,16 +195,23 @@ export function createAnimateLoop(ctx: RuntimeContext) {
         figureGroup.value.scale.setScalar(state.figScale);
       } else {
         const modelTurns = 1;
-        const modelRotTarget = state.introActive ? 0 : sn * -Math.PI * 2 * modelTurns;
+        // Total scroll range is timeline + outro buffer; the model does
+        // exactly one turn across that whole range, finishing precisely when
+        // bg-name has fully appeared (outroProgress = 1).
+        const totalScrollLen = (N - 1) + END_BUFFER;
+        const totalScrollT = scrollForLayout / totalScrollLen;
+        const modelRotTarget = state.introActive
+          ? 0
+          : totalScrollT * -Math.PI * 2 * modelTurns;
         const distFromEdge = Math.min(state.scrollCurrent, (N - 1) - state.scrollCurrent);
         const velEdgeFade = Math.min(1, Math.max(0, distFromEdge / 0.6));
         state.figRotY = modelRotTarget + state.scrollVelVis * -0.12 * velEdgeFade;
         figureGroup.value.rotation.set(0, state.figRotY, 0);
 
-        state.figPosY = state.introActive ? -0.8 : -0.8 - sn * 2.5;
+        state.figPosY = state.introActive ? -0.8 : -0.8 - snClamped * 2.6;
         figureGroup.value.position.set(0, state.figPosY + Math.sin(t * 0.6) * 0.015, 0);
 
-        state.figScale = state.introActive ? 2.6 : 2.6 + sn * 2.0;
+        state.figScale = state.introActive ? 2.6 : 2.6 + snClamped * 1.2;
         figureGroup.value.scale.setScalar(state.figScale);
       }
     }
