@@ -110,6 +110,16 @@ const FRAGMENT_SHADER = `
   }
 `;
 
+// Smoothly scales panels down on narrow viewports so they don't overflow the
+// frame at sub-md widths. Linear ramp 1.0 (>=1024px) → 0.55 (<=480px).
+function getResponsivePanelScale(): number {
+  if (typeof window === "undefined") return 1;
+  const w = window.innerWidth;
+  if (w >= 1024) return 1;
+  if (w <= 480) return 0.55;
+  return 0.55 + ((w - 480) / (1024 - 480)) * (1 - 0.55);
+}
+
 // Title plane local size, used to match canvas aspect to world plane aspect
 // so the rasterized text isn't stretched.
 const TITLE_PLANE_W = 0.6;
@@ -280,6 +290,7 @@ export function updatePanels(ctx: RuntimeContext) {
   panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
 
   // Pass 1: write each panel's transform.
+  const ps = getResponsivePanelScale();
   panelGroup.children.forEach((child) => {
     const mesh = child as THREE.Mesh;
     const index = mesh.userData.index;
@@ -290,7 +301,7 @@ export function updatePanels(ctx: RuntimeContext) {
 
     // Keep panel size constant — no scale boost when crossing the active
     // center, so panels don't visibly swell while scrolling.
-    mesh.scale.set(PW, PH, 1);
+    mesh.scale.set(PW * ps, PH * ps, 1);
 
     const belowBoost = a > 0 ? THREE.MathUtils.smoothstep(a, 0, 0.1) * 4.0 : 0;
     const aboveBoost = a < 0 ? THREE.MathUtils.smoothstep(-a, 0, 0.1) * -2.0 : 0;

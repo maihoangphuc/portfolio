@@ -961,4 +961,65 @@ html.experience-loading #model-load-pct {
   animation-delay: calc(0.7s + var(--drag-subchar-index) * 0.015s);
 }
 
+/* ------------------------------------------------------------------ */
+/* Responsive: < md (< 768px)                                          */
+/* - Reduce global insets from 5rem to 1.25rem                         */
+/* - Move #timeline to top-right (flex-aligned with #brand top-left)   */
+/* - Shorten timeline bar                                              */
+/* - Tighten intro-left padding                                        */
+/* ------------------------------------------------------------------ */
+@media (max-width: 767.98px) {
+  #brand {
+    top: 1.25rem;
+    left: 1.25rem;
+    font-size: 12px;
+  }
 
+  #timeline {
+    top: 1.25rem;
+    left: auto;
+    right: 1.25rem;
+    transform: none;
+    gap: 10px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+
+  #tl-bar {
+    width: 90px;
+  }
+
+  #social {
+    bottom: 1.25rem;
+    right: 1.25rem;
+  }
+
+  #sound-btn {
+    bottom: 1.25rem;
+    left: 1.25rem;
+  }
+
+  /* Center the whole intro-left block on screen but keep its internal
+     PC layout (rule full-width on top, desc with small indent below,
+     explore button right-aligned with underline). Override PC's
+     padding-left so the centered container isn't shifted rightward. */
+  #intro-left {
+    left: 50%;
+    transform: translateX(-50%);
+    padding-left: 0;
+    width: calc(100% - 2.5rem);
+    max-width: 360px;
+    bottom: 50%;
+    margin-bottom: -4rem;
+  }
+
+  #intro-desc {
+    font-size: 12px;
+    padding-left: 1rem;
+  }
+
+  .bg-name-text {
+    font-size: clamp(56px, 14vw, 96px);
+    letter-spacing: 6px;
+  }
+}
