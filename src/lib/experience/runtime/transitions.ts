@@ -149,9 +149,19 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
   animFlags.exploreCommitPending = false;
   state.timelineDatesVisible = false;
 
-  dom.dragHint.classList.remove("visible");
-  dom.dragHint.classList.add("hidden");
-  dom.dragHint.style.setProperty("opacity", "0", "important");
+  // Drag hint: only trigger the exit animation if it actually became visible.
+  // If user clicks brand before introRotateStart fires (within INTRO_PREVIEW_BG_HIDE_MS),
+  // .visible was never added — adding .hidden here would still kick the children's
+  // exit animations (drag-line-hide jumps to scaleX(1), char-exit holds opacity 1 during
+  // its 0.7s delay), causing a brief flash even though we never wanted it shown.
+  if (dom.dragHint.classList.contains("visible")) {
+    dom.dragHint.classList.remove("visible");
+    dom.dragHint.classList.add("hidden");
+    dom.dragHint.style.setProperty("opacity", "0", "important");
+  } else {
+    dom.dragHint.classList.remove("hidden");
+    dom.dragHint.style.removeProperty("opacity");
+  }
   dom.timeline.classList.remove("date-show");
   document.getElementById("year-lbl")?.classList.remove("date-show");
   dom.month.classList.remove("date-show");

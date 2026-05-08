@@ -158,7 +158,7 @@ html.experience-loading #model-load-pct {
 
 #bg-name.outro-large > div {
   transform: translateX(5vw) !important;
-  margin-top: 180px;
+  margin-top: 110px;
   transition: none;
   /* Right-to-left wipe reveal driven by --reveal (0 → 1 from JS).
      At --reveal = 1 the gradient is shifted fully off the left edge so the
@@ -184,7 +184,7 @@ html.experience-loading #model-load-pct {
   font-family:
     "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
-  font-size: clamp(90px, 20vw, 130px);
+  font-size: clamp(90px, 20vw, 160px);
   line-height: 1;
   white-space: nowrap;
   user-select: none;
@@ -192,7 +192,7 @@ html.experience-loading #model-load-pct {
 }
 
 .bg-name-text:nth-child(1) {
-  margin-right: 7.5vw;
+  margin-right: 9vw;
 }
 
 .bg-name-text:nth-child(2) {

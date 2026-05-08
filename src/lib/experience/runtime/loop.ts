@@ -286,11 +286,10 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       state.experienceExitActive = false; state.introActive = true;
       state.exitReverseMode = false;
       state.figRotY = 0; state.figPosY = -0.8; state.figScale = 2.6;
-      if (figureGroup.value) {
-        figureGroup.value.rotation.set(0, 0, 0);
-        figureGroup.value.position.set(0, -0.8, 0);
-        figureGroup.value.scale.setScalar(2.6);
-      }
+      // Don't reset figureGroup transforms here — the exit branch above already
+      // set them to the final values (position WITH the sin wobble) this frame.
+      // Resetting to (0, -0.8, 0) would strip the wobble for one frame, then the
+      // next-frame main idle branch re-applies wobble → visible 1-frame jitter.
       state.scrollCurrent = 0; state.scrollTarget = 0; state.scrollVel = 0; state.scrollVelVis = 0;
       dom.tlProgress.style.width = "0%";
       requestAnimationFrame(() => requestAnimationFrame(() => completeExploreReturnToIntroUi(ctx)));
