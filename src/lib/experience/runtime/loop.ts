@@ -116,23 +116,49 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       dom.month.style.setProperty("opacity", "0", "important");
       const yearLbl = document.getElementById("year-lbl");
       if (yearLbl) yearLbl.style.setProperty("opacity", "0", "important");
-      // bg-name fades in gradually with outroProgress, bigger + wider in outro.
+      // bg-name reveals via right-to-left wipe driven by --reveal. Density
+      // stays faint through most of the outro (capped at FAINT_LEVEL), then
+      // ramps to fully bold only in the last stretch — the same moment the
+      // model finishes rotating and settles.
       if (!bgNameInEndZone) {
         bgNameInEndZone = true;
         dom.bgName.classList.remove("hidden");
       }
       dom.bgName.classList.add("outro-large");
-      dom.bgName.style.setProperty("opacity", String(outroProgress), "important");
+      const inner = dom.bgName.firstElementChild as HTMLElement | null;
+      if (inner) {
+        inner.style.setProperty("--reveal", String(outroProgress));
+        const FAINT_LEVEL = 0.28;
+        const RAMP_START = 0.85;
+        const finalOpacity = outroProgress < RAMP_START
+          ? FAINT_LEVEL * (outroProgress / RAMP_START)
+          : FAINT_LEVEL + (1 - FAINT_LEVEL) * ((outroProgress - RAMP_START) / (1 - RAMP_START));
+        inner.style.setProperty("opacity", String(finalOpacity), "important");
+      }
     } else {
       dom.timeline.style.removeProperty("opacity");
       dom.month.style.removeProperty("opacity");
       const yearLbl = document.getElementById("year-lbl");
       if (yearLbl) yearLbl.style.removeProperty("opacity");
-      dom.bgName.style.removeProperty("opacity");
-      dom.bgName.classList.remove("outro-large");
+      const inner = dom.bgName.firstElementChild as HTMLElement | null;
+      if (inner) {
+        inner.style.removeProperty("--reveal");
+        inner.style.removeProperty("opacity");
+      }
       if (bgNameInEndZone) {
         bgNameInEndZone = false;
+        // Snap-hide instantly; the 0.8s opacity transition would otherwise
+        // make bg-name fade out and look like the intro is briefly returning.
+        dom.bgName.style.setProperty("transition", "none", "important");
+        dom.bgName.style.setProperty("opacity", "0", "important");
         dom.bgName.classList.add("hidden");
+        dom.bgName.classList.remove("outro-large");
+        requestAnimationFrame(() => {
+          dom.bgName.style.removeProperty("transition");
+          dom.bgName.style.removeProperty("opacity");
+        });
+      } else {
+        dom.bgName.classList.remove("outro-large");
       }
     }
 

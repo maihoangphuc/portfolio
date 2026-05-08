@@ -150,15 +150,30 @@ html.experience-loading #model-load-pct {
 }
 
 #bg-name.outro-large {
-  /* Disable opacity transition in outro so inline opacity tracks scroll
-     directly — no smoothing, no perceived slide. */
+  /* Disable opacity transition in outro so the mask-based reveal tracks
+     scroll directly — no smoothing, no perceived slide. */
   transition: none;
+  opacity: 1 !important;
 }
 
 #bg-name.outro-large > div {
   transform: translateX(5vw) !important;
   margin-top: 180px;
   transition: none;
+  /* Right-to-left wipe reveal driven by --reveal (0 → 1 from JS).
+     At --reveal = 1 the gradient is shifted fully off the left edge so the
+     leftmost letter ("H") is solid black, not faded. */
+  --reveal: 0;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent calc((1 - var(--reveal)) * 100% - 25%),
+    black calc((1 - var(--reveal)) * 100%)
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent calc((1 - var(--reveal)) * 100% - 25%),
+    black calc((1 - var(--reveal)) * 100%)
+  );
 }
 
 #bg-name.model-ready > div {
