@@ -115,9 +115,25 @@ const FRAGMENT_SHADER = `
 function getResponsivePanelScale(): number {
   if (typeof window === "undefined") return 1;
   const w = window.innerWidth;
-  if (w >= 1024) return 1;
-  if (w <= 480) return 0.55;
-  return 0.55 + ((w - 480) / (1024 - 480)) * (1 - 0.55);
+  const h = window.innerHeight;
+  if (w >= 488) return 1;
+  // Below md: fit active panel exactly within (viewport width - global padding 5rem),
+  // never larger. Camera at z=11, active panel world z ≈ 3 → distance ≈ 8; FOV vertical = 50°.
+  const padding = 80; // 5rem (2.5rem each side)
+  const camDist = 8;
+  const fov = 50;
+  const worldHeight = 2 * camDist * Math.tan(((fov * Math.PI) / 180) / 2);
+  const worldWidthAtPanel = worldHeight * (w / h);
+  const targetWorldWidth = ((w - padding) / w) * worldWidthAtPanel * 0.88;
+  return Math.min(1, targetWorldWidth / PW);
+}
+
+function getResponsiveTitleBonus(): number {
+  if (typeof window === "undefined") return 1;
+  const w = window.innerWidth;
+  if (w >= 768) return 1;
+  if (w <= 480) return 1.35;
+  return 1 + ((768 - w) / (768 - 480)) * 0.35;
 }
 
 // Title plane local size, used to match canvas aspect to world plane aspect
@@ -291,6 +307,7 @@ export function updatePanels(ctx: RuntimeContext) {
 
   // Pass 1: write each panel's transform.
   const ps = getResponsivePanelScale();
+  const titleBonus = getResponsiveTitleBonus();
   panelGroup.children.forEach((child) => {
     const mesh = child as THREE.Mesh;
     const index = mesh.userData.index;
@@ -302,6 +319,15 @@ export function updatePanels(ctx: RuntimeContext) {
     // Keep panel size constant — no scale boost when crossing the active
     // center, so panels don't visibly swell while scrolling.
     mesh.scale.set(PW * ps, PH * ps, 1);
+
+    const titleMesh = mesh.userData.titleMesh as THREE.Mesh | undefined;
+    if (titleMesh) {
+      titleMesh.scale.set(
+        TITLE_PLANE_W * titleBonus,
+        TITLE_PLANE_H * titleBonus,
+        1
+      );
+    }
 
     const belowBoost = a > 0 ? THREE.MathUtils.smoothstep(a, 0, 0.1) * 4.0 : 0;
     const aboveBoost = a < 0 ? THREE.MathUtils.smoothstep(-a, 0, 0.1) * -2.0 : 0;

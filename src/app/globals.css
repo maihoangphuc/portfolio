@@ -286,6 +286,7 @@ html.experience-loading #model-load-pct {
   margin-bottom: 25px;
   width: 100%;
   padding-left: 2rem;
+  color: var(--color-web-soft);
   opacity: 0; /* Hidden by default */
 }
 
@@ -341,15 +342,16 @@ html.experience-loading #model-load-pct {
 
 #explore-btn {
   display: inline-block;
-  font-family:
-    "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(10px, 0.95vw, 11px);
+  font-family: "US Blaak", serif;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  font-style: normal;
+  font-size: 0.75rem;
+  height: 2.5rem;
+  letter-spacing: 0.02em;
+  color: #dbdbdb;
   cursor: pointer;
   border: none;
   background: transparent;
-  padding: 0 0 9px 0;
   position: relative;
   align-self: flex-end;
   text-align: right;
@@ -860,7 +862,7 @@ html.experience-loading #model-load-pct {
 }
 
 .drag-line {
-  width: clamp(260px, 28vw, 320px);
+  width: clamp(160px, 18vw, 220px) !important;
   height: 1px;
   opacity: 0;
   transform: scaleX(0);
@@ -970,33 +972,47 @@ html.experience-loading #model-load-pct {
 /* ------------------------------------------------------------------ */
 @media (max-width: 767.98px) {
   #brand {
-    top: 1.25rem;
-    left: 1.25rem;
+    top: 2.5rem;
+    left: 2.5rem;
     font-size: 12px;
   }
 
   #timeline {
-    top: 1.25rem;
+    top: 2.5rem;
     left: auto;
-    right: 1.25rem;
+    right: 2.5rem;
     transform: none;
     gap: 10px;
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 0.12em;
   }
 
   #tl-bar {
-    width: 90px;
+    width: 60px;
+  }
+
+  #year-lbl {
+    display: none;
   }
 
   #social {
-    bottom: 1.25rem;
-    right: 1.25rem;
+    bottom: 2.5rem;
+    right: 2.5rem;
+  }
+
+  .soc {
+    width: 36px;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+
+  #sline {
+    width: 36px;
   }
 
   #sound-btn {
-    bottom: 1.25rem;
-    left: 1.25rem;
+    bottom: 2.5rem;
+    left: 2.5rem;
   }
 
   /* Center the whole intro-left block on screen but keep its internal
@@ -1007,7 +1023,7 @@ html.experience-loading #model-load-pct {
     left: 50%;
     transform: translateX(-50%);
     padding-left: 0;
-    width: calc(100% - 2.5rem);
+    width: calc(100% - 5rem);
     max-width: 360px;
     bottom: 50%;
     margin-bottom: -4rem;
@@ -1015,7 +1031,26 @@ html.experience-loading #model-load-pct {
 
   #intro-desc {
     font-size: 12px;
-    padding-left: 1rem;
+    padding-left: 0 !important;
+  }
+
+  .drag-row {
+    width: calc(100vw - 5rem);
+    max-width: calc(100vw - 5rem);
+  }
+
+  .drag-text {
+    font-size: clamp(48px, 12vw, 72px);
+  }
+
+  .drag-line {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  .drag-subtext {
+    display: none;
   }
 
   .bg-name-text {
