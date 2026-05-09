@@ -55,18 +55,22 @@ export function bindEvents(
   //   - Hold + slow drag = direct 1:1 mapping to scrollTarget (no inertia)
   //   - Quick flick + release = sets scrollVel for momentum after release
   const PIXELS_PER_PANEL = 750;
-  const FLICK_PX_PER_MS = 0.5;
+  // Flick threshold expressed as fraction of viewport width per ms (matches
+  // the original 0.5px/ms tuned for 1920px desktops).
+  const FLICK_VW_PER_MS = 0.5 / 1920;
   const FLICK_MOMENTUM_GAIN = 0.01;
   let dragHistory: { dx: number; t: number }[] = [];
 
-  const onMouseDown = (e: MouseEvent) => {
+  const onPointerDown = (e: PointerEvent) => {
+    // Ignore primary mouse-button gating only for mouse; allow touch/pen always
+    if (e.pointerType === "mouse" && e.button !== 0) return;
     state.isDragging = true;
     state.lastX = e.clientX;
     dragHistory = [];
     state.scrollVel = 0; // cancel any prior momentum
     if (!state.scrolled) state.scrolled = true;
   };
-  const onMouseUp = () => {
+  const onPointerUp = () => {
     state.isDragging = false;
     // Detect a flick: average px/ms over the last ~120ms.
     if (dragHistory.length >= 2) {
@@ -76,16 +80,17 @@ export function bindEvents(
         const totalDx = recent.reduce((a, m) => a + m.dx, 0);
         const dt = last.t - recent[0].t;
         if (dt > 0) {
-          const pxPerMs = totalDx / dt;
-          if (Math.abs(pxPerMs) > FLICK_PX_PER_MS) {
-            state.scrollVel = pxPerMs * FLICK_MOMENTUM_GAIN;
+          const vwPerMs = totalDx / dt / innerWidth;
+          if (Math.abs(vwPerMs) > FLICK_VW_PER_MS) {
+            // Convert back to scrollVel using the same per-viewport scale as drag.
+            state.scrollVel = vwPerMs * 1920 * FLICK_MOMENTUM_GAIN;
           }
         }
       }
     }
     dragHistory = [];
   };
-  const onMouseMove = (e: MouseEvent) => {
+  const onPointerMove = (e: PointerEvent) => {
     state.mouseX = (e.clientX / innerWidth) * 2 - 1;
     state.mouseY = -(e.clientY / innerHeight) * 2 + 1;
     if (state.isDragging && !state.introActive && !state.experienceExitActive && !state.experienceEntryActive) {
@@ -93,14 +98,17 @@ export function bindEvents(
       state.lastX = e.clientX;
       dragHistory.push({ dx, t: performance.now() });
       if (dragHistory.length > 24) dragHistory.shift();
-      // Add to scrollVel so motion is smooth (no per-event jitter) and the
-      // panel stretch/shear shader effect also tracks drag speed naturally.
-      state.scrollVel += dx * 0.0006;
+      // Touch needs a much higher gain than mouse: a phone swipe travels ~30%
+      // of the viewport, vs a mouse drag that easily covers 80% of a desktop.
+      const touch = e.pointerType !== "mouse";
+      const gain = touch ? 4.5 : 1.15;
+      state.scrollVel += (dx / innerWidth) * gain;
     }
   };
-  window.addEventListener("mousedown", onMouseDown);
-  window.addEventListener("mouseup", onMouseUp);
-  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("pointerdown", onPointerDown);
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
+  window.addEventListener("pointermove", onPointerMove);
 
   dom.soundBtn.addEventListener("click", callbacks.onTogglePaused);
   dom.soundBtn.addEventListener("keydown", (e) => {
@@ -114,14 +122,15 @@ export function bindEvents(
 
   return {
     onWheel,
-    onMouseDown,
-    onMouseUp,
-    onMouseMove,
+    onPointerDown,
+    onPointerUp,
+    onPointerMove,
     teardown: () => {
       window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mouseup", onMouseUp);
-      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("resize", callbacks.onResize);
       dom.soundBtn.removeEventListener("click", callbacks.onTogglePaused);
     },

@@ -67,6 +67,8 @@ body {
   height: 100%;
   overflow: hidden;
   background: var(--color-web-bg);
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 *,
