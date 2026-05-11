@@ -7,10 +7,20 @@ const INTRO_RIGHT_TEXT =
 export default function ExperienceIntro() {
   return (
     <>
+      <link
+        rel="preload"
+        href="/text-bg.webp"
+        as="image"
+        type="image/webp"
+        fetchPriority="high"
+      />
       <div id="bg-name">
         <div>
-          <div className="bg-name-text text-web-name">Hoang</div>
-          <div className="bg-name-text text-web-name">Phuc</div>
+          <div
+            className="bg-name-img bg-web-name"
+            role="img"
+            aria-label="Hoang Phuc"
+          />
         </div>
       </div>
 

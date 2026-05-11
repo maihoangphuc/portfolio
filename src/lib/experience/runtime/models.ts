@@ -32,9 +32,13 @@ export async function loadModels(
   scene: THREE.Scene,
   onProgress: (pct: number) => void,
 ) {
-  const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
+  const [{ GLTFLoader }, { MeshoptDecoder }] = await Promise.all([
+    import("three/examples/jsm/loaders/GLTFLoader.js"),
+    import("three/examples/jsm/libs/meshopt_decoder.module.js"),
+  ]);
 
   const loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
 
   loader.register((parser) => {
     const tl = new THREE.TextureLoader(parser.options.manager);
