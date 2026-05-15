@@ -3,13 +3,14 @@ import { EXPERIENCE_ENTRY_MS, INTRO_PREVIEW_BG_HIDE_MS, INTRO_PREVIEW_ROTATE_IN_
 import { runIntroPageLineEffects, replaySocialLineEffect } from "@/lib/experience/runtime/effects";
 
 export function enterExperience(ctx: RuntimeContext) {
-  const { dom, state, animFlags, timers } = ctx;
+  const { dom, state, animFlags, timers, scene } = ctx;
   if (!state.introActive || animFlags.exploreCommitPending) return;
   animFlags.exploreCommitPending = true;
 
   dom.introLeft.classList.add("intro-lines-exit");
   dom.introLeft.classList.remove("intro-lines-reveal");
   dom.bgName.classList.add("hidden");
+  (scene.userData.setNameIntroShown as ((shown: boolean) => void) | undefined)?.(false);
   if (timers.introLineReveal !== undefined) {
     clearTimeout(timers.introLineReveal);
     timers.introLineReveal = undefined;
@@ -202,12 +203,20 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
 }
 
 export function completeExploreReturnToIntroUi(ctx: RuntimeContext) {
-  const { dom } = ctx;
-  dom.introLeft.classList.remove("intro-lines-reveal", "lines-animated", "intro-lines-exit");
-  void dom.introLeft.offsetHeight;
+  const { dom, scene } = ctx;
+  // Only strip the reveal classes if we're returning from an exit-from-experience
+  // cycle (signalled by the `intro-lines-exit` class set in enterExperience).
+  // On initial mount the reveal classes are already set via JSX so the text
+  // can fade in before models finish loading — wiping them here would force
+  // a re-animation and re-trigger the LCP cost.
+  if (dom.introLeft.classList.contains("intro-lines-exit")) {
+    dom.introLeft.classList.remove("intro-lines-reveal", "lines-animated", "intro-lines-exit");
+    void dom.introLeft.offsetHeight;
+  }
   dom.introLeft.classList.remove("hidden");
   dom.introRight.classList.remove("hidden");
   dom.bgName.classList.remove("hidden");
+  (scene.userData.setNameIntroShown as ((shown: boolean) => void) | undefined)?.(true);
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       runIntroPageLineEffects(ctx);

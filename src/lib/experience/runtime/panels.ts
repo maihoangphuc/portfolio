@@ -6,6 +6,11 @@ import { DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
 
 const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
 
+// Scratch Vector3 reused across the per-frame `updatePanels` calls. The old
+// code allocated a new Vector3 (and a closure-captured `meshWorldPos`) every
+// frame; hoisting saves ~120 allocations/second on a 40-panel scene.
+const _tmpWp = new THREE.Vector3();
+
 const VERTEX_SHADER = `
   #define PI 3.14159265358979323846264338327
   varying vec2 vUv;
@@ -356,14 +361,13 @@ export function updatePanels(ctx: RuntimeContext) {
   let frontIndex = -1;
   {
     let frontAbsA = Infinity;
-    const wp = new THREE.Vector3();
     panelGroup.children.forEach((child) => {
       const mesh = child as THREE.Mesh;
       const idx = mesh.userData.index as number;
       const sIdx = idx / (N - 1);
       const absA = Math.abs(sIdx - progress);
-      mesh.getWorldPosition(wp);
-      if (absA < frontAbsA && wp.z > 0) {
+      mesh.getWorldPosition(_tmpWp);
+      if (absA < frontAbsA && _tmpWp.z > 0) {
         frontAbsA = absA;
         frontIndex = idx;
       }
@@ -376,13 +380,12 @@ export function updatePanels(ctx: RuntimeContext) {
     mouse.set(state.mouseX, state.mouseY);
     raycaster.setFromCamera(mouse, cam);
     // Only allow hover on panels in front of the figure (worldZ > 0) and visible.
-    const meshWorldPos = new THREE.Vector3();
     const hittable = panelGroup.children.filter((c) => {
       const m = c as THREE.Mesh;
       const mat = m.material as THREE.ShaderMaterial;
       if (mat.uniforms.uOpacity.value < 0.05) return false;
-      m.getWorldPosition(meshWorldPos);
-      return meshWorldPos.z > 0;
+      m.getWorldPosition(_tmpWp);
+      return _tmpWp.z > 0;
     });
     const hits = raycaster.intersectObjects(hittable, false);
     if (hits.length > 0) hoveredMesh = hits[0].object;

@@ -24,8 +24,10 @@ export function initGretaBackground(
   camera.position.set(0, 0, 5);
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(innerWidth, innerHeight);
+  // Match the main renderer cap (1.5). On a 4K screen, DPR 2 quadruples
+  // fragment-shader work for a soft noise sphere — wasted GPU during resize.
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setSize(innerWidth, innerHeight, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
 

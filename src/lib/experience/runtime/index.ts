@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { initGretaBackground } from "@/lib/experience/background/index";
 import { bindEvents } from "@/lib/experience/runtime/events";
 import { initScene } from "@/lib/experience/runtime/scene";
-import { initParticles, createParticlesState, resizeParticles } from "@/lib/experience/runtime/particles";
+import { initParticles, createParticlesState } from "@/lib/experience/runtime/particles";
 import { loadModels } from "@/lib/experience/runtime/models";
 import { getDom, positionSocialLine } from "@/lib/experience/runtime/ui";
 import { createExperienceState } from "@/lib/experience/runtime/world";
@@ -52,13 +52,6 @@ export function startExperience() {
   };
   createPanels(ctx);
   ctx.events = bindEvents(dom, state, {
-    onResize: () => {
-      cam.aspect = innerWidth / innerHeight;
-      cam.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-      resizeParticles(dom);
-      bg.resize();
-    },
     onTogglePaused: () => {
       state.isPaused = !state.isPaused;
       dom.soundBtn.classList.toggle("paused", state.isPaused);

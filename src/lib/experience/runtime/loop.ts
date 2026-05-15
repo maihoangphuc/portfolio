@@ -11,9 +11,32 @@ export function createAnimateLoop(ctx: RuntimeContext) {
   let raf = 0;
   // Tracks whether we've claimed bg-name visibility for the outro zone.
   let bgNameInEndZone = false;
+  // Drives the inline resize check — the resize event listener is gone; we
+  // detect viewport changes here so setSize happens in lockstep with the
+  // render below. No throttle, no debounce, no stretching during drag.
+  let lastSizeW = 0;
+  let lastSizeH = 0;
 
   function animate() {
     raf = requestAnimationFrame(animate);
+
+    if (innerWidth !== lastSizeW || innerHeight !== lastSizeH) {
+      lastSizeW = innerWidth;
+      lastSizeH = innerHeight;
+      const aspect = innerWidth / innerHeight;
+      cam.aspect = aspect;
+      cam.updateProjectionMatrix();
+      // `false` = skip Three.js's canvas.style.width/height update. CSS
+      // `inset: 0` already sizes the canvas — without this, every resize
+      // frame Three.js writes inline pixel styles that fight the CSS rule
+      // and force a layout/paint pass. That layout pass was the main lag.
+      renderer.setSize(innerWidth, innerHeight, false);
+      bg.camera.aspect = aspect;
+      bg.camera.updateProjectionMatrix();
+      bg.renderer.setSize(innerWidth, innerHeight, false);
+      dom.particles.width = innerWidth;
+      dom.particles.height = innerHeight;
+    }
 
     if (dom.modelLoadPct.classList.contains("model-loading") && !dom.modelLoadPct.classList.contains("model-load-exit")) {
       const nowMs = performance.now();
@@ -116,49 +139,16 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       dom.month.style.setProperty("opacity", "0", "important");
       const yearLbl = document.getElementById("year-lbl");
       if (yearLbl) yearLbl.style.setProperty("opacity", "0", "important");
-      // bg-name reveals via right-to-left wipe driven by --reveal. Density
-      // stays faint through most of the outro (capped at FAINT_LEVEL), then
-      // ramps to fully bold only in the last stretch — the same moment the
-      // model finishes rotating and settles.
-      if (!bgNameInEndZone) {
-        bgNameInEndZone = true;
-        dom.bgName.classList.remove("hidden");
-      }
-      dom.bgName.classList.add("outro-large");
-      const inner = dom.bgName.firstElementChild as HTMLElement | null;
-      if (inner) {
-        inner.style.setProperty("--reveal", String(outroProgress));
-        const FAINT_LEVEL = 0.28;
-        const RAMP_START = 0.85;
-        const finalOpacity = outroProgress < RAMP_START
-          ? FAINT_LEVEL * (outroProgress / RAMP_START)
-          : FAINT_LEVEL + (1 - FAINT_LEVEL) * ((outroProgress - RAMP_START) / (1 - RAMP_START));
-        inner.style.setProperty("opacity", String(finalOpacity), "important");
-      }
+      bgNameInEndZone = true;
+      (scene.userData.setOutroReveal as ((p: number) => void) | undefined)?.(outroProgress);
     } else {
       dom.timeline.style.removeProperty("opacity");
       dom.month.style.removeProperty("opacity");
       const yearLbl = document.getElementById("year-lbl");
       if (yearLbl) yearLbl.style.removeProperty("opacity");
-      const inner = dom.bgName.firstElementChild as HTMLElement | null;
-      if (inner) {
-        inner.style.removeProperty("--reveal");
-        inner.style.removeProperty("opacity");
-      }
       if (bgNameInEndZone) {
         bgNameInEndZone = false;
-        // Snap-hide instantly; the 0.8s opacity transition would otherwise
-        // make bg-name fade out and look like the intro is briefly returning.
-        dom.bgName.style.setProperty("transition", "none", "important");
-        dom.bgName.style.setProperty("opacity", "0", "important");
-        dom.bgName.classList.add("hidden");
-        dom.bgName.classList.remove("outro-large");
-        requestAnimationFrame(() => {
-          dom.bgName.style.removeProperty("transition");
-          dom.bgName.style.removeProperty("opacity");
-        });
-      } else {
-        dom.bgName.classList.remove("outro-large");
+        (scene.userData.setOutroReveal as ((p: number) => void) | undefined)?.(0);
       }
     }
 

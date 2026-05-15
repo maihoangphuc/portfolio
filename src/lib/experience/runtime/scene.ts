@@ -12,8 +12,12 @@ export function initScene(dom: Dom) {
     antialias: true,
     alpha: true,
   });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(innerWidth, innerHeight);
+  // Cap pixel ratio at 1.5 — on Retina/4K screens, 2× would have the GPU shade
+  // 4× more fragments for ~no visual gain on a stylized 3D scene like this.
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  // updateStyle=false: CSS `inset: 0` handles canvas dimensions, no need for
+  // Three.js to write inline pixel styles that fight the rule each resize.
+  renderer.setSize(innerWidth, innerHeight, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -25,7 +29,9 @@ export function initScene(dom: Dom) {
   const sun = new THREE.DirectionalLight(rootCssVarToHexInt("--color-web-white"), 1.2);
   sun.position.set(5, 10, 7.5);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  // 1024² is plenty for a single contact-shadow under a stylized clay figure;
+  // 2048² is 4× the GPU shadow-pass cost for an imperceptible quality bump.
+  sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.camera.near = 0.5;
   sun.shadow.camera.far = 30;
   sun.shadow.camera.left = -8;

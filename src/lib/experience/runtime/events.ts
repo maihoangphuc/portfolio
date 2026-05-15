@@ -8,7 +8,6 @@ export function bindEvents(
   dom: Dom,
   state: any, // Use proper state type in index.ts
   callbacks: {
-    onResize: () => void;
     onTogglePaused: () => void;
     runIntroPageLineEffects: () => void;
     replaySocialLineEffect: () => void;
@@ -118,7 +117,9 @@ export function bindEvents(
     }
   });
 
-  window.addEventListener("resize", callbacks.onResize);
+  // No resize listener: the animate loop detects viewport changes inline and
+  // does setSize in lockstep with rendering. That sync prevents stretching
+  // during the drag and any blank-frame race between event and animate.
 
   return {
     onWheel,
@@ -131,7 +132,6 @@ export function bindEvents(
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerUp);
       window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("resize", callbacks.onResize);
       dom.soundBtn.removeEventListener("click", callbacks.onTogglePaused);
     },
     getActiveSocialLink: () => activeSocialLink,

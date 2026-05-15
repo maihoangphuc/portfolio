@@ -116,12 +116,19 @@ html.experience-loading #particles {
   opacity: 0;
 }
 
-/* Until models finish loading, hide all copy except the load percentage */
+/* Until models finish loading, the UI buttons and bg-name stay hidden so the
+   load percentage owns the screen. Intro text containers stay VISIBLE for a
+   fast LCP — their inner reveal animation runs on first paint via the
+   `intro-lines-reveal` class set in ExperienceIntro.tsx. We still suppress
+   pointer events on the intro so the Explore button can't fire before the
+   3D scene is ready. */
 html.experience-loading #ui > *:not(#model-load-pct):not(#brand),
-html.experience-loading #intro-left,
-html.experience-loading #intro-right,
 html.experience-loading #bg-name {
   opacity: 0.01 !important;
+  pointer-events: none !important;
+}
+html.experience-loading #intro-left,
+html.experience-loading #intro-right {
   pointer-events: none !important;
 }
 
@@ -178,8 +185,11 @@ html.experience-loading #model-load-pct {
   );
 }
 
-#bg-name.model-ready > div {
-  opacity: 1;
+/* Both the intro/scroll name AND the outro reveal are now 3D planes
+   (see runtime/models.ts). The DOM overlay stays in the tree only because
+   getDom()/transitions.ts still reference it. */
+#bg-name {
+  display: none !important;
 }
 
 .bg-name-img {

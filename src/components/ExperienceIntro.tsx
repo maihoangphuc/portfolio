@@ -24,7 +24,7 @@ export default function ExperienceIntro() {
         </div>
       </div>
 
-      <div id="intro-left">
+      <div id="intro-left" className="lines-animated intro-lines-reveal">
         <div id="intro-rule-track">
           <div id="intro-rule" className="bg-web-white" />
         </div>

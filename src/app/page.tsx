@@ -5,11 +5,11 @@ import GretaExperienceRuntime from "@/components/GretaExperienceRuntime";
 
 export default function Home() {
   return (
-    <>
+    <main>
       <ExperienceCanvases />
       <ExperienceIntro />
       <ExperienceUi />
       <GretaExperienceRuntime />
-    </>
+    </main>
   );
 }

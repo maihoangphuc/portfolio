@@ -11,12 +11,21 @@ export function introLinesDurationMs() {
 
 export function runIntroPageLineEffects(ctx: RuntimeContext) {
   const { dom, timers, animFlags, events } = ctx;
+  // If the reveal classes are still on (initial JSX-set state, no Explore→Return
+  // cycle yet) we DON'T replay the animation — that would reset opacity back
+  // to 0 and ruin LCP. Only return-from-experience needs the explicit replay,
+  // and by then enterExperience has already stripped `intro-lines-reveal`.
+  const alreadyRevealing =
+    dom.introLeft.classList.contains("intro-lines-reveal") &&
+    dom.introLeft.classList.contains("lines-animated");
   if (timers.introLineReveal !== undefined) {
     clearTimeout(timers.introLineReveal);
     timers.introLineReveal = undefined;
   }
-  dom.introLeft.classList.remove("intro-lines-reveal", "lines-animated");
-  void dom.introLeft.offsetHeight;
+  if (!alreadyRevealing) {
+    dom.introLeft.classList.remove("intro-lines-reveal", "lines-animated");
+    void dom.introLeft.offsetHeight;
+  }
   dom.social.classList.remove("social-line-entry");
   void dom.sline.offsetHeight;
 
@@ -47,14 +56,16 @@ export function runIntroPageLineEffects(ctx: RuntimeContext) {
   const tw = dom.introRuleTrack.offsetWidth;
   dom.introRuleTrack.style.setProperty("--intro-rule-final-scale", tw > 0 ? String(15 / tw) : "0.04");
 
-  dom.introLeft.classList.add("lines-animated", "intro-lines-reveal");
-  const revealMs = introLinesDurationMs();
-  animFlags.introLinesAnimEndMs = performance.now() + revealMs;
-  // Previously we removed 'intro-lines-reveal' here, but we now keep it
-  // to ensure the orchestrated sequence (which may exceed revealMs) stays visible.
-  timers.introLineReveal = window.setTimeout(() => {
-    timers.introLineReveal = undefined;
-  }, revealMs);
+  if (!alreadyRevealing) {
+    dom.introLeft.classList.add("lines-animated", "intro-lines-reveal");
+    const revealMs = introLinesDurationMs();
+    animFlags.introLinesAnimEndMs = performance.now() + revealMs;
+    // Previously we removed 'intro-lines-reveal' here, but we now keep it
+    // to ensure the orchestrated sequence (which may exceed revealMs) stays visible.
+    timers.introLineReveal = window.setTimeout(() => {
+      timers.introLineReveal = undefined;
+    }, revealMs);
+  }
 
   if (links.length >= 2 && !animFlags.socialLineAnimated) {
     const handler = (ev: AnimationEvent) => {

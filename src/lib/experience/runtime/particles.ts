@@ -1,5 +1,26 @@
-import { rootCssVarToRgba } from "@/utils/rootCssColor";
+import { readRootCssVar } from "@/utils/rootCssColor";
 import { Dom } from "@/lib/experience/runtime/types";
+
+// Cache the accent color's RGB once at module load. `getComputedStyle` is a
+// DOM-reflow trigger, so reading it once-per-particle-per-frame (as the old
+// code did via rootCssVarToRgba) was the biggest hot spot in the loop.
+let accentR = 0, accentG = 0, accentB = 0;
+function refreshAccentRgb() {
+  const raw = readRootCssVar("--color-web-accent");
+  const m =
+    raw.match(/^#([0-9a-fA-F]{6})/) ??
+    raw.match(/rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/);
+  if (!m) return;
+  if (m[0].startsWith("#")) {
+    const n = parseInt(m[1], 16);
+    accentR = (n >> 16) & 255;
+    accentG = (n >> 8) & 255;
+    accentB = n & 255;
+  } else {
+    accentR = Number(m[1]); accentG = Number(m[2]); accentB = Number(m[3]);
+  }
+}
+if (typeof document !== "undefined") refreshAccentRgb();
 
 export type Particle = {
   x: number;
@@ -49,10 +70,12 @@ export function drawParticles(dom: Dom, ctx: CanvasRenderingContext2D, state: { 
   ctx.beginPath();
   ctx.rect(0, 0, pCanvas.width, pCanvas.height - 60);
   ctx.clip();
+  // Build the prefix once per frame; per-particle the only varying piece is `op`.
+  const rgbaPrefix = `rgba(${accentR},${accentG},${accentB},`;
   for (const p of state.particles) {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = rootCssVarToRgba("--color-web-accent", p.op);
+    ctx.fillStyle = rgbaPrefix + p.op + ")";
     ctx.fill();
     p.x += p.vx + Math.sin(p.y * 0.02 + p.seed) * 0.6;
     p.y += p.vy + Math.cos(p.x * 0.02 + p.seed) * 0.3;
