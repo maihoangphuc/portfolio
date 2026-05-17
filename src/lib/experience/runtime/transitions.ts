@@ -206,9 +206,8 @@ export function completeExploreReturnToIntroUi(ctx: RuntimeContext) {
   const { dom, scene } = ctx;
   // Only strip the reveal classes if we're returning from an exit-from-experience
   // cycle (signalled by the `intro-lines-exit` class set in enterExperience).
-  // On initial mount the reveal classes are already set via JSX so the text
-  // can fade in before models finish loading — wiping them here would force
-  // a re-animation and re-trigger the LCP cost.
+  // On initial mount the reveal classes are absent (added by runIntroPageLineEffects
+  // below), so there's nothing to strip.
   if (dom.introLeft.classList.contains("intro-lines-exit")) {
     dom.introLeft.classList.remove("intro-lines-reveal", "lines-animated", "intro-lines-exit");
     void dom.introLeft.offsetHeight;

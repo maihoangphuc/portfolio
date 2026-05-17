@@ -26,7 +26,7 @@ export default function ExperienceUi() {
 
       <div id="social">
         <div id="sline" className="bg-web-white" />
-        {SOCIAL_LINKS.map((link, index) => (
+        {SOCIAL_LINKS.map((link) => (
           <a
             key={link.key}
             className="soc"
@@ -34,7 +34,6 @@ export default function ExperienceUi() {
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            autoFocus={index === 0}
           >
             <span className="soc-label">{link.label}</span>
           </a>

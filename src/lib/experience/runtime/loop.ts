@@ -11,11 +11,19 @@ export function createAnimateLoop(ctx: RuntimeContext) {
   let raf = 0;
   // Tracks whether we've claimed bg-name visibility for the outro zone.
   let bgNameInEndZone = false;
-  // Drives the inline resize check — the resize event listener is gone; we
-  // detect viewport changes here so setSize happens in lockstep with the
-  // render below. No throttle, no debounce, no stretching during drag.
+  // Resize handling, split into a cheap-every-frame part and a deferred
+  // expensive part to avoid lag during continuous window-resize drags:
+  //   - Camera aspect updates every frame the viewport changes (just a
+  //     projection-matrix recompute). The render stays aspect-correct.
+  //   - renderer.setSize / canvas width-height (which reallocate GPU
+  //     framebuffers — color + depth/stencil) are deferred until the
+  //     viewport has been stable for RESIZE_FLUSH_DELAY_MS. During the
+  //     drag the canvas buffers keep their old resolution; CSS `width:100%`
+  //     scales them to fill the viewport (slight blur, no aspect distortion).
   let lastSizeW = 0;
   let lastSizeH = 0;
+  let pendingResizeFlushAt = 0;
+  const RESIZE_FLUSH_DELAY_MS = 120;
 
   function animate() {
     raf = requestAnimationFrame(animate);
@@ -26,16 +34,21 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       const aspect = innerWidth / innerHeight;
       cam.aspect = aspect;
       cam.updateProjectionMatrix();
-      // `false` = skip Three.js's canvas.style.width/height update. CSS
-      // `inset: 0` already sizes the canvas — without this, every resize
-      // frame Three.js writes inline pixel styles that fight the CSS rule
-      // and force a layout/paint pass. That layout pass was the main lag.
-      renderer.setSize(innerWidth, innerHeight, false);
       bg.camera.aspect = aspect;
       bg.camera.updateProjectionMatrix();
-      bg.renderer.setSize(innerWidth, innerHeight, false);
-      dom.particles.width = innerWidth;
-      dom.particles.height = innerHeight;
+      pendingResizeFlushAt = performance.now() + RESIZE_FLUSH_DELAY_MS;
+    }
+
+    if (pendingResizeFlushAt > 0 && performance.now() >= pendingResizeFlushAt) {
+      pendingResizeFlushAt = 0;
+      // `false` = skip Three.js's canvas.style.width/height update. CSS
+      // `inset: 0` already sizes the canvas — without this, every flush
+      // Three.js writes inline pixel styles that fight the CSS rule and
+      // force a layout/paint pass.
+      renderer.setSize(lastSizeW, lastSizeH, false);
+      bg.renderer.setSize(lastSizeW, lastSizeH, false);
+      dom.particles.width = lastSizeW;
+      dom.particles.height = lastSizeH;
     }
 
     if (dom.modelLoadPct.classList.contains("model-loading") && !dom.modelLoadPct.classList.contains("model-load-exit")) {

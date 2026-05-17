@@ -97,10 +97,11 @@ export function bindEvents(
       state.lastX = e.clientX;
       dragHistory.push({ dx, t: performance.now() });
       if (dragHistory.length > 24) dragHistory.shift();
-      // Touch needs a much higher gain than mouse: a phone swipe travels ~30%
-      // of the viewport, vs a mouse drag that easily covers 80% of a desktop.
+      // Touch needs a higher gain than mouse (phone swipe ~30% viewport vs
+      // mouse drag ~80% desktop), but slower than before so the carousel
+      // doesn't fly past panels on a single swipe.
       const touch = e.pointerType !== "mouse";
-      const gain = touch ? 4.5 : 1.15;
+      const gain = touch ? 0.35 : 1.15;
       state.scrollVel += (dx / innerWidth) * gain;
     }
   };

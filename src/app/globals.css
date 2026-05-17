@@ -6,7 +6,7 @@
   --palette-web-accent: #c584ff;
   --palette-web-accent-icon: #ffffffe6;
   --palette-web-shader-highlight: #c4a8e8;
-  --palette-web-name: #1c132459;
+  --palette-web-name: #947ea859;
   --palette-web-white: #ffffff;
   --palette-web-muted: #ffffff66;
   --palette-web-soft: #ffffff99;
@@ -117,11 +117,10 @@ html.experience-loading #particles {
 }
 
 /* Until models finish loading, the UI buttons and bg-name stay hidden so the
-   load percentage owns the screen. Intro text containers stay VISIBLE for a
-   fast LCP — their inner reveal animation runs on first paint via the
-   `intro-lines-reveal` class set in ExperienceIntro.tsx. We still suppress
-   pointer events on the intro so the Explore button can't fire before the
-   3D scene is ready. */
+   load percentage owns the screen. Intro text starts hidden too — the reveal
+   animation is triggered by runIntroPageLineEffects after loading completes,
+   so the user actually sees it (otherwise it plays silently behind the load
+   HUD and the text is already in its final state by the time loading ends). */
 html.experience-loading #ui > *:not(#model-load-pct):not(#brand),
 html.experience-loading #bg-name {
   opacity: 0.01 !important;
@@ -259,12 +258,13 @@ html.experience-loading #model-load-pct {
   transform-origin: 0 50%;
 }
 
-/* Avoid one frame at rest (left:0 / full underline) before the motion starts */
-#intro-left:not(.lines-animated) #intro-rule {
-  opacity: 0;
-}
-
-#intro-left:not(.lines-animated) #explore-btn::after {
+/* Until `lines-animated` is added (after models finish loading), everything
+   that participates in the intro reveal stays at opacity 0 — otherwise the
+   text/chars would flash visible during loading and skip the reveal. */
+#intro-left:not(.lines-animated) #intro-rule,
+#intro-left:not(.lines-animated) #explore-btn::after,
+#intro-left:not(.lines-animated) #intro-desc,
+#intro-left:not(.lines-animated) #explore-btn .char {
   opacity: 0;
 }
 
@@ -1031,7 +1031,7 @@ html.experience-loading #model-load-pct {
     width: calc(100% - 5rem);
     max-width: 360px;
     bottom: 50%;
-    margin-bottom: -4rem;
+    margin-bottom: -11rem;
   }
 
   #intro-desc {

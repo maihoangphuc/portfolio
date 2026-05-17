@@ -11,10 +11,9 @@ export function introLinesDurationMs() {
 
 export function runIntroPageLineEffects(ctx: RuntimeContext) {
   const { dom, timers, animFlags, events } = ctx;
-  // If the reveal classes are still on (initial JSX-set state, no Explore→Return
-  // cycle yet) we DON'T replay the animation — that would reset opacity back
-  // to 0 and ruin LCP. Only return-from-experience needs the explicit replay,
-  // and by then enterExperience has already stripped `intro-lines-reveal`.
+  // Skip replay if the animation is already running (the intro reveal class
+  // is present and lines-animated is set) — this only matters on the
+  // return-from-experience path where the classes may still be live.
   const alreadyRevealing =
     dom.introLeft.classList.contains("intro-lines-reveal") &&
     dom.introLeft.classList.contains("lines-animated");
