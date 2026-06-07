@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { RuntimeContext } from "@/lib/experience/runtime/types";
-import { N, PW, PH } from "@/constants/experience";
+import { N, PW, PH, LG_BREAKPOINT } from "@/constants/experience";
 import { PANELS } from "@/constants/panels";
 import { DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
 
@@ -115,30 +115,63 @@ const FRAGMENT_SHADER = `
   }
 `;
 
-// Smoothly scales panels down on narrow viewports so they don't overflow the
-// frame at sub-md widths. Linear ramp 1.0 (>=1024px) → 0.55 (<=480px).
-function getResponsivePanelScale(): number {
-  if (typeof window === "undefined") return 1;
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  if (w >= 488) return 1;
-  // Below md: fit active panel exactly within (viewport width - global padding 5rem),
-  // never larger. Camera at z=11, active panel world z ≈ 3 → distance ≈ 8; FOV vertical = 50°.
+// ---------------------------------------------------------------------------
+// Responsive layout — everything below the lg breakpoint, in one place.
+//
+// At/above lg the desktop composition is untouched. Below lg we:
+//  - fit the active panel within the viewport so it never overflows the frame,
+//  - recentre the ring (cancel the camera-yaw left drift),
+//  - move the title onto the panel's bottom-right edge (half on / half off).
+// ---------------------------------------------------------------------------
+const RAMP_MIN_WIDTH = 480; // narrowest width — ramp is fully applied at/below it
+const GROUP_X_BASE = 0.25; // desktop ring-balance offset
+const GROUP_X_YAW_FIX = 0.072; // fixed world-space nudge that re-centres below lg
+const TITLE_POS = {
+  // Desktop: hangs off the left edge, vertically centred.
+  desktop: { x: -0.5, y: 0 },
+  // Below lg: sits on the bottom edge toward the right, half on / half off.
+  narrow: { x: 0.28, y: -0.5 },
+} as const;
+
+type ResponsiveLayout = {
+  panelScale: number; // multiplier on PW/PH so the panel fits the viewport
+  groupX: number; // panelGroup.position.x
+  titleX: number; // titleMesh.position.x (panel-local)
+  titleY: number; // titleMesh.position.y (panel-local)
+};
+
+// Fit the active panel within (viewport width − global 5rem padding), never
+// larger. Camera at z=11, active panel world z ≈ 3 → distance ≈ 8; FOV vert 50°.
+// Self-limits to 1, so wide/landscape viewports keep full size.
+function panelFitScale(w: number, h: number): number {
   const padding = 80; // 5rem (2.5rem each side)
   const camDist = 8;
-  const fov = 50;
-  const worldHeight = 2 * camDist * Math.tan(((fov * Math.PI) / 180) / 2);
+  const fovRad = (50 * Math.PI) / 180;
+  const worldHeight = 2 * camDist * Math.tan(fovRad / 2);
   const worldWidthAtPanel = worldHeight * (w / h);
   const targetWorldWidth = ((w - padding) / w) * worldWidthAtPanel * 0.88;
   return Math.min(1, targetWorldWidth / PW);
 }
 
-function getResponsiveTitleBonus(): number {
-  if (typeof window === "undefined") return 1;
+function getResponsiveLayout(): ResponsiveLayout {
+  const desktop: ResponsiveLayout = {
+    panelScale: 1,
+    groupX: GROUP_X_BASE,
+    titleX: TITLE_POS.desktop.x,
+    titleY: TITLE_POS.desktop.y,
+  };
+  if (typeof window === "undefined") return desktop;
   const w = window.innerWidth;
-  if (w >= 768) return 1;
-  if (w <= 480) return 1.35;
-  return 1 + ((768 - w) / (768 - 480)) * 0.35;
+  if (w >= LG_BREAKPOINT) return desktop;
+
+  // ramp: 0 just under lg → 1 at/below RAMP_MIN_WIDTH.
+  const ramp = Math.min(1, (LG_BREAKPOINT - w) / (LG_BREAKPOINT - RAMP_MIN_WIDTH));
+  return {
+    panelScale: panelFitScale(w, window.innerHeight),
+    groupX: GROUP_X_BASE + ramp * GROUP_X_YAW_FIX,
+    titleX: TITLE_POS.narrow.x,
+    titleY: TITLE_POS.narrow.y,
+  };
 }
 
 // Title plane local size, used to match canvas aspect to world plane aspect
@@ -319,9 +352,11 @@ export function updatePanels(ctx: RuntimeContext) {
   panelGroup.position.y = progress * yDistance * (N - 1) + 0.3;
   panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
 
+  // All viewport-dependent layout in one read (see getResponsiveLayout).
+  const { panelScale: ps, groupX, titleX, titleY } = getResponsiveLayout();
+  panelGroup.position.x = groupX;
+
   // Pass 1: write each panel's transform.
-  const ps = getResponsivePanelScale();
-  const titleBonus = getResponsiveTitleBonus();
   panelGroup.children.forEach((child) => {
     const mesh = child as THREE.Mesh;
     const index = mesh.userData.index;
@@ -336,11 +371,9 @@ export function updatePanels(ctx: RuntimeContext) {
 
     const titleMesh = mesh.userData.titleMesh as THREE.Mesh | undefined;
     if (titleMesh) {
-      titleMesh.scale.set(
-        TITLE_PLANE_W * titleBonus,
-        TITLE_PLANE_H * titleBonus,
-        1
-      );
+      titleMesh.scale.set(TITLE_PLANE_W, TITLE_PLANE_H, 1);
+      titleMesh.position.x = titleX;
+      titleMesh.position.y = titleY;
     }
 
     const belowBoost = a > 0 ? THREE.MathUtils.smoothstep(a, 0, 0.1) * 4.0 : 0;

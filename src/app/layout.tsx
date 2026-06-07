@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 import "@/app/globals.css";
 import "@/app/animations.css";
+import { SOCIAL_LINKS } from "@/constants/socialLinks";
 
 const roboto = Roboto({
   weight: "variable",
@@ -10,14 +11,36 @@ const roboto = Roboto({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const SITE_NAME = "Hoang Phuc — Frontend Developer";
 const SITE_DESCRIPTION =
   "Frontend Developer passionate about technology and crafting intuitive, visually appealing user interfaces. Interactive 3D web experiences built with Three.js, React, and Next.js.";
 
+// Person + WebSite structured data for rich results. sameAs links the verified
+// social profiles, which strengthens entity recognition.
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      name: "Hoang Phuc Mai",
+      url: SITE_URL,
+      jobTitle: "Frontend Developer",
+      description: SITE_DESCRIPTION,
+      knowsAbout: ["Three.js", "WebGL", "React", "Next.js", "Frontend Development"],
+      sameAs: SOCIAL_LINKS.map((link) => link.href),
+    },
+    {
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+    },
+  ],
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_NAME,
     template: "%s · Hoang Phuc",
@@ -88,6 +111,10 @@ export default function RootLayout({
             startExperience() runs. */}
         <link rel="preload" as="fetch" href="/3d.glb" crossOrigin="anonymous" />
         <link rel="preload" as="fetch" href="/rock.glb" crossOrigin="anonymous" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
       </head>
       <body className="min-h-full">{children}</body>
     </html>

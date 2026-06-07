@@ -969,13 +969,13 @@ html.experience-loading #model-load-pct {
 }
 
 /* ------------------------------------------------------------------ */
-/* Responsive: < md (< 768px)                                          */
+/* Responsive: < lg (< 1024px)                                         */
 /* - Reduce global insets from 5rem to 1.25rem                         */
 /* - Move #timeline to top-right (flex-aligned with #brand top-left)   */
 /* - Shorten timeline bar                                              */
 /* - Tighten intro-left padding                                        */
 /* ------------------------------------------------------------------ */
-@media (max-width: 767.98px) {
+@media (max-width: 1023.98px) {
   #brand {
     top: 2.5rem;
     left: 2.5rem;

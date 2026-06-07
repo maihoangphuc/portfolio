@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { rootCssVarToHexInt } from "@/utils/rootCssColor";
+import { LG_BREAKPOINT } from "@/constants/experience";
 
 export const clayMaterial = new THREE.MeshPhysicalMaterial({
   color: 0xffffff,
@@ -213,17 +214,21 @@ async function addNamePlane(scene: THREE.Scene) {
   mesh.name = "bgName3DIntro";
   scene.add(mesh);
 
-  // Per-mode world-Y deltas (intro vs outro × md+ vs <md). All constants so
+  // Per-mode world-Y deltas (intro vs outro × xl+ vs <xl). All constants so
   // screen position depends only on viewport, not innerHeight (no resize drift).
+  // The text-bg is a wide element, so it auto-scales down / lifts up (bottom
+  // margin) earlier than the rest of the UI — its responsive treatment switches
+  // at the xl breakpoint (1280px), not lg. It stays horizontally centred (x=0).
   const BASE_POS_Y = mesh.position.y;
-  const MOBILE_BREAKPOINT = 768;
-  const MOBILE_Y_DELTA = 2;
+  const XL_BREAKPOINT = 1280;
+  const NARROW_Y_DELTA = 2; // intro: lift up below xl so it clears the bottom
   const OUTRO_Y_DELTA_DESKTOP = -1.6;
-  const OUTRO_Y_DELTA_MOBILE = -0.3;
-  const MOBILE_SCALE_MULT = 0.82;
+  const OUTRO_Y_DELTA_NARROW = -0.3;
+  const NARROW_SCALE_MULT = 0.82; // extra shrink below xl for breathing room
   const FOV_HALF_TAN = Math.tan((50 * Math.PI) / 180 / 2);
 
   const tmpWorld = new THREE.Vector3();
+  const camDir = new THREE.Vector3();
   const clock = new THREE.Clock();
   let cachedFrac = 1;
   let cachedWidth = -1;
@@ -249,7 +254,8 @@ async function addNamePlane(scene: THREE.Scene) {
     if (innerWidth !== cachedWidth) {
       cachedWidth = innerWidth;
       const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      const padRem = innerWidth < MOBILE_BREAKPOINT ? 2.5 : 5;
+      // Insets match the CSS layout breakpoint (lg): 2.5rem each side below it.
+      const padRem = innerWidth < LG_BREAKPOINT ? 2.5 : 5;
       cachedFrac = Math.max(0.1, (innerWidth - 2 * padRem * remPx) / innerWidth);
     }
     mesh.getWorldPosition(tmpWorld);
@@ -257,14 +263,23 @@ async function addNamePlane(scene: THREE.Scene) {
     const visH = 2 * dist * FOV_HALF_TAN;
     const visW = visH * (camera as THREE.PerspectiveCamera).aspect;
 
-    const isMobile = innerWidth < MOBILE_BREAKPOINT;
+    const belowXl = innerWidth < XL_BREAKPOINT;
     const yDelta = outroMode
-      ? (isMobile ? OUTRO_Y_DELTA_MOBILE : OUTRO_Y_DELTA_DESKTOP)
-      : (isMobile ? MOBILE_Y_DELTA : 0);
+      ? (belowXl ? OUTRO_Y_DELTA_NARROW : OUTRO_Y_DELTA_DESKTOP)
+      : (belowXl ? NARROW_Y_DELTA : 0);
     mesh.position.y = BASE_POS_Y + yDelta;
 
+    // Horizontal centre: world x=0 doesn't project to screen centre because the
+    // camera is yawed (theta in loop.ts). Cast the camera's view-ray to the
+    // plane's depth and sit the plane there, so it's centred at any width.
+    camera.getWorldDirection(camDir);
+    if (Math.abs(camDir.z) > 1e-4) {
+      const tCenter = (mesh.position.z - camera.position.z) / camDir.z;
+      mesh.position.x = camera.position.x + tCenter * camDir.x;
+    }
+
     const fitScale = Math.min(1, (visW * cachedFrac) / NAME_BASE_W);
-    const s = isMobile ? fitScale * MOBILE_SCALE_MULT : fitScale;
+    const s = belowXl ? fitScale * NARROW_SCALE_MULT : fitScale;
     // Keep scale.z at 1 so the simplex-noise vertex displacement (local Z)
     // isn't squashed when the plane is fit to a narrow viewport.
     mesh.scale.set(s, s, 1);
