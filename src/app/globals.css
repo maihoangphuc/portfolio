@@ -6,7 +6,7 @@
   --palette-web-accent: #c584ff;
   --palette-web-accent-icon: #ffffffe6;
   --palette-web-shader-highlight: #c4a8e8;
-  --palette-web-name: #947ea859;
+  --palette-web-name: #b4aabd59;
   --palette-web-white: #ffffff;
   --palette-web-muted: #ffffff66;
   --palette-web-soft: #ffffff99;
@@ -19,7 +19,7 @@
   --palette-web-line-hover: #ffffffe6;
   --palette-web-line-muted: #ffffff40;
   --palette-web-scene-neutral: #ffffff;
-  --palette-web-loader-char: #c584ff;
+  --palette-web-loader-char: rgb(173, 120, 219);
   /* Ba line: cùng --intro-lines-duration / --intro-lines-ease → kết thúc đồng thời */
   --intro-lines-duration: 2.5s;
   --social-line-duration: 1.4s;
