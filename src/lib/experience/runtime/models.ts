@@ -214,17 +214,20 @@ async function addNamePlane(scene: THREE.Scene) {
   mesh.name = "bgName3DIntro";
   scene.add(mesh);
 
-  // Per-mode world-Y deltas (intro vs outro × xl+ vs <xl). All constants so
-  // screen position depends only on viewport, not innerHeight (no resize drift).
-  // The text-bg is a wide element, so it auto-scales down / lifts up (bottom
-  // margin) earlier than the rest of the UI — its responsive treatment switches
-  // at the xl breakpoint (1280px), not lg. It stays horizontally centred (x=0).
+  // Per-mode world-Y deltas. All constants so screen position depends only on
+  // viewport, not innerHeight (no resize drift). The intro text-bg is a wide
+  // element, so it lifts up below xl (bottom margin) to clear the UI. The outro
+  // is uniform across breakpoints — same scale and Y at every width, with no
+  // extra top margin. It stays horizontally centred (x=0).
   const BASE_POS_Y = mesh.position.y;
   const XL_BREAKPOINT = 1280;
   const NARROW_Y_DELTA = 2; // intro: lift up below xl so it clears the bottom
-  const OUTRO_Y_DELTA_DESKTOP = -1.6;
-  const OUTRO_Y_DELTA_NARROW = -0.3;
-  const NARROW_SCALE_MULT = 0.82; // extra shrink below xl for breathing room
+  const OUTRO_Y_DELTA = -0.3;
+  const NARROW_SCALE_MULT = 0.82; // intro: extra shrink below xl for breathing room
+  // Outro: scale tracks scroll — larger as the outro begins (progress 0) and
+  // settling back to the normal fit size as you scroll further down (progress 1);
+  // reverses scrolling up. Multiplier on the fit size at the outro start.
+  const OUTRO_SCALE_START = 1.05;
   const FOV_HALF_TAN = Math.tan((50 * Math.PI) / 180 / 2);
 
   const tmpWorld = new THREE.Vector3();
@@ -247,6 +250,7 @@ async function addNamePlane(scene: THREE.Scene) {
   let revealEaseFn: (t: number) => number = (t) => Math.sin((t * Math.PI) / 2);
   // Outro reveal driven directly by scroll progress; bypasses the timed lerp.
   let outroRevealValue = 1;
+  let outroT = 0; // smoothed outro progress (0 = just entered, 1 = scrolled out)
   const easeOutSine = (t: number) => Math.sin((t * Math.PI) / 2);
   const easeInSine = (t: number) => 1 - Math.cos((t * Math.PI) / 2);
 
@@ -265,7 +269,7 @@ async function addNamePlane(scene: THREE.Scene) {
 
     const belowXl = innerWidth < XL_BREAKPOINT;
     const yDelta = outroMode
-      ? (belowXl ? OUTRO_Y_DELTA_NARROW : OUTRO_Y_DELTA_DESKTOP)
+      ? OUTRO_Y_DELTA
       : (belowXl ? NARROW_Y_DELTA : 0);
     mesh.position.y = BASE_POS_Y + yDelta;
 
@@ -279,7 +283,19 @@ async function addNamePlane(scene: THREE.Scene) {
     }
 
     const fitScale = Math.min(1, (visW * cachedFrac) / NAME_BASE_W);
-    const s = belowXl ? fitScale * NARROW_SCALE_MULT : fitScale;
+    const baseScale = belowXl ? fitScale * NARROW_SCALE_MULT : fitScale;
+    // Outro starts larger and settles back to baseScale as you scroll out
+    // (outroT 0→1): mult goes OUTRO_SCALE_START → 1. Intro/scroll stays at base.
+    const outroMult = outroMode
+      ? OUTRO_SCALE_START + (1 - OUTRO_SCALE_START) * outroT
+      : 1;
+    // The outro name fills the full width within the global L/R padding at
+    // every breakpoint: it sits at the exact padding-fit (fitScale) when the
+    // outro begins (outroT=0 → outroMult=OUTRO_SCALE_START) and scales down
+    // from there — so it reaches but never exceeds the global L/R padding.
+    const s = outroMode
+      ? fitScale * (outroMult / OUTRO_SCALE_START)
+      : baseScale * outroMult;
     // Keep scale.z at 1 so the simplex-noise vertex displacement (local Z)
     // isn't squashed when the plane is fit to a narrow viewport.
     mesh.scale.set(s, s, 1);
@@ -331,6 +347,7 @@ async function addNamePlane(scene: THREE.Scene) {
     // smoothstep eases the wipe at both ends — matches the gentle reveal feel.
     const u = progress * progress * (3 - 2 * progress);
     outroRevealValue = 1 - u;
+    outroT = u;
     if (!outroMode) {
       // Returning to intro/scroll zone — keep the plane hidden. With
       // direction=1, uReveal=1 = hidden, so it stays out until

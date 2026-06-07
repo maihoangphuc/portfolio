@@ -1,4 +1,5 @@
 import { RuntimeContext } from "@/lib/experience/runtime/types";
+import { N } from "@/constants/experience";
 import { EXPERIENCE_ENTRY_MS, INTRO_PREVIEW_BG_HIDE_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_HOLD_MS, DRAG_HINT_FADE_OUT_MS, DRAG_LINE_HEAD_START_MS } from "@/lib/experience/runtime/world";
 import { runIntroPageLineEffects, replaySocialLineEffect } from "@/lib/experience/runtime/effects";
 
@@ -187,7 +188,11 @@ export function returnToExploreIntro(ctx: RuntimeContext) {
   state.exitWasEntryMidSpin = false;
   state.exitReverseMode = inPreviewPhase;
   const TAU = Math.PI * 2;
-  state.exitFigRot1 = Math.round(state.exitFigRot0 / TAU) * TAU;
+  // Leaving the outro (scrolled past the last panel): the figure has wound a
+  // full turn from its intro pose, so unwind it all the way back to 0 — a smooth
+  // spin home. Otherwise snap to the nearest full turn for a minimal exit spin.
+  const inOutro = state.scrollForLayoutLast > N - 1;
+  state.exitFigRot1 = inOutro ? 0 : Math.round(state.exitFigRot0 / TAU) * TAU;
   state.exitFigPosY0 = state.figPosY;
   state.exitFigScale0 = state.figScale;
   state.exitBgYaw0 = state.bgYawLast;
@@ -215,9 +220,15 @@ export function completeExploreReturnToIntroUi(ctx: RuntimeContext) {
   dom.introLeft.classList.remove("hidden");
   dom.introRight.classList.remove("hidden");
   dom.bgName.classList.remove("hidden");
-  (scene.userData.setNameIntroShown as ((shown: boolean) => void) | undefined)?.(true);
+  // Start the bg-name wipe-in on a clean frame, not this one. At load-complete
+  // the next frame is stalled by GLB geometry upload + the layout/paint from the
+  // class removals above. Stamping the wipe's start time now would mean the first
+  // rendered wipe frame already has ~100ms elapsed, snapping the reveal forward
+  // (the left edge "jumps" in). Deferring two rAFs lets that heavy frame pass so
+  // the wipe begins from zero. The plane stays hidden until then.
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
+      (scene.userData.setNameIntroShown as ((shown: boolean) => void) | undefined)?.(true);
       runIntroPageLineEffects(ctx);
     });
   });

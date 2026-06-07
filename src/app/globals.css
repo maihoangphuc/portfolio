@@ -19,6 +19,7 @@
   --palette-web-line-hover: #ffffffe6;
   --palette-web-line-muted: #ffffff40;
   --palette-web-scene-neutral: #ffffff;
+  --palette-web-loader-char: #c584ff;
   /* Ba line: cùng --intro-lines-duration / --intro-lines-ease → kết thúc đồng thời */
   --intro-lines-duration: 2.5s;
   --social-line-duration: 1.4s;
@@ -45,6 +46,7 @@
   --color-web-line-hover: var(--palette-web-line-hover);
   --color-web-line-muted: var(--palette-web-line-muted);
   --color-web-scene-neutral: var(--palette-web-scene-neutral);
+  --color-web-loader-char: var(--palette-web-loader-char);
 }
 
 @font-face {
@@ -91,6 +93,18 @@ html.experience-loading #bg,
 html.experience-loading #c,
 html.experience-loading #particles {
   opacity: 0;
+  pointer-events: none;
+}
+
+/* Wavy loader letter — sits above #bg, below the main scene; it is the only
+   canvas that stays visible while html.experience-loading hides the others
+   (its fade-in/out is driven by the shader's uOpacity, not CSS). */
+#loader-char {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
   pointer-events: none;
 }
 
@@ -731,8 +745,10 @@ html.experience-loading #model-load-pct {
   }
 }
 
+/* Duration matches LOADER_CHAR_HIDE_MS in runtime/loaderCharacter.ts — the
+   number's slide-down and the wavy letter's dissolve end on the same frame. */
 #model-load-pct.model-load-exit {
-  animation: model-load-slide-down 1.5s cubic-bezier(0.32, 0, 0.2, 1) forwards;
+  animation: model-load-slide-down 1.4s cubic-bezier(0.32, 0, 0.2, 1) forwards;
 }
 
 #year-lbl.date-show {

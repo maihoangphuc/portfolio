@@ -2,6 +2,7 @@ import * as THREE from "three";
 
 export type Dom = {
   bg: HTMLCanvasElement;
+  loaderChar: HTMLCanvasElement;
   c: HTMLCanvasElement;
   particles: HTMLCanvasElement;
   modelLoadPct: HTMLElement;
@@ -59,6 +60,7 @@ export type State = {
   exitBgYaw0: number;
   bgYawLast: number;
   modelLoadTargetPct: number;
+  modelLoadStartMs: number;
   modelLoadRealFloor: number;
   modelLoadCrawlPct: number;
   modelLoadDisplayPct: number;
@@ -92,6 +94,12 @@ export type RuntimeContext = {
   pState: any;
   figureGroup: { value: THREE.Group | null };
   panelGroup: THREE.Group;
+  /** Wavy "p" letter shown while models load; null once its fade-out ends. */
+  loaderChar: {
+    update: () => boolean;
+    startHide: () => void;
+    dispose: () => void;
+  } | null;
   timers: {
     introLineReveal?: number;
     exploreCommit?: number;
@@ -101,6 +109,8 @@ export type RuntimeContext = {
     introRotateStart?: number;
     yearMonthReveal?: number;
     entryStart?: number;
+    loadComplete?: number;
+    loadReveal?: number;
   };
   animFlags: {
     introLinesAnimEndMs: number;

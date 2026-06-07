@@ -40,6 +40,7 @@ export function createExperienceState() {
     exitBgYaw0: 0,
     bgYawLast: 0,
     modelLoadTargetPct: 0,
+    modelLoadStartMs: 0,
     modelLoadRealFloor: 0,
     modelLoadCrawlPct: 0,
     modelLoadDisplayPct: 0,
@@ -74,3 +75,9 @@ export const EXPERIENCE_EXIT_MIN_SCROLL_TRAVEL = 5;
 export const EXPERIENCE_EXIT_SCROLL_DEEP_CAP = -12;
 export const EXPERIENCE_EXIT_UNDERSHOOT_SPLIT = 0.99;
 export const MONTH_SWITCH_COOLDOWN_MS = 620;
+// Loading screen stays up at least this long so the wavy loader letter gets a
+// full appearance even when the models come straight from cache.
+export const MIN_LOAD_SCREEN_MS = 5000;
+// The displayed percentage paces itself to hit 99 slightly before the screen
+// is allowed to leave, so the number never sits parked at 99.
+export const LOAD_PCT_RAMP_MS = MIN_LOAD_SCREEN_MS - 500;

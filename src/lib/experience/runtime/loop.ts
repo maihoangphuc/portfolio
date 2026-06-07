@@ -1,6 +1,6 @@
 import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { C, MONTHS, N } from "@/constants/experience";
-import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_REVERSE_MS, EXPERIENCE_EXIT_FORWARD_TRAVEL, MONTH_SWITCH_COOLDOWN_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_MODEL_ANGLE, INTRO_PREVIEW_BG_YAW } from "@/lib/experience/runtime/world";
+import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_REVERSE_MS, EXPERIENCE_EXIT_FORWARD_TRAVEL, MONTH_SWITCH_COOLDOWN_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_MODEL_ANGLE, INTRO_PREVIEW_BG_YAW, LOAD_PCT_RAMP_MS } from "@/lib/experience/runtime/world";
 import { lerp, smootherstep01 } from "@/lib/experience/runtime/math";
 import { drawParticles } from "@/lib/experience/runtime/particles";
 import { completeExploreReturnToIntroUi } from "@/lib/experience/runtime/transitions";
@@ -51,8 +51,16 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       dom.particles.height = lastSizeH;
     }
 
+    // Wavy loader letter: renders to its own canvas while the load HUD is up,
+    // then is torn down for good once its fade-out completes.
+    if (ctx.loaderChar && !ctx.loaderChar.update()) {
+      ctx.loaderChar.dispose();
+      ctx.loaderChar = null;
+    }
+
     if (dom.modelLoadPct.classList.contains("model-loading") && !dom.modelLoadPct.classList.contains("model-load-exit")) {
       const nowMs = performance.now();
+      if (state.modelLoadStartMs === 0) state.modelLoadStartMs = nowMs;
       const dt = Math.min(0.05, Math.max(1 / 144, (nowMs - state.lastModelLoadUiMs) / 1000));
       state.lastModelLoadUiMs = nowMs;
       const real = Math.min(99, state.modelLoadTargetPct);
@@ -62,7 +70,11 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       const baseCrawlSpeed = state.modelLoadCrawlPct < 50 ? 15 : 8;
       const crawlRate = (crawlRemaining / 99) * baseCrawlSpeed + 0.5;
       state.modelLoadCrawlPct = Math.min(99, state.modelLoadCrawlPct + dt * crawlRate);
-      const targetDisplay = Math.max(state.modelLoadRealFloor, state.modelLoadCrawlPct);
+      // Time-paced ceiling: even if the models arrive instantly (cache), the
+      // number walks to 99 across the minimum loading-screen window instead
+      // of jumping there and idling.
+      const timeCap = (99 * (nowMs - state.modelLoadStartMs)) / LOAD_PCT_RAMP_MS;
+      const targetDisplay = Math.min(Math.max(state.modelLoadRealFloor, state.modelLoadCrawlPct), timeCap);
       const followK = 1 - Math.exp(-dt * 4);
       state.modelLoadDisplayPct += (targetDisplay - state.modelLoadDisplayPct) * followK;
       state.modelLoadDisplayPct = Math.min(99, Math.max(state.modelLoadDisplayPct, state.lastRenderedLoadPct));
@@ -194,10 +206,11 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
     if (figureGroup.value) {
       if (state.experienceExitActive) {
-        const TAU = Math.PI * 2;
         const m = smootherstep01(exitProgress);
-        const targetRot = Math.round(state.exitFigRot0 / TAU) * TAU;
-        state.figRotY = lerp(state.exitFigRot0, targetRot, m);
+        // Target rotation is decided in returnToExploreIntro: nearest full turn
+        // for a normal exit (minimal spin), or a full unwind to 0 when leaving
+        // the outro so the figure rotates all the way back to its intro pose.
+        state.figRotY = lerp(state.exitFigRot0, state.exitFigRot1, m);
         figureGroup.value.rotation.set(0, state.figRotY, 0);
         state.figPosY = lerp(state.exitFigPosY0, -0.8, m);
         state.figScale = lerp(state.exitFigScale0, 2.6, m);

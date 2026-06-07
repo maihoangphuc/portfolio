@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Roboto } from "next/font/google";
+import { Fredoka, Roboto } from "next/font/google";
 import "@/app/globals.css";
 import "@/app/animations.css";
 import { SOCIAL_LINKS } from "@/constants/socialLinks";
@@ -8,6 +8,16 @@ const roboto = Roboto({
   weight: "variable",
   subsets: ["latin"],
   variable: "--font-roboto",
+  display: "swap",
+});
+
+// Only used to draw the wavy loader-letter mask — chunky geometric rounded
+// sans, the closest match to the brand font theyearofgreta.com renders its
+// preloader "g" with (thick circular bowl, flat-cut stems).
+const fredoka = Fredoka({
+  weight: "600",
+  subsets: ["latin"],
+  variable: "--font-loader-glyph",
   display: "swap",
 });
 
@@ -102,7 +112,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${roboto.variable} ${roboto.className} h-full antialiased experience-loading`}
+      className={`${roboto.variable} ${roboto.className} ${fredoka.variable} h-full antialiased experience-loading`}
     >
       <head>
         {/* Kick off GLB downloads in parallel with JS bundle parsing — they're

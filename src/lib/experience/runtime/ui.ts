@@ -12,6 +12,7 @@ export function getDom(): Dom {
 
   return {
     bg: must<HTMLCanvasElement>("bg"),
+    loaderChar: must<HTMLCanvasElement>("loader-char"),
     c: must<HTMLCanvasElement>("c"),
     particles: must<HTMLCanvasElement>("particles"),
     modelLoadPct: must("model-load-pct"),

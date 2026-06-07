@@ -5,12 +5,13 @@ import { initScene } from "@/lib/experience/runtime/scene";
 import { initParticles, createParticlesState } from "@/lib/experience/runtime/particles";
 import { loadModels } from "@/lib/experience/runtime/models";
 import { getDom, positionSocialLine } from "@/lib/experience/runtime/ui";
-import { createExperienceState } from "@/lib/experience/runtime/world";
+import { createExperienceState, MIN_LOAD_SCREEN_MS } from "@/lib/experience/runtime/world";
 import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { runIntroPageLineEffects, replaySocialLineEffect, introLinesDurationMs } from "@/lib/experience/runtime/effects";
 import { enterExperience, returnToExploreIntro, completeExploreReturnToIntroUi, scheduleIntroLinesWhenUiVisible } from "@/lib/experience/runtime/transitions";
 import { createAnimateLoop } from "@/lib/experience/runtime/loop";
 import { createPanels } from "@/lib/experience/runtime/panels";
+import { createLoaderCharacter, LOADER_CHAR_HIDE_MS } from "@/lib/experience/runtime/loaderCharacter";
 
 export function startExperience() {
   const dom = getDom();
@@ -42,6 +43,7 @@ export function startExperience() {
     pState,
     figureGroup: { value: null },
     panelGroup: new THREE.Group(),
+    loaderChar: createLoaderCharacter(dom.loaderChar),
     timers: {},
     animFlags: {
       introLinesAnimEndMs: 0,
@@ -66,37 +68,74 @@ export function startExperience() {
   const cleanupLoop = createAnimateLoop(ctx);
 
   initParticles(dom, pState);
+  const loadStartMs = performance.now();
   void loadModels(scene, (pct) => { state.modelLoadTargetPct = pct; })
     .then((group) => {
-      ctx.figureGroup.value = group;
-      document.documentElement.classList.remove("experience-loading");
-      dom.bgName.classList.add("model-ready");
-      dom.modelLoadPct.setAttribute("aria-busy", "false");
-      dom.modelLoadPct.textContent = "99";
-      dom.modelLoadPct.classList.add("model-load-exit");
+      // Phase B — runs only after the loader letter has fully dissolved:
+      // nothing else (scene canvases, model, intro UI) appears before it.
+      const reveal = () => {
+        ctx.figureGroup.value = group;
+        document.documentElement.classList.remove("experience-loading");
+        dom.bgName.classList.add("model-ready");
 
-      let finished = false;
-      const hud = () => {
-        if (finished) return;
-        finished = true;
-        dom.modelLoadPct.classList.remove("model-loading", "model-load-exit");
+        // Pre-warm the GPU before the intro wipe-in. Without this, the figure's
+        // clay material and the bg-name plane's heavy simplex-noise shader both
+        // compile (and upload) on the first frame they render — which is the
+        // exact frame the 1.6s wipe-in starts, so the reveal stutters ("giật").
+        // Compiling here pays that cost once while everything is still hidden.
+        renderer.compile(scene, cam);
+
+        completeExploreReturnToIntroUi(ctx);
       };
-      dom.modelLoadPct.addEventListener("animationend", hud, { once: true });
-      window.setTimeout(hud, 1200);
 
-      completeExploreReturnToIntroUi(ctx);
+      // Phase A — the loading screen exits as a unit: letter fades out while
+      // the percentage slides down.
+      const beginExit = () => {
+        ctx.loaderChar?.startHide();
+        dom.modelLoadPct.setAttribute("aria-busy", "false");
+        dom.modelLoadPct.textContent = "99";
+        dom.modelLoadPct.classList.add("model-load-exit");
+
+        let finished = false;
+        const hud = () => {
+          if (finished) return;
+          finished = true;
+          dom.modelLoadPct.classList.remove("model-loading", "model-load-exit");
+        };
+        dom.modelLoadPct.addEventListener("animationend", hud, { once: true });
+        // Safety net only — must fire AFTER the 1.4s slide-down would end.
+        // Stripping the classes early while `experience-loading` is still on
+        // <html> cancels the animation and pops the number back to visible.
+        window.setTimeout(hud, LOADER_CHAR_HIDE_MS + 200);
+
+        ctx.timers.loadReveal = window.setTimeout(reveal, LOADER_CHAR_HIDE_MS);
+      };
+
+      // Hold the loading screen open to MIN_LOAD_SCREEN_MS so the wavy loader
+      // letter gets its full run even when the models load instantly.
+      const waitMs = Math.max(0, MIN_LOAD_SCREEN_MS - (performance.now() - loadStartMs));
+      ctx.timers.loadComplete = window.setTimeout(beginExit, waitMs);
     })
     .catch((err) => {
       console.error(err);
-      document.documentElement.classList.remove("experience-loading");
-      dom.modelLoadPct.setAttribute("aria-busy", "false");
-      dom.modelLoadPct.classList.remove("model-loading", "model-load-exit");
-      scheduleIntroLinesWhenUiVisible(ctx);
+      ctx.loaderChar?.startHide();
+      // Same sequencing as the success path: reveal the page only after the
+      // loader letter has fully dissolved.
+      ctx.timers.loadReveal = window.setTimeout(() => {
+        document.documentElement.classList.remove("experience-loading");
+        dom.modelLoadPct.setAttribute("aria-busy", "false");
+        dom.modelLoadPct.classList.remove("model-loading", "model-load-exit");
+        scheduleIntroLinesWhenUiVisible(ctx);
+      }, LOADER_CHAR_HIDE_MS);
     });
 
   return () => {
     cleanupLoop();
     ctx.events.teardown();
+    window.clearTimeout(ctx.timers.loadComplete);
+    window.clearTimeout(ctx.timers.loadReveal);
+    ctx.loaderChar?.dispose();
+    ctx.loaderChar = null;
     renderer.dispose();
     bg.renderer.dispose();
   };
