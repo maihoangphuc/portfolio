@@ -2,12 +2,11 @@ import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { C, MONTHS, N } from "@/constants/experience";
 import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_REVERSE_MS, EXPERIENCE_EXIT_FORWARD_TRAVEL, MONTH_SWITCH_COOLDOWN_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_MODEL_ANGLE, INTRO_PREVIEW_BG_YAW, LOAD_PCT_RAMP_MS } from "@/lib/experience/runtime/world";
 import { lerp, smootherstep01 } from "@/lib/experience/runtime/math";
-import { drawParticles } from "@/lib/experience/runtime/particles";
 import { completeExploreReturnToIntroUi } from "@/lib/experience/runtime/transitions";
 import { updatePanels } from "@/lib/experience/runtime/panels";
 
 export function createAnimateLoop(ctx: RuntimeContext) {
-  const { dom, state, bg, scene, cam, renderer, raycaster, mouse, pCtx, pState, figureGroup } = ctx;
+  const { dom, state, bg, scene, cam, renderer, raycaster, mouse, figureGroup } = ctx;
   let raf = 0;
   // Tracks whether we've claimed bg-name visibility for the outro zone.
   let bgNameInEndZone = false;
@@ -47,8 +46,6 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       // force a layout/paint pass.
       renderer.setSize(lastSizeW, lastSizeH, false);
       bg.renderer.setSize(lastSizeW, lastSizeH, false);
-      dom.particles.width = lastSizeW;
-      dom.particles.height = lastSizeH;
     }
 
     // Wavy loader letter: renders to its own canvas while the load HUD is up,
@@ -103,7 +100,9 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       exitProgress = Math.min(1, (performance.now() - state.experienceExitStartMs) / exitDuration);
     }
 
-    drawParticles(dom, pCtx, pState);
+    // Dust points around the figure — shader does the motion, the loop just
+    // advances the orbit/rise clocks.
+    ctx.particles?.update();
 
     if (state.experienceExitActive) {
       const s0 = state.exitScroll0;

@@ -1,10 +1,10 @@
 import * as THREE from "three";
+import { FigureParticles } from "@/lib/experience/runtime/particles";
 
 export type Dom = {
   bg: HTMLCanvasElement;
   loaderChar: HTMLCanvasElement;
   c: HTMLCanvasElement;
-  particles: HTMLCanvasElement;
   modelLoadPct: HTMLElement;
   month: HTMLElement;
   monthGhost: HTMLElement;
@@ -90,8 +90,8 @@ export type RuntimeContext = {
   renderer: THREE.WebGLRenderer;
   raycaster: THREE.Raycaster;
   mouse: THREE.Vector2;
-  pCtx: CanvasRenderingContext2D;
-  pState: any;
+  /** Shader-driven dust points around the figure; set once models load. */
+  particles: FigureParticles | null;
   figureGroup: { value: THREE.Group | null };
   panelGroup: THREE.Group;
   /** Wavy "p" letter shown while models load; null once its fade-out ends. */

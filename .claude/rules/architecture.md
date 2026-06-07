@@ -6,7 +6,7 @@ No routing or data layer. The whole app is one stateful runtime that owns the DO
 
 Four sibling components, in order:
 
-1. `ExperienceCanvases` — three stacked `<canvas>`es: `#bg` (shader background sphere), `#c` (main Three.js scene), `#particles` (2D overlay).
+1. `ExperienceCanvases` — three stacked `<canvas>`es: `#bg` (shader background sphere), `#loader-char` (wavy loading letter, torn down after load), `#c` (main Three.js scene — includes the shader-driven dust points around the figure).
 2. `ExperienceIntro` / `ExperienceUi` — all interactive DOM (timeline, social links, brand button, sound toggle, model-load %, drag hint). Every element the runtime touches has a stable `id`.
 3. `GretaExperienceRuntime` — `"use client"` shim that calls `useGretaExperience()`, which runs `startExperience()` once on mount and tears it down on unmount.
 

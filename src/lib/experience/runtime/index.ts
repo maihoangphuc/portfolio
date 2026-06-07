@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { initGretaBackground } from "@/lib/experience/background/index";
 import { bindEvents } from "@/lib/experience/runtime/events";
 import { initScene } from "@/lib/experience/runtime/scene";
-import { initParticles, createParticlesState } from "@/lib/experience/runtime/particles";
 import { loadModels } from "@/lib/experience/runtime/models";
 import { getDom, positionSocialLine } from "@/lib/experience/runtime/ui";
 import { createExperienceState, MIN_LOAD_SCREEN_MS } from "@/lib/experience/runtime/world";
@@ -24,8 +23,6 @@ export function startExperience() {
   };
 
   const bg = initGretaBackground(dom.bg);
-  const pCtx = dom.particles.getContext("2d")!;
-  const pState = createParticlesState();
   const { scene, cam, renderer } = initScene(dom);
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2(-10, -10);
@@ -39,8 +36,7 @@ export function startExperience() {
     renderer,
     raycaster,
     mouse,
-    pCtx,
-    pState,
+    particles: null,
     figureGroup: { value: null },
     panelGroup: new THREE.Group(),
     loaderChar: createLoaderCharacter(dom.loaderChar),
@@ -67,14 +63,14 @@ export function startExperience() {
 
   const cleanupLoop = createAnimateLoop(ctx);
 
-  initParticles(dom, pState);
   const loadStartMs = performance.now();
   void loadModels(scene, (pct) => { state.modelLoadTargetPct = pct; })
-    .then((group) => {
+    .then(({ group, particles }) => {
       // Phase B — runs only after the loader letter has fully dissolved:
       // nothing else (scene canvases, model, intro UI) appears before it.
       const reveal = () => {
         ctx.figureGroup.value = group;
+        ctx.particles = particles;
         document.documentElement.classList.remove("experience-loading");
         dom.bgName.classList.add("model-ready");
 
@@ -136,6 +132,8 @@ export function startExperience() {
     window.clearTimeout(ctx.timers.loadReveal);
     ctx.loaderChar?.dispose();
     ctx.loaderChar = null;
+    ctx.particles?.dispose();
+    ctx.particles = null;
     renderer.dispose();
     bg.renderer.dispose();
   };

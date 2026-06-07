@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { rootCssVarToHexInt } from "@/utils/rootCssColor";
 import { LG_BREAKPOINT } from "@/constants/experience";
+import { createFigureParticles, FigureParticles } from "@/lib/experience/runtime/particles";
 
 export const clayMaterial = new THREE.MeshPhysicalMaterial({
   color: 0xffffff,
@@ -363,7 +364,7 @@ async function addNamePlane(scene: THREE.Scene) {
 export async function loadModels(
   scene: THREE.Scene,
   onProgress: (pct: number) => void,
-) {
+): Promise<{ group: THREE.Group; particles: FigureParticles }> {
   const loader = await makeGltfLoader();
   const tracker = makeProgressTracker(onProgress);
 
@@ -401,11 +402,17 @@ export async function loadModels(
   group.add(figure.scene);
   group.add(rock.scene);
 
+  // Figure bounds in group-local space (group transform is still identity
+  // here) — sizes the dust-particle cylinder so it hugs the figure.
+  const figureBox = new THREE.Box3().setFromObject(figure.scene);
+  const particles = createFigureParticles(figureBox, Math.min(devicePixelRatio, 1.5));
+  group.add(particles.object);
+
   await addNamePlane(scene);
 
   group.position.set(0, -0.8, 0);
   group.scale.setScalar(2.6);
   scene.add(group);
 
-  return group;
+  return { group, particles };
 }

@@ -14,7 +14,6 @@ export function getDom(): Dom {
     bg: must<HTMLCanvasElement>("bg"),
     loaderChar: must<HTMLCanvasElement>("loader-char"),
     c: must<HTMLCanvasElement>("c"),
-    particles: must<HTMLCanvasElement>("particles"),
     modelLoadPct: must("model-load-pct"),
     month: must("month-lbl"),
     monthGhost: must("month-lbl-ghost"),
