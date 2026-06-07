@@ -284,6 +284,10 @@ export function createPanels(ctx: RuntimeContext) {
   }
   
   panelGroup.position.z = -2.5;
+  // Nudge the whole ring right so the off-center side panels read as evenly
+  // balanced (paired with the small `pt` left-offset in updatePanels, which
+  // keeps the active panel centered on the 3D figure).
+  panelGroup.position.x = 0.25;
   scene.add(panelGroup);
   return panels;
 }
@@ -295,7 +299,12 @@ export function updatePanels(ctx: RuntimeContext) {
   const yDistance = 2.8;
   const baseRadius = 5.5;
   const panelsPerTurn = 3.5;
-  const pt = -0.5 * Math.PI - 0.07;
+  // Camera in loop.ts is yawed by theta=-0.12 (looking from -x side toward origin),
+  // so world x=0 projects right-of-center. Offset the panel ring's base rotation
+  // so the active panel lands on the camera's view ray, not at world x=0.
+  // Extra -0.03 nudges the active (front) panel slightly left to center it on
+  // the 3D figure, net of the +0.25 group.position.x ring-balance offset.
+  const pt = -0.5 * Math.PI - 0.073 - 0.05;
 
   const progress = scrollForLayoutLast / (N - 1);
   const edgeBuffer = 0.6;
