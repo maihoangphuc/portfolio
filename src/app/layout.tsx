@@ -83,13 +83,11 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     url: "/",
     locale: "en_US",
-    images: [{ url: "/text-bg.webp", width: 1774, height: 887, alt: "Hoang Phuc" }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: ["/text-bg.webp"],
   },
   icons: { icon: "/favicon.ico" },
 };

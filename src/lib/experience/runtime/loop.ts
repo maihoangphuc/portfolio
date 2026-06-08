@@ -10,19 +10,16 @@ export function createAnimateLoop(ctx: RuntimeContext) {
   let raf = 0;
   // Tracks whether we've claimed bg-name visibility for the outro zone.
   let bgNameInEndZone = false;
-  // Resize handling, split into a cheap-every-frame part and a deferred
-  // expensive part to avoid lag during continuous window-resize drags:
-  //   - Camera aspect updates every frame the viewport changes (just a
-  //     projection-matrix recompute). The render stays aspect-correct.
-  //   - renderer.setSize / canvas width-height (which reallocate GPU
-  //     framebuffers — color + depth/stencil) are deferred until the
-  //     viewport has been stable for RESIZE_FLUSH_DELAY_MS. During the
-  //     drag the canvas buffers keep their old resolution; CSS `width:100%`
-  //     scales them to fill the viewport (slight blur, no aspect distortion).
+  // Resize handling: every frame the viewport changes we update the camera
+  // aspect AND reallocate the canvas framebuffers in lockstep. Reallocating
+  // the GPU buffers immediately keeps the render at native resolution during
+  // the drag — deferring setSize would leave the canvas at its old resolution
+  // while CSS `width:100%` stretches it, which reads as blur until the resize
+  // settles. `false` skips Three.js's canvas.style.width/height write: CSS
+  // `inset: 0` already sizes the canvas, and the inline styles would fight the
+  // CSS rule and force an extra layout/paint each frame.
   let lastSizeW = 0;
   let lastSizeH = 0;
-  let pendingResizeFlushAt = 0;
-  const RESIZE_FLUSH_DELAY_MS = 120;
 
   function animate() {
     raf = requestAnimationFrame(animate);
@@ -35,15 +32,6 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       cam.updateProjectionMatrix();
       bg.camera.aspect = aspect;
       bg.camera.updateProjectionMatrix();
-      pendingResizeFlushAt = performance.now() + RESIZE_FLUSH_DELAY_MS;
-    }
-
-    if (pendingResizeFlushAt > 0 && performance.now() >= pendingResizeFlushAt) {
-      pendingResizeFlushAt = 0;
-      // `false` = skip Three.js's canvas.style.width/height update. CSS
-      // `inset: 0` already sizes the canvas — without this, every flush
-      // Three.js writes inline pixel styles that fight the CSS rule and
-      // force a layout/paint pass.
       renderer.setSize(lastSizeW, lastSizeH, false);
       bg.renderer.setSize(lastSizeW, lastSizeH, false);
     }
@@ -135,7 +123,7 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
     const theta = -0.12;
     const radius = 11;
-    let camX = Math.sin(theta) * radius, camY = 0.5, camLookAtY = 0.3, camZ = Math.cos(theta) * radius;
+    const camX = Math.sin(theta) * radius, camY = 0.5, camLookAtY = 0.3, camZ = Math.cos(theta) * radius;
     cam.position.set(camX, camY, camZ);
     cam.lookAt(0, camLookAtY, 0);
 

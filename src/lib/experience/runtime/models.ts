@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { rootCssVarToHexInt } from "@/utils/rootCssColor";
 import { LG_BREAKPOINT } from "@/constants/experience";
-import { createFigureParticles, FigureParticles } from "@/lib/experience/runtime/particles";
+import { FigureParticles } from "@/lib/experience/runtime/particles";
 
 export const clayMaterial = new THREE.MeshPhysicalMaterial({
   color: 0xffffff,
@@ -130,9 +130,55 @@ const SIMPLEX_2D_GLSL = `
   }
 `;
 
+// Render the "Hoang Phuc" heading to a canvas in the brand serif (Blaak Bold)
+// instead of shipping a baked image. theyearofgreta.com sets its heading in
+// clean, level, evenly-tracked brand type (the previous baked image had the
+// text slanted and unevenly spaced). Two left-aligned lines, the block
+// centred, sized so the widest line fills ~92% of the canvas — used as a
+// luminance mask by the name-plane shader.
+async function makeNameTexture(): Promise<THREE.CanvasTexture> {
+  const W = 3072;
+  const H = 1536;
+  const lines = ["Hoang", "Phuc"];
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const c = canvas.getContext("2d")!;
+
+  // Ensure the brand serif is loaded before measuring/drawing — otherwise the
+  // canvas falls back to a default serif and the metrics are wrong.
+  try {
+    await document.fonts.load('700 400px "Blaak"');
+    await document.fonts.ready;
+  } catch {
+    /* fall back to the generic serif below */
+  }
+
+  const fontAt = (px: number) => `700 ${px}px "Blaak", serif`;
+  c.font = fontAt(100);
+  const widthsAt100 = lines.map((l) => c.measureText(l).width);
+  const maxW100 = Math.max(...widthsAt100);
+  const fontPx = (100 * (W * 0.92)) / maxW100;
+  const maxW = maxW100 * (fontPx / 100);
+  const leftX = (W - maxW) / 2;
+
+  c.fillStyle = "#000";
+  c.fillRect(0, 0, W, H);
+  c.font = fontAt(fontPx);
+  c.fillStyle = "#fff";
+  c.textAlign = "left";
+  c.textBaseline = "middle";
+  const gap = fontPx * 0.92;
+  const y0 = H / 2 - gap / 2;
+  lines.forEach((l, i) => c.fillText(l, leftX, y0 + i * gap));
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 8;
+  return tex;
+}
+
 async function addNamePlane(scene: THREE.Scene) {
-  const nameTex = await new THREE.TextureLoader().loadAsync("/text-bg.webp");
-  nameTex.anisotropy = 4;
+  const nameTex = await makeNameTexture();
   // Sampled as a single-channel mask — flag raw so GPU skips sRGB→linear.
   nameTex.colorSpace = THREE.NoColorSpace;
 
@@ -144,6 +190,17 @@ async function addNamePlane(scene: THREE.Scene) {
   const nameMatch = rawName.match(/^#([0-9a-fA-F]{6})([0-9a-fA-F]{2})?$/);
   const nameColor = nameMatch ? parseInt(nameMatch[1], 16) : 0xffffff;
   const nameAlpha = nameMatch && nameMatch[2] ? parseInt(nameMatch[2], 16) / 255 : 1;
+  // Pass the raw sRGB channel values straight through. The fragment shader
+  // writes gl_FragColor directly to the (sRGB) framebuffer without any
+  // linear→sRGB encoding, so the uniform must already hold sRGB values —
+  // otherwise the displayed colour comes out far too dark (e.g. #352d40 → near
+  // black). Don't use THREE.Color here: with ColorManagement on it would
+  // convert the hex to linear, which is exactly the double-darkening we avoid.
+  const nameRgb = new THREE.Vector3(
+    ((nameColor >> 16) & 0xff) / 255,
+    ((nameColor >> 8) & 0xff) / 255,
+    (nameColor & 0xff) / 255,
+  );
 
   const NAME_BASE_W = 11.5;
   // Effect ported from theyearofgreta.com: simplex-noise vertex displacement
@@ -151,7 +208,7 @@ async function addNamePlane(scene: THREE.Scene) {
   const mat = new THREE.ShaderMaterial({
     uniforms: {
       uMap: { value: nameTex },
-      uColor: { value: new THREE.Color(nameColor).convertSRGBToLinear() },
+      uColor: { value: nameRgb },
       uOpacity: { value: nameAlpha },
       // Following theyearofgreta.com convention: tween uReveal 0→1 in both
       // directions; uDirection both flips wipe side AND inverts uReveal's
@@ -166,16 +223,22 @@ async function addNamePlane(scene: THREE.Scene) {
       uniform float uTime;
       void main() {
         vUv = uv;
-        // Exact constants from theyearofgreta.com's heading vertex shader:
-        // speed=0.2, intensity=0.05, size=0.5 — low frequency, gentle wave.
-        // Our plane is wider/farther, so we scale intensity up to keep the
-        // perceived wave amplitude similar.
-        float speed = 0.2;
-        float intensity = 0.35;
-        float size = 0.5;
-        float n = snoise((uv * size) + (uTime * speed)) * intensity;
+        // theyearofgreta-style heading ripple — deliberately gentle and slow:
+        // its idle heading is nearly still, just a faint organic drift, NOT a
+        // pronounced wave. The plane is billboarded to face the camera (see
+        // onBeforeRender) so a pure Z displacement reads as almost nothing; we
+        // displace slightly IN-PLANE on Y (varying along X) so the motion is
+        // visible, plus a touch of Z for depth. Small amplitudes in local plane
+        // units (plane is ~11.5 wide, ~5.75 tall).
+        float speed = 0.16;
+        float size = 0.6;
+        float ampY = 0.1;
+        float ampZ = 0.08;
+        float wave = snoise(vec2(uv.x * size + uTime * speed, uv.y * size * 0.6));
+        float depth = snoise(vec2(uv.x * size * 0.7 - uTime * speed, uv.y * size + 4.3));
         vec3 displaced = position;
-        displaced.z = n;
+        displaced.y += wave * ampY;
+        displaced.z = depth * ampZ;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
       }
     `,
@@ -222,13 +285,21 @@ async function addNamePlane(scene: THREE.Scene) {
   // extra top margin. It stays horizontally centred (x=0).
   const BASE_POS_Y = mesh.position.y;
   const XL_BREAKPOINT = 1280;
-  const NARROW_Y_DELTA = 2; // intro: lift up below xl so it clears the bottom
+  const SM_BREAKPOINT = 640;
+  const XS_BREAKPOINT = 480;
+  const NARROW_Y_DELTA = 1.0; // intro: lift up below xl so it clears the bottom (lower = a bit more top margin)
+  const SM_Y_DELTA = 1.8; // intro: at sm and below lift higher (more bottom margin) so the heading reaches the figure's neck
   const OUTRO_Y_DELTA = -0.3;
   const NARROW_SCALE_MULT = 0.82; // intro: extra shrink below xl for breathing room
+  const SM_SCALE_MULT = 0.78; // intro: shrink more at sm and below
+  const XS_SCALE_MULT = 0.92; // intro: bump back up at xs and below (narrow fit makes it read small)
   // Outro: scale tracks scroll — larger as the outro begins (progress 0) and
   // settling back to the normal fit size as you scroll further down (progress 1);
   // reverses scrolling up. Multiplier on the fit size at the outro start.
   const OUTRO_SCALE_START = 1.05;
+  // Global shrink applied to both intro and outro name scale — keeps the text
+  // a touch smaller than the full padding-fit.
+  const NAME_SCALE_MULT = 0.9;
   const FOV_HALF_TAN = Math.tan((50 * Math.PI) / 180 / 2);
 
   const tmpWorld = new THREE.Vector3();
@@ -269,9 +340,15 @@ async function addNamePlane(scene: THREE.Scene) {
     const visW = visH * (camera as THREE.PerspectiveCamera).aspect;
 
     const belowXl = innerWidth < XL_BREAKPOINT;
+    const belowSm = innerWidth < SM_BREAKPOINT;
+    const belowXs = innerWidth < XS_BREAKPOINT;
     const yDelta = outroMode
       ? OUTRO_Y_DELTA
-      : (belowXl ? NARROW_Y_DELTA : 0);
+      : belowSm
+        ? SM_Y_DELTA
+        : belowXl
+          ? NARROW_Y_DELTA
+          : 0;
     mesh.position.y = BASE_POS_Y + yDelta;
 
     // Horizontal centre: world x=0 doesn't project to screen centre because the
@@ -283,8 +360,26 @@ async function addNamePlane(scene: THREE.Scene) {
       mesh.position.x = camera.position.x + tCenter * camDir.x;
     }
 
+    // Billboard around Y so the plane always faces the camera head-on. The
+    // camera is yawed (theta in loop.ts); a world-fixed plane would keystone
+    // and the text would slant. theyearofgreta keeps its heading flat to the
+    // camera so it stays level — match that by yawing the plane to the camera
+    // (kept upright: only Y rotates, no pitch).
+    mesh.rotation.y = Math.atan2(
+      camera.position.x - mesh.position.x,
+      camera.position.z - mesh.position.z,
+    );
+
     const fitScale = Math.min(1, (visW * cachedFrac) / NAME_BASE_W);
-    const baseScale = belowXl ? fitScale * NARROW_SCALE_MULT : fitScale;
+    const baseScale =
+      fitScale *
+      (belowXs
+        ? XS_SCALE_MULT
+        : belowSm
+          ? SM_SCALE_MULT
+          : belowXl
+            ? NARROW_SCALE_MULT
+            : 1);
     // Outro starts larger and settles back to baseScale as you scroll out
     // (outroT 0→1): mult goes OUTRO_SCALE_START → 1. Intro/scroll stays at base.
     const outroMult = outroMode
@@ -294,9 +389,9 @@ async function addNamePlane(scene: THREE.Scene) {
     // every breakpoint: it sits at the exact padding-fit (fitScale) when the
     // outro begins (outroT=0 → outroMult=OUTRO_SCALE_START) and scales down
     // from there — so it reaches but never exceeds the global L/R padding.
-    const s = outroMode
+    const s = (outroMode
       ? fitScale * (outroMult / OUTRO_SCALE_START)
-      : baseScale * outroMult;
+      : baseScale * outroMult) * NAME_SCALE_MULT;
     // Keep scale.z at 1 so the simplex-noise vertex displacement (local Z)
     // isn't squashed when the plane is fit to a narrow viewport.
     mesh.scale.set(s, s, 1);
@@ -364,7 +459,7 @@ async function addNamePlane(scene: THREE.Scene) {
 export async function loadModels(
   scene: THREE.Scene,
   onProgress: (pct: number) => void,
-): Promise<{ group: THREE.Group; particles: FigureParticles }> {
+): Promise<{ group: THREE.Group; particles: FigureParticles | null }> {
   const loader = await makeGltfLoader();
   const tracker = makeProgressTracker(onProgress);
 
@@ -402,17 +497,11 @@ export async function loadModels(
   group.add(figure.scene);
   group.add(rock.scene);
 
-  // Figure bounds in group-local space (group transform is still identity
-  // here) — sizes the dust-particle cylinder so it hugs the figure.
-  const figureBox = new THREE.Box3().setFromObject(figure.scene);
-  const particles = createFigureParticles(figureBox, Math.min(devicePixelRatio, 1.5));
-  group.add(particles.object);
-
   await addNamePlane(scene);
 
   group.position.set(0, -0.8, 0);
   group.scale.setScalar(2.6);
   scene.add(group);
 
-  return { group, particles };
+  return { group, particles: null };
 }

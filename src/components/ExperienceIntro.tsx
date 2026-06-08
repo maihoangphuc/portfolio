@@ -7,13 +7,6 @@ const INTRO_RIGHT_TEXT =
 export default function ExperienceIntro() {
   return (
     <>
-      <link
-        rel="preload"
-        href="/text-bg.webp"
-        as="image"
-        type="image/webp"
-        fetchPriority="high"
-      />
       <div id="bg-name">
         <div>
           <div

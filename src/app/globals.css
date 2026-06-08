@@ -3,10 +3,10 @@
 
 :root {
   --palette-web-bg: #352d40;
-  --palette-web-accent: #c584ff;
+  --palette-web-accent: #b88ef1;
   --palette-web-accent-icon: #ffffffe6;
   --palette-web-shader-highlight: #c4a8e8;
-  --palette-web-name: #b4aabd59;
+  --palette-web-name: #352d40cc;
   --palette-web-white: #ffffff;
   --palette-web-muted: #ffffff66;
   --palette-web-soft: #ffffff99;
@@ -19,8 +19,7 @@
   --palette-web-line-hover: #ffffffe6;
   --palette-web-line-muted: #ffffff40;
   --palette-web-scene-neutral: #ffffff;
-  --palette-web-loader-char: rgb(173, 120, 219);
-  /* Ba line: cùng --intro-lines-duration / --intro-lines-ease → kết thúc đồng thời */
+  --palette-web-loader-char: rgb(204, 179, 226);
   --intro-lines-duration: 2.5s;
   --social-line-duration: 1.4s;
   --intro-lines-ease: cubic-bezier(0.33, 1, 0.32, 1);
@@ -194,16 +193,6 @@ html.experience-loading #model-load-pct {
   width: 60vw;
   max-width: 1000px;
   aspect-ratio: 1774 / 887;
-  -webkit-mask-image: url("/text-bg.webp");
-  mask-image: url("/text-bg.webp");
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-mode: luminance;
-  mask-mode: luminance;
 }
 
 #bg-name.outro-large .bg-name-img {
@@ -389,8 +378,8 @@ html.experience-loading #model-load-pct {
 
 #explore-btn:hover::after {
   clip-path: inset(0 0 0 0);
-  background: var(--color-web-white);
-  opacity: 0.85;
+  background: var(--color-web-accent);
+  opacity: 1;
   transform: translateX(0) scaleX(1);
 }
 

@@ -61,7 +61,7 @@ export default function ExperienceUi() {
 
       <div
         id="sound-btn"
-        className="border border-web-border text-web-accent-icon"
+        className="border border-web-border text-web-accent"
         role="button"
         tabIndex={0}
         aria-label="Play or pause"
