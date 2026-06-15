@@ -9,6 +9,12 @@ export type PanelItem = {
   year: string;
   /** Optional month/start tag shown small at the top-left of the year. */
   month?: string;
+  /** End of this chapter's date range (the start is `month`/`year`). The bottom
+   *  date scrubber sweeps within [start, end] while this panel is centered, so it
+   *  never bleeds into a neighbouring panel's era. Omit on the newest panel to
+   *  mean "Present" (the scrubber uses the current month). */
+  endMonth?: string;
+  endYear?: string;
   /** Body copy shown in the panel detail modal. Newlines render as line breaks
    *  (the modal desc uses `white-space: pre-line`), so use them to separate
    *  the period, the highlights and the tech stack. */
@@ -34,6 +40,8 @@ export const PANELS: PanelItem[] = [
     label: "Experience",
     year: "2024",
     month: "Jan",
+    endMonth: "May",
+    endYear: "2025",
     description:
       "Frontend Developer (Junior) · Jan 2024 – May 2025\n\nBuilt 20+ modules for Magichands Admin, reaching a 92+ Lighthouse Performance score by optimizing rendering flow, reducing bundle size and implementing lazy loading.\n\nDeveloped and integrated RESTful APIs with AdonisJS for the Transfer Airport service — one-way and round-trip airport-transfer booking and scheduling.\n\nStack: Next.js 14, AdonisJS, TypeScript, Ant Design, Zustand, TailwindCSS 3.",
   },
@@ -43,6 +51,8 @@ export const PANELS: PanelItem[] = [
     label: "Experience",
     year: "2022",
     month: "Sep",
+    endMonth: "Dec",
+    endYear: "2023",
     description:
       "Frontend Developer (Fresher) · Sep 2022 – Dec 2023\n\nBuilt and maintained the CleverTube admin dashboard for video-based English lessons, vocabulary, quizzes and pronunciation-learning features.\n\nDesigned 15+ reusable components on a component-driven architecture and optimized data fetching with React Query, improving maintainability and UI consistency across the platform.\n\nStack: TypeScript, ReactJS, React Query, Vue 3, Pinia, Chakra UI.",
   },
@@ -52,6 +62,8 @@ export const PANELS: PanelItem[] = [
     label: "Education",
     year: "2017",
     month: "Aug",
+    endMonth: "Jul",
+    endYear: "2022",
     description: "BSc in Software Technology · Aug 2017 – Jul 2022",
   },
   {

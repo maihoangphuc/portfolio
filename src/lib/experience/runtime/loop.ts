@@ -19,12 +19,17 @@ const SECTION_ABBR = ["Obj", "Exp", "Edu", "Skl"];
 const _skillsIdx = PANELS.findIndex((p) => p.label === "Skills");
 const SKILLS_START_INDEX = _skillsIdx >= 0 ? _skillsIdx : Infinity;
 
-// The date axis (timeline bar + month/year scrubber) spans only the dated
-// panels — from the first (Now) to the last before Skills (2017). The bar fills
-// 0→100% across these, hitting 100% exactly at the 2017 panel.
-const DATE_END_INDEX = Number.isFinite(SKILLS_START_INDEX)
-  ? Math.max(1, SKILLS_START_INDEX - 1)
+// Scroll position where the date axis (timeline + month/year scrubber) hides —
+// halfway between the last dated panel and the first Skills panel. The `inSkills`
+// crossing below must use the same value.
+const DATE_HIDE_AT = Number.isFinite(SKILLS_START_INDEX)
+  ? SKILLS_START_INDEX - 0.5
   : N - 1;
+
+// The timeline bar fills 0→100% across scroll 0→DATE_HIDE_AT. (The month/year
+// scrubber instead sweeps each panel's own date range — see monthIndexForScroll
+// — so it naturally rests on Aug 2017 from the 2017 panel until the axis hides.)
+const DATE_END_INDEX = DATE_HIDE_AT;
 
 // Section index for the centered panel — keys the big label's slide swap, so
 // panels in the same section don't re-trigger the animation.
@@ -40,14 +45,48 @@ function sectionLabel(sectionIndex: number): string {
   return SECTION_ABBR[((sectionIndex % n) + n) % n];
 }
 
-// Small top label counts evenly across the scroll — a smooth timeline scrubber
-// from "Now" (the real current month, left) back to Aug 2017 (right),
-// independent of each panel's own dates so the month/year steps are uniform.
-const END_MONTHS = 2017 * 12 + 7; // Aug 2017 (month index 7)
+// Small top label = a date scrubber whose value stays inside the date range of
+// the centered panel, never bleeding into a neighbour's era — so the date and
+// the section label always agree with the panel you're looking at.
+//
+// Each dated panel owns a [start, end] month range. start = month/year; end =
+// endMonth/endYear, or "now" for the newest panel (Present), or the previous
+// panel's start as a contiguity fallback. The scrubber sweeps end→start across
+// the panel's scroll slot [i-0.5, i+0.5] (newer edge shows the recent end, older
+// edge the start), then steps to the next panel's range at the midpoint.
+const monthIndexOf = (m: string | undefined) =>
+  m ? Math.max(0, (MONTHS as readonly string[]).indexOf(m)) : 0;
+const DATED_PANELS = PANELS.slice(
+  0,
+  Number.isFinite(SKILLS_START_INDEX) ? SKILLS_START_INDEX : PANELS.length,
+);
+const START_ANCHORS = DATED_PANELS.map((p) => parseInt(p.year, 10) * 12 + monthIndexOf(p.month));
+const NOW_MONTHS = (() => {
+  const d = new Date();
+  return d.getFullYear() * 12 + d.getMonth();
+})();
+const END_ANCHORS = DATED_PANELS.map((p, i) =>
+  p.endYear && p.endMonth
+    ? parseInt(p.endYear, 10) * 12 + monthIndexOf(p.endMonth)
+    : i === 0
+      ? NOW_MONTHS
+      : START_ANCHORS[i - 1],
+);
 
-function dateLabelForProgress(p: number, startMonths: number): string {
-  const clamped = Math.max(0, Math.min(1, p));
-  const cur = Math.round(startMonths - clamped * (startMonths - END_MONTHS));
+// Month-index (year*12 + month) shown by the date scrubber at a scroll position.
+function monthIndexForScroll(s: number): number {
+  const last = START_ANCHORS.length - 1;
+  const i = Math.max(0, Math.min(last, Math.round(s)));
+  // frac: 0 at the newer edge of panel i's slot → END (recent), 1 at the older
+  // edge → START. The newest panel has no left half (scroll can't go below 0),
+  // so its slot is [0, 0.5]: scroll 0 sits exactly on END = now (Present).
+  const frac = i === 0
+    ? Math.max(0, Math.min(1, s / 0.5))
+    : Math.max(0, Math.min(1, s - i + 0.5));
+  return Math.round(END_ANCHORS[i] + (START_ANCHORS[i] - END_ANCHORS[i]) * frac);
+}
+
+function dateLabelFromMonthIndex(cur: number): string {
   const month = MONTHS[((cur % 12) + 12) % 12];
   const year = Math.floor(cur / 12);
   return `${month} ${year}`;
@@ -66,9 +105,6 @@ export function createAnimateLoop(ctx: RuntimeContext) {
   let monthHidden = false;
   // Whether the right-side outro statement block is currently revealed.
   let introRightShown = false;
-  // "Now" anchor for the date scrubber — the real current month at load time.
-  const nowDate = new Date();
-  const startMonths = nowDate.getFullYear() * 12 + nowDate.getMonth();
 
   // Once a reappear slide finishes, drop `lbl-up` so the section swap animations
   // (and the date-show entrance) aren't permanently overridden by its !important.
@@ -230,7 +266,7 @@ export function createAnimateLoop(ctx: RuntimeContext) {
     // Bottom labels slide DOWN to hide at the end and slide UP to reappear when
     // scrolling back. month/year hides on entering Skills; the section hides in
     // the outro. Edge-triggered so each crossing fires exactly one slide.
-    const inSkills = !introActiveOrTransition && scrollForLayout > SKILLS_START_INDEX - 0.5;
+    const inSkills = !introActiveOrTransition && scrollForLayout > DATE_HIDE_AT;
     const dateHide = inSkills || outroProgress > 0; // timeline + month/year
     const sectionHide = outroProgress > 0; // big section label
 
@@ -368,15 +404,18 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       const dateProgress = scrollForLayout / DATE_END_INDEX;
       dom.tlProgress.style.width = (Math.max(0, Math.min(1, dateProgress)) * 100) + "%";
 
-      // Small top label: month + year interpolated smoothly across the dated
-      // panels, counting evenly from the present (left) to Aug 2017 (right).
-      const dateText = dateLabelForProgress(dateProgress, startMonths);
+      // Small top label: the centered panel's real month + year, interpolated
+      // smoothly between adjacent dated panels as you scroll.
+      const cur = monthIndexForScroll(scrollForLayout);
+      const dateText = dateLabelFromMonthIndex(cur);
       if (dateText !== lastDateText) {
         lastDateText = dateText;
         dom.yearLbl.textContent = dateText;
       }
 
       // Big bottom label: the CV section, with the slide swap (keyed by section).
+      // Keyed by the centered panel — and since the date scrubber stays inside
+      // that panel's range, the date above always agrees with this section.
       const labelIndex = sectionIndexForPanel(fi);
       const settled = Math.abs(state.scrollTarget - state.scrollCurrent) < 0.02 && Math.abs(state.scrollVel) < 0.0004;
       if (state.lastMonthIndex === null) {
