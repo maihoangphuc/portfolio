@@ -44,6 +44,7 @@ export function bindEvents(
 
   const onWheel = (e: WheelEvent) => {
     e.preventDefault();
+    if (state.modalOpen) return;
     if (!state.scrolled) state.scrolled = true;
     if (state.introActive || state.experienceExitActive || state.experienceEntryActive) return;
     state.scrollVel += e.deltaY * 0.00045;
@@ -63,6 +64,7 @@ export function bindEvents(
   const onPointerDown = (e: PointerEvent) => {
     // Ignore primary mouse-button gating only for mouse; allow touch/pen always
     if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (state.modalOpen) return;
     state.isDragging = true;
     state.lastX = e.clientX;
     dragHistory = [];

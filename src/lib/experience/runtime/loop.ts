@@ -1,15 +1,95 @@
 import { RuntimeContext } from "@/lib/experience/runtime/types";
-import { C, MONTHS, N } from "@/constants/experience";
+import { MONTHS, N } from "@/constants/experience";
+import { PANELS } from "@/constants/panels";
 import { EXPERIENCE_ENTRY_MS, EXPERIENCE_EXIT_MS, EXPERIENCE_EXIT_REVERSE_MS, EXPERIENCE_EXIT_FORWARD_TRAVEL, MONTH_SWITCH_COOLDOWN_MS, INTRO_PREVIEW_ROTATE_IN_MS, INTRO_PREVIEW_MODEL_ANGLE, INTRO_PREVIEW_BG_YAW, LOAD_PCT_RAMP_MS } from "@/lib/experience/runtime/world";
 import { lerp, smootherstep01 } from "@/lib/experience/runtime/math";
 import { completeExploreReturnToIntroUi } from "@/lib/experience/runtime/transitions";
 import { updatePanels } from "@/lib/experience/runtime/panels";
+
+// Two bottom labels:
+//  - small top label (#year-lbl)  = this panel's month + year (e.g. "Jul 2025")
+//  - big bottom label (#month-lbl) = the CV section, with the slide swap.
+// Canonical section names (must match PANELS[].label) for indexing, and the
+// abbreviated forms actually shown in the big label.
+const SECTION_LABELS = ["Objective", "Experience", "Education", "Skills"];
+const SECTION_ABBR = ["Obj", "Exp", "Edu", "Skl"];
+
+// First panel of the Skills section — once the scroll reaches it, the timeline
+// and the month/year scrubber hide (Skills isn't tied to the date axis).
+const _skillsIdx = PANELS.findIndex((p) => p.label === "Skills");
+const SKILLS_START_INDEX = _skillsIdx >= 0 ? _skillsIdx : Infinity;
+
+// The date axis (timeline bar + month/year scrubber) spans only the dated
+// panels — from the first (Now) to the last before Skills (2017). The bar fills
+// 0→100% across these, hitting 100% exactly at the 2017 panel.
+const DATE_END_INDEX = Number.isFinite(SKILLS_START_INDEX)
+  ? Math.max(1, SKILLS_START_INDEX - 1)
+  : N - 1;
+
+// Section index for the centered panel — keys the big label's slide swap, so
+// panels in the same section don't re-trigger the animation.
+function sectionIndexForPanel(fi: number): number {
+  const len = PANELS.length;
+  const label = PANELS[((fi % len) + len) % len].label;
+  const idx = SECTION_LABELS.indexOf(label);
+  return idx >= 0 ? idx : 0;
+}
+
+function sectionLabel(sectionIndex: number): string {
+  const n = SECTION_ABBR.length;
+  return SECTION_ABBR[((sectionIndex % n) + n) % n];
+}
+
+// Small top label counts evenly across the scroll — a smooth timeline scrubber
+// from "Now" (the real current month, left) back to Aug 2017 (right),
+// independent of each panel's own dates so the month/year steps are uniform.
+const END_MONTHS = 2017 * 12 + 7; // Aug 2017 (month index 7)
+
+function dateLabelForProgress(p: number, startMonths: number): string {
+  const clamped = Math.max(0, Math.min(1, p));
+  const cur = Math.round(startMonths - clamped * (startMonths - END_MONTHS));
+  const month = MONTHS[((cur % 12) + 12) % 12];
+  const year = Math.floor(cur / 12);
+  return `${month} ${year}`;
+}
 
 export function createAnimateLoop(ctx: RuntimeContext) {
   const { dom, state, bg, scene, cam, renderer, raycaster, mouse, figureGroup } = ctx;
   let raf = 0;
   // Tracks whether we've claimed bg-name visibility for the outro zone.
   let bgNameInEndZone = false;
+  // Last small-label text written (month + year for the centered panel).
+  let lastDateText = "";
+  // Whether each bottom label is currently slid out of view (edge-triggers the
+  // slide-down/up so a crossing fires exactly one animation).
+  let yearHidden = false;
+  let monthHidden = false;
+  // Whether the right-side outro statement block is currently revealed.
+  let introRightShown = false;
+  // "Now" anchor for the date scrubber — the real current month at load time.
+  const nowDate = new Date();
+  const startMonths = nowDate.getFullYear() * 12 + nowDate.getMonth();
+
+  // Once a reappear slide finishes, drop `lbl-up` so the section swap animations
+  // (and the date-show entrance) aren't permanently overridden by its !important.
+  const onMonthAnimEnd = (e: AnimationEvent) => {
+    if (e.animationName === "month-lbl-up") dom.month.classList.remove("lbl-up");
+  };
+  const onYearAnimEnd = (e: AnimationEvent) => {
+    if (e.animationName === "year-lbl-up") dom.yearLbl.classList.remove("lbl-up");
+  };
+  dom.month.addEventListener("animationend", onMonthAnimEnd);
+  dom.yearLbl.addEventListener("animationend", onYearAnimEnd);
+
+  // intro-right line settles to a fixed 15px dash via scaleX(15/trackWidth).
+  // Recompute on reveal AND on resize so the dash stays put (the rule is
+  // 100%-wide, so a fixed scale would otherwise stretch as the viewport changes).
+  const setIntroRightRuleScale = () => {
+    const track = dom.introRight.querySelector<HTMLElement>("#intro-rule-right-track");
+    if (!track) return;
+    const w = track.clientWidth;
+    track.style.setProperty("--intro-rule-final-scale", w > 0 ? String(15 / w) : "0.04");
+  };
   // Resize handling: every frame the viewport changes we update the camera
   // aspect AND reallocate the canvas framebuffers in lockstep. Reallocating
   // the GPU buffers immediately keeps the render at native resolution during
@@ -34,6 +114,8 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       bg.camera.updateProjectionMatrix();
       renderer.setSize(lastSizeW, lastSizeH, false);
       bg.renderer.setSize(lastSizeW, lastSizeH, false);
+      // Keep the intro-right dash a fixed length across the resize.
+      if (introRightShown) setIntroRightRuleScale();
     }
 
     // Wavy loader letter: renders to its own canvas while the load HUD is up,
@@ -144,24 +226,57 @@ export function createAnimateLoop(ctx: RuntimeContext) {
       ? Math.max(0, Math.min(1, (scrollForLayout - (N - 1)) / END_BUFFER))
       : 0;
     const snClamped = Math.min(1, sn);
+
+    // Bottom labels slide DOWN to hide at the end and slide UP to reappear when
+    // scrolling back. month/year hides on entering Skills; the section hides in
+    // the outro. Edge-triggered so each crossing fires exactly one slide.
+    const inSkills = !introActiveOrTransition && scrollForLayout > SKILLS_START_INDEX - 0.5;
+    const dateHide = inSkills || outroProgress > 0; // timeline + month/year
+    const sectionHide = outroProgress > 0; // big section label
+
+    // Right-side outro statement: reveal when the section label is gone (outro),
+    // hide when scrolling back. Edge-triggered so the reveal replays each time.
+    const showIntroRight = !introActiveOrTransition && outroProgress > 0;
+    if (showIntroRight !== introRightShown) {
+      introRightShown = showIntroRight;
+      // Match intro-left: the line settles to a fixed 15px dash, so scale the
+      // 100%-wide rule by 15/trackWidth (see runIntroPageLineEffects).
+      if (showIntroRight) setIntroRightRuleScale();
+      dom.introRight.classList.toggle("outro-show", showIntroRight);
+    }
+
+    if (introActiveOrTransition) {
+      // Outside the scroll experience — date-show (enter/exit) governs; clear
+      // the scrub state so it doesn't fight the enter/exit transition.
+      dom.timeline.style.removeProperty("opacity");
+      dom.yearLbl.classList.remove("lbl-up", "lbl-down");
+      dom.month.classList.remove("lbl-up", "lbl-down");
+      yearHidden = false;
+      monthHidden = false;
+    } else {
+      // Timeline: plain fade.
+      if (dateHide) dom.timeline.style.setProperty("opacity", "0", "important");
+      else dom.timeline.style.removeProperty("opacity");
+
+      if (dateHide !== yearHidden) {
+        yearHidden = dateHide;
+        dom.yearLbl.classList.remove(dateHide ? "lbl-up" : "lbl-down");
+        dom.yearLbl.classList.add(dateHide ? "lbl-down" : "lbl-up");
+      }
+      if (sectionHide !== monthHidden) {
+        monthHidden = sectionHide;
+        dom.month.classList.remove(sectionHide ? "lbl-up" : "lbl-down");
+        dom.month.classList.add(sectionHide ? "lbl-down" : "lbl-up");
+      }
+    }
+
+    // Outro reveal (bg-name) — independent of the label visibility above.
     if (outroProgress > 0) {
-      // Timeline / month / year are hidden the moment we cross into the outro
-      // zone — !important to win over the .date-show keyframe animation.
-      dom.timeline.style.setProperty("opacity", "0", "important");
-      dom.month.style.setProperty("opacity", "0", "important");
-      const yearLbl = document.getElementById("year-lbl");
-      if (yearLbl) yearLbl.style.setProperty("opacity", "0", "important");
       bgNameInEndZone = true;
       (scene.userData.setOutroReveal as ((p: number) => void) | undefined)?.(outroProgress);
-    } else {
-      dom.timeline.style.removeProperty("opacity");
-      dom.month.style.removeProperty("opacity");
-      const yearLbl = document.getElementById("year-lbl");
-      if (yearLbl) yearLbl.style.removeProperty("opacity");
-      if (bgNameInEndZone) {
-        bgNameInEndZone = false;
-        (scene.userData.setOutroReveal as ((p: number) => void) | undefined)?.(0);
-      }
+    } else if (bgNameInEndZone) {
+      bgNameInEndZone = false;
+      (scene.userData.setOutroReveal as ((p: number) => void) | undefined)?.(0);
     }
 
     if (bg.camera) {
@@ -249,21 +364,33 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
     if (!state.introActive && !state.experienceExitActive) {
       const fi = centerIndex;
-      dom.tlProgress.style.width = (Math.max(0, Math.min(1, scrollForLayout / (N - 1))) * 100) + "%";
-      const monthIndex = fi % 12;
+      // Bar fills across the dated panels only (Now → 2017), not the Skills tail.
+      const dateProgress = scrollForLayout / DATE_END_INDEX;
+      dom.tlProgress.style.width = (Math.max(0, Math.min(1, dateProgress)) * 100) + "%";
+
+      // Small top label: month + year interpolated smoothly across the dated
+      // panels, counting evenly from the present (left) to Aug 2017 (right).
+      const dateText = dateLabelForProgress(dateProgress, startMonths);
+      if (dateText !== lastDateText) {
+        lastDateText = dateText;
+        dom.yearLbl.textContent = dateText;
+      }
+
+      // Big bottom label: the CV section, with the slide swap (keyed by section).
+      const labelIndex = sectionIndexForPanel(fi);
       const settled = Math.abs(state.scrollTarget - state.scrollCurrent) < 0.02 && Math.abs(state.scrollVel) < 0.0004;
       if (state.lastMonthIndex === null) {
-        state.lastMonthIndex = monthIndex; state.lastFiForMonth = fi;
-        dom.month.textContent = MONTHS[monthIndex] ?? "Jan";
+        state.lastMonthIndex = labelIndex; state.lastFiForMonth = fi;
+        dom.month.textContent = sectionLabel(labelIndex);
         if (state.timelineDatesVisible) dom.month.classList.add("date-show");
         state.nextMonthSwitchAt = performance.now();
       } else {
-        if (monthIndex !== state.lastMonthIndex) { state.pendingMonthIndex = monthIndex; state.pendingFiForMonth = fi; }
+        if (labelIndex !== state.lastMonthIndex) { state.pendingMonthIndex = labelIndex; state.pendingFiForMonth = fi; }
         const now = performance.now();
         if (settled && state.pendingMonthIndex !== null) {
           state.lastMonthIndex = state.pendingMonthIndex; state.lastFiForMonth = state.pendingFiForMonth ?? fi;
           state.pendingMonthIndex = null; state.pendingFiForMonth = null;
-          dom.month.textContent = MONTHS[state.lastMonthIndex] ?? "Jan";
+          dom.month.textContent = sectionLabel(state.lastMonthIndex);
           if (state.timelineDatesVisible) dom.month.classList.add("date-show");
         } else if (state.pendingMonthIndex !== null && now >= state.nextMonthSwitchAt) {
           const target = state.pendingMonthIndex!; const targetFi = state.pendingFiForMonth ?? fi;
@@ -271,11 +398,11 @@ export function createAnimateLoop(ctx: RuntimeContext) {
           state.nextMonthSwitchAt = now + MONTH_SWITCH_COOLDOWN_MS;
           const dir = (state.lastFiForMonth !== null && targetFi < state.lastFiForMonth) ? -1 : 1;
           state.lastFiForMonth = targetFi;
-          dom.monthGhost.textContent = MONTHS[state.lastMonthIndex] ?? "Jan";
+          dom.monthGhost.textContent = sectionLabel(state.lastMonthIndex);
           dom.monthGhost.classList.remove("leave-left", "leave-right");
           void dom.monthGhost.offsetWidth;
           dom.monthGhost.classList.add(dir > 0 ? "leave-left" : "leave-right");
-          dom.month.textContent = MONTHS[target] ?? "Jan";
+          dom.month.textContent = sectionLabel(target);
           if (state.timelineDatesVisible) dom.month.classList.add("date-show");
           dom.month.classList.remove("enter-left", "enter-right");
           void dom.month.offsetWidth;
@@ -307,5 +434,7 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
   return () => {
     cancelAnimationFrame(raf);
+    dom.month.removeEventListener("animationend", onMonthAnimEnd);
+    dom.yearLbl.removeEventListener("animationend", onYearAnimEnd);
   };
 }

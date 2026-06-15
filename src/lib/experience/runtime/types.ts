@@ -8,6 +8,7 @@ export type Dom = {
   modelLoadPct: HTMLElement;
   month: HTMLElement;
   monthGhost: HTMLElement;
+  yearLbl: HTMLElement;
   timeline: HTMLElement;
   tlProgress: HTMLElement;
   introLeft: HTMLElement;
@@ -20,6 +21,13 @@ export type Dom = {
   exploreBtn: HTMLElement;
   brand: HTMLElement;
   dragHint: HTMLElement;
+  panelModal: HTMLElement;
+  panelModalBackdrop: HTMLElement;
+  panelModalClose: HTMLElement;
+  panelModalImg: HTMLImageElement;
+  panelModalTitle: HTMLElement;
+  panelModalDesc: HTMLElement;
+  panelModalIndex: HTMLElement;
 };
 
 export type State = {
@@ -70,6 +78,8 @@ export type State = {
   lastX: number;
   mouseX: number;
   mouseY: number;
+  modalOpen: boolean;
+  modalIndex: number;
 };
 
 export type GretaBackground = {

@@ -6,6 +6,13 @@ import { DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
 
 const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
 
+// Per-panel layout (radius spread, tilt, opacity falloff, front-panel pick) is
+// normalized by this fixed span — the original (N-1) when N was 40 — so those
+// look identical no matter how many CV panels exist. The vertical rise and ring
+// rotation per scroll-unit are already N-independent (they cancel (N-1) against
+// `progress`), so only this normalization needs pinning to keep "the old look".
+const LAYOUT_SPAN = 39;
+
 // Scratch Vector3 reused across the per-frame `updatePanels` calls. The old
 // code allocated a new Vector3 (and a closure-captured `meshWorldPos`) every
 // frame; hoisting saves ~120 allocations/second on a 40-panel scene.
@@ -345,7 +352,7 @@ export function updatePanels(ctx: RuntimeContext) {
   const edgeFade = Math.min(1, Math.max(0, distFromEdge / edgeBuffer));
   const intensity = Math.abs(scrollVelVis) * 18.0 * edgeFade;
   const direction = Math.sign(scrollVelVis);
-  const inExperience = !introActive && !experienceEntryActive && !experienceExitActive;
+  const inExperience = !introActive && !experienceEntryActive && !experienceExitActive && !state.modalOpen;
 
   // Panels keep their natural helix motion past the last panel (rising and
   // rotating); only the timeline UI hides at progress = 1.
@@ -362,8 +369,9 @@ export function updatePanels(ctx: RuntimeContext) {
     const index = mesh.userData.index;
     const angle = mesh.userData.angle;
 
-    const s = index / (N - 1);
-    const a = s - progress;
+    // Offset from the active panel, normalized by the original span so spacing,
+    // tilt and opacity falloff stay identical to the old layout (see LAYOUT_SPAN).
+    const a = (index - scrollForLayoutLast) / LAYOUT_SPAN;
 
     // Keep panel size constant — no scale boost when crossing the active
     // center, so panels don't visibly swell while scrolling.
@@ -406,8 +414,7 @@ export function updatePanels(ctx: RuntimeContext) {
     panelGroup.children.forEach((child) => {
       const mesh = child as THREE.Mesh;
       const idx = mesh.userData.index as number;
-      const sIdx = idx / (N - 1);
-      const absA = Math.abs(sIdx - progress);
+      const absA = Math.abs(idx - scrollForLayoutLast) / LAYOUT_SPAN;
       mesh.getWorldPosition(_tmpWp);
       if (absA < frontAbsA && _tmpWp.z > 0) {
         frontAbsA = absA;
@@ -433,14 +440,16 @@ export function updatePanels(ctx: RuntimeContext) {
     if (hits.length > 0) hoveredMesh = hits[0].object;
   }
 
+  // Clickable panel under the cursor → pointer cursor on the canvas.
+  ctx.dom.c.style.cursor = hoveredMesh ? "pointer" : "";
+
   // Pass 2: hover + opacity uniforms.
   panelGroup.children.forEach((child) => {
     const mesh = child as THREE.Mesh;
     const material = mesh.material as THREE.ShaderMaterial;
     const index = mesh.userData.index;
 
-    const s = index / (N - 1);
-    const a = s - progress;
+    const a = (index - scrollForLayoutLast) / LAYOUT_SPAN;
 
     const isHovered = hoveredMesh === mesh;
     const targetHover = isHovered ? 1.0 : 0.0;

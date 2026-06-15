@@ -17,6 +17,7 @@ export function getDom(): Dom {
     modelLoadPct: must("model-load-pct"),
     month: must("month-lbl"),
     monthGhost: must("month-lbl-ghost"),
+    yearLbl: must("year-lbl"),
     timeline: must("timeline"),
     tlProgress: must("tl-progress"),
     introLeft: must("intro-left"),
@@ -29,6 +30,13 @@ export function getDom(): Dom {
     exploreBtn: must("explore-btn"),
     brand: must("brand"),
     dragHint: must("drag-hint"),
+    panelModal: must("panel-modal"),
+    panelModalBackdrop: must("panel-modal-backdrop"),
+    panelModalClose: must("panel-modal-close"),
+    panelModalImg: must<HTMLImageElement>("panel-modal-img"),
+    panelModalTitle: must("panel-modal-title"),
+    panelModalDesc: must("panel-modal-desc"),
+    panelModalIndex: must("panel-modal-index"),
   };
 }
 

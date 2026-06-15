@@ -10,6 +10,7 @@ import { runIntroPageLineEffects, replaySocialLineEffect, introLinesDurationMs }
 import { enterExperience, returnToExploreIntro, completeExploreReturnToIntroUi, scheduleIntroLinesWhenUiVisible } from "@/lib/experience/runtime/transitions";
 import { createAnimateLoop } from "@/lib/experience/runtime/loop";
 import { createPanels } from "@/lib/experience/runtime/panels";
+import { initModal } from "@/lib/experience/runtime/modal";
 import { createLoaderCharacter, LOADER_CHAR_HIDE_MS } from "@/lib/experience/runtime/loaderCharacter";
 
 export function startExperience() {
@@ -20,6 +21,8 @@ export function startExperience() {
     lastX: 0,
     mouseX: -10,
     mouseY: -10,
+    modalOpen: false,
+    modalIndex: -1,
   };
 
   const bg = initGretaBackground(dom.bg);
@@ -57,6 +60,8 @@ export function startExperience() {
     runIntroPageLineEffects: () => runIntroPageLineEffects(ctx),
     replaySocialLineEffect: () => replaySocialLineEffect(ctx),
   });
+
+  const modal = initModal(ctx);
 
   dom.exploreBtn.addEventListener("click", () => enterExperience(ctx));
   dom.brand.addEventListener("click", () => returnToExploreIntro(ctx));
@@ -127,6 +132,7 @@ export function startExperience() {
 
   return () => {
     cleanupLoop();
+    modal.teardown();
     ctx.events.teardown();
     window.clearTimeout(ctx.timers.loadComplete);
     window.clearTimeout(ctx.timers.loadReveal);

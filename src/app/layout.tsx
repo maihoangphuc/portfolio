@@ -21,10 +21,10 @@ const fredoka = Fredoka({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const SITE_NAME = "Hoang Phuc — Frontend Developer";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://maihoangphuc.site";
+const SITE_NAME = "Mai Hoang Phuc — Frontend Developer";
 const SITE_DESCRIPTION =
-  "Frontend Developer passionate about technology and crafting intuitive, visually appealing user interfaces. Interactive 3D web experiences built with Three.js, React, and Next.js.";
+  "Frontend Developer with 3+ years of experience building scalable, high-performance web applications with ReactJS, Next.js and Vue 3. Passionate about crafting intuitive, visually appealing interfaces and interactive 3D web experiences with Three.js.";
 
 // Person + WebSite structured data for rich results. sameAs links the verified
 // social profiles, which strengthens entity recognition.
@@ -33,11 +33,27 @@ const JSON_LD = {
   "@graph": [
     {
       "@type": "Person",
-      name: "Hoang Phuc Mai",
+      name: "Mai Hoang Phuc",
       url: SITE_URL,
       jobTitle: "Frontend Developer",
       description: SITE_DESCRIPTION,
-      knowsAbout: ["Three.js", "WebGL", "React", "Next.js", "Frontend Development"],
+      email: "mailto:maihoangphuc9x@gmail.com",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Tan Binh",
+        addressRegion: "Ho Chi Minh City",
+        addressCountry: "VN",
+      },
+      knowsAbout: [
+        "ReactJS",
+        "Next.js",
+        "Vue 3",
+        "TypeScript",
+        "Three.js",
+        "WebGL",
+        "Tailwind CSS",
+        "Frontend Development",
+      ],
       sameAs: SOCIAL_LINKS.map((link) => link.href),
     },
     {
@@ -53,21 +69,24 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_NAME,
-    template: "%s · Hoang Phuc",
+    template: "%s · Mai Hoang Phuc",
   },
   description: SITE_DESCRIPTION,
-  applicationName: "Hoang Phuc Portfolio",
-  authors: [{ name: "Hoang Phuc Mai" }],
-  creator: "Hoang Phuc Mai",
+  applicationName: "Mai Hoang Phuc Portfolio",
+  authors: [{ name: "Mai Hoang Phuc" }],
+  creator: "Mai Hoang Phuc",
   keywords: [
+    "Mai Hoang Phuc",
     "Hoang Phuc",
     "MHP",
     "Frontend Developer",
     "Portfolio",
+    "ReactJS",
+    "Next.js",
+    "Vue 3",
+    "TypeScript",
     "Three.js",
     "WebGL",
-    "Next.js",
-    "React",
     "Interactive 3D",
   ],
   robots: {

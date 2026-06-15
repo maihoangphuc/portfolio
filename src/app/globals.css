@@ -20,6 +20,7 @@
   --palette-web-line-muted: #ffffff40;
   --palette-web-scene-neutral: #ffffff;
   --palette-web-loader-char: rgb(204, 179, 226);
+  --palette-web-modal-scrim: #1a1622f2;
   --intro-lines-duration: 2.5s;
   --social-line-duration: 1.4s;
   --intro-lines-ease: cubic-bezier(0.33, 1, 0.32, 1);
@@ -46,6 +47,7 @@
   --color-web-line-muted: var(--palette-web-line-muted);
   --color-web-scene-neutral: var(--palette-web-scene-neutral);
   --color-web-loader-char: var(--palette-web-loader-char);
+  --color-web-modal-scrim: var(--palette-web-modal-scrim);
 }
 
 @font-face {
@@ -383,46 +385,77 @@ html.experience-loading #model-load-pct {
   transform: translateX(0) scaleX(1);
 }
 
+/* Right-side statement block, shown at the end of the scroll (outro). Sits on
+   the right of the screen but its line + text are aligned EXACTLY like
+   #intro-left (left-anchored line, left-aligned text, same line-draw reveal).
+   Children reveal/exit via the `.outro-show` class the loop toggles. */
 #intro-right {
-  display: none;
+  position: fixed;
+  right: 10rem;
+  bottom: 22%;
+  z-index: 102;
+  width: 400px;
+  max-width: 90vw;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: 5rem;
+  overflow: visible;
 }
 
-#intro-right.hidden {
+#intro-right.outro-show {
+  pointer-events: auto;
+}
+
+#intro-rule-right-track {
+  --intro-rule-final-scale: 0.04;
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  height: 1px;
+  margin-bottom: 25px;
+}
+
+#intro-rule-right {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 15px;
+  height: 1px;
+  box-sizing: border-box;
+  transform-origin: 0 50%;
   opacity: 0;
-  pointer-events: none;
 }
 
 #intro-right-text {
-  font-size: clamp(11px, 1vw, 13px);
+  font-size: 13px;
   font-weight: 400;
-  line-height: 1.75;
-  margin-bottom: 24px;
-}
-
-#read-more {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  padding: 0;
-  position: relative;
-}
-
-#read-more::after {
-  content: "";
-  display: block;
+  line-height: 1.6;
+  margin-bottom: 25px;
   width: 100%;
-  height: 1px;
-  background: var(--color-web-line-muted);
-  margin-top: 4px;
+  padding-left: 2rem;
+  color: var(--color-web-soft);
+  opacity: 0;
+  transition: opacity 0.6s ease;
 }
 
-#read-more:hover {
-  color: var(--color-web-line-hover);
+/* Hidden until revealed. */
+#intro-right:not(.outro-show) #intro-rule-right,
+#intro-right:not(.outro-show) #intro-right-text {
+  opacity: 0;
+}
+
+/* Reveal (entering outro): line sweeps in then settles to a short dash, then
+   the text fades in — identical sequence to #intro-left. */
+#intro-right.outro-show #intro-rule-right {
+  opacity: 1;
+  width: 100%;
+  animation: intro-rule-draw 1s both;
+}
+#intro-right.outro-show #intro-right-text {
+  opacity: 1;
+  animation: text-fade-in 0.3s 0.5s both;
 }
 
 #ui {
@@ -625,13 +658,14 @@ html.experience-loading #model-load-pct {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(35%);
-  animation: month-lbl-fade-in 1.8s 0.15s linear both;
+  animation: month-lbl-fade-in 1.2s 0.15s ease-out both;
   transition:
     opacity 1s ease-out,
     transform 1s ease-out,
     visibility 0s linear 0s;
 }
 
+/* Entrance into explore: just fade in (no slide). */
 @keyframes month-lbl-fade-in {
   0% {
     opacity: 0;
@@ -682,6 +716,41 @@ html.experience-loading #model-load-pct {
   animation: month-leave-left 1050ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Bottom labels slide DOWN to hide when scrolling to the end, and slide UP to
+   reappear when scrolling back. One-shot animations (!important to win over the
+   date-show / swap animations); the loop removes `lbl-up` once it finishes so
+   the section swap animations keep working afterwards. */
+@keyframes month-lbl-down {
+  from { opacity: 1; transform: translateX(-50%) translateY(35%); }
+  to { opacity: 0; transform: translateX(-50%) translateY(calc(100% + 2.5rem)); }
+}
+@keyframes month-lbl-up {
+  from { opacity: 0; transform: translateX(-50%) translateY(calc(100% + 2.5rem)); }
+  to { opacity: 1; transform: translateX(-50%) translateY(35%); }
+}
+/* Year label only fades in place (no vertical slide), unlike the month label. */
+@keyframes year-lbl-down {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(0); }
+}
+@keyframes year-lbl-up {
+  from { opacity: 0; transform: translateX(-50%) translateY(0); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+#month-lbl.lbl-down {
+  animation: month-lbl-down 0.5s cubic-bezier(0.32, 0, 0.67, 0) forwards !important;
+}
+#month-lbl.lbl-up {
+  animation: month-lbl-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+#year-lbl.lbl-down {
+  animation: year-lbl-down 0.5s cubic-bezier(0.32, 0, 0.67, 0) forwards !important;
+}
+#year-lbl.lbl-up {
+  animation: year-lbl-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
 #model-load-pct {
   position: absolute;
   left: 50%;
@@ -703,8 +772,20 @@ html.experience-loading #model-load-pct {
   opacity: 1;
 }
 
+/* Loading number slides up into place when loading starts. */
+@keyframes model-load-slide-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(calc(100% + 2.5rem));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(30%);
+  }
+}
+
 #model-load-pct.model-loading:not(.model-load-exit) {
-  transition: opacity 0.35s ease;
+  animation: model-load-slide-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes model-load-slide-down {
@@ -728,9 +809,10 @@ html.experience-loading #model-load-pct {
 #year-lbl.date-show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
-  animation: year-lbl-fade-in 1.8s linear;
+  animation: year-lbl-fade-in 1.2s ease-out both;
 }
 
+/* Entrance into explore: just fade in (no slide). */
 @keyframes year-lbl-fade-in {
   0% {
     opacity: 0;
@@ -757,8 +839,14 @@ html.experience-loading #model-load-pct {
   opacity: 0.7;
   transition:
     opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    transform 0.3s cubic-bezier(0.19, 1, 0.22, 1),
+    border-color 0.3s ease;
   transform: scale(1);
+}
+
+#sound-btn:hover {
+  opacity: 1;
+  border-color: var(--color-web-accent) !important;
 }
 
 #sound-btn svg {
@@ -958,6 +1046,58 @@ html.experience-loading #model-load-pct {
   animation-delay: calc(0.7s + var(--drag-subchar-index) * 0.015s);
 }
 
+/* Below xl: intro-right centers horizontally, but stays anchored a FIXED
+   distance from the bottom (rem, like #social) so it follows the bottom edge on
+   resize instead of drifting to the middle (which a %-based `bottom` would). */
+@media (max-width: 1279.98px) {
+  #intro-right {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    padding-left: 0;
+    width: calc(100% - 5rem);
+    max-width: 360px;
+    top: auto;
+    bottom: 6rem;
+    margin-bottom: 0;
+  }
+
+  #intro-right-text {
+    font-size: 12px;
+    padding-left: 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive: < xl (< 1280px)                                         */
+/* - Center the intro-left block while keeping its PC internal layout. */
+/*   (The < lg query below further tightens its sizing.)               */
+/* ------------------------------------------------------------------ */
+@media (max-width: 1279.98px) {
+  #intro-left {
+    left: 50%;
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    padding-left: 0;
+    margin-top: 3rem;
+  }
+
+  /* Once the block is centered, drop the desktop desc indent so the text
+     column sits flush with the rule/Explore — otherwise the 2rem indent
+     pushes the description right and the centered block reads as off-center.
+     (Below 1024px this is already zeroed in the < lg query.) */
+  #intro-desc {
+    padding-left: 0;
+  }
+
+  /* Hide the year label below xl. !important wins over the .date-show /
+     lbl-up / lbl-down animated states which carry higher specificity. */
+  #year-lbl {
+    display: none !important;
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Responsive: < lg (< 1024px)                                         */
 /* - Reduce global insets from 5rem to 1.25rem                         */
@@ -986,10 +1126,6 @@ html.experience-loading #model-load-pct {
     width: 60px;
   }
 
-  #year-lbl {
-    display: none;
-  }
-
   #social {
     bottom: 2.5rem;
     right: 2.5rem;
@@ -1014,14 +1150,12 @@ html.experience-loading #model-load-pct {
      PC layout (rule full-width on top, desc with small indent below,
      explore button right-aligned with underline). Override PC's
      padding-left so the centered container isn't shifted rightward. */
+  /* Centering (top/bottom/transform) is inherited from the < xl query above;
+     here we only tighten sizing for small screens. */
   #intro-left {
-    left: 50%;
-    transform: translateX(-50%);
     padding-left: 0;
     width: calc(100% - 5rem);
     max-width: 360px;
-    bottom: 50%;
-    margin-bottom: -11rem;
   }
 
   #intro-desc {
@@ -1056,5 +1190,186 @@ html.experience-loading #model-load-pct {
   #bg-name.outro-large .bg-name-img {
     width: 94vw;
     max-width: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Panel detail modal (theyearofgreta-style)                           */
+/* Opened from runtime/modal.ts on a panel click. All show/hide is the */
+/* `.open` class — the runtime owns it, React never touches it.        */
+/* ------------------------------------------------------------------ */
+#panel-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.5s;
+}
+
+#panel-modal.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+#panel-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--color-web-modal-scrim);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  cursor: pointer;
+}
+
+#panel-modal-close {
+  position: absolute;
+  top: 2.5rem;
+  right: 2.5rem;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-web-border);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.19, 1, 0.22, 1),
+    border-color 0.3s ease;
+}
+
+#panel-modal-close:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+  border-color: var(--color-web-line-hover);
+}
+
+#panel-modal-close span {
+  position: absolute;
+  width: 16px;
+  height: 1px;
+  background: currentColor;
+}
+
+#panel-modal-close span:first-child {
+  transform: rotate(45deg);
+}
+
+#panel-modal-close span:last-child {
+  transform: rotate(-45deg);
+}
+
+#panel-modal-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+  width: min(1100px, calc(100vw - 8rem));
+  max-height: calc(100vh - 8rem);
+  /* Lift + fade in, settling on the same ease as the backdrop. */
+  opacity: 0;
+  transform: translateY(40px) scale(0.97);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.05s,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
+}
+
+#panel-modal.open #panel-modal-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+#panel-modal-figure {
+  position: relative;
+  flex: 1 1 58%;
+  min-width: 0;
+}
+
+#panel-modal-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 800 / 464;
+  object-fit: cover;
+  background: var(--color-web-tl-track);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Held invisible until the swapped-in source has decoded (see openModal). */
+#panel-modal-img.loading {
+  opacity: 0;
+}
+
+#panel-modal-index {
+  position: absolute;
+  top: -1.4rem;
+  left: 0;
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+#panel-modal-text {
+  flex: 1 1 42%;
+  min-width: 0;
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+}
+
+#panel-modal-title {
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
+  font-size: clamp(34px, 4.5vw, 64px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  white-space: pre-line;
+  margin-bottom: 1.5rem;
+}
+
+#panel-modal-desc {
+  font-size: clamp(14px, 1.1vw, 17px);
+  font-weight: 400;
+  line-height: 1.7;
+  max-width: 46ch;
+  /* Newlines in the panel description render as line breaks (period / highlights
+     / tech stack are separated by \n in panels.ts). */
+  white-space: pre-line;
+}
+
+@media (max-width: 1023.98px) {
+  #panel-modal-close {
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 40px;
+    height: 40px;
+  }
+
+  #panel-modal-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.75rem;
+    width: calc(100vw - 3rem);
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+  }
+
+  #panel-modal-title {
+    margin-bottom: 1rem;
   }
 }

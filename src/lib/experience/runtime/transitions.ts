@@ -78,7 +78,8 @@ export function enterExperience(ctx: RuntimeContext) {
     }
     dom.introLeft.classList.remove("intro-lines-reveal", "lines-animated");
     dom.introLeft.classList.add("hidden");
-    dom.introRight.classList.add("hidden");
+    // intro-right is an outro element now (shown by the loop via .outro-show),
+    // not an intro element — don't toggle it on the explore transition.
     dom.bgName.classList.add("hidden");
     state.lastMonthIndex = null;
     state.lastFiForMonth = null;
@@ -218,7 +219,6 @@ export function completeExploreReturnToIntroUi(ctx: RuntimeContext) {
     void dom.introLeft.offsetHeight;
   }
   dom.introLeft.classList.remove("hidden");
-  dom.introRight.classList.remove("hidden");
   dom.bgName.classList.remove("hidden");
   // Start the bg-name wipe-in on a clean frame, not this one. At load-complete
   // the next frame is stalled by GLB geometry upload + the layout/paint from the

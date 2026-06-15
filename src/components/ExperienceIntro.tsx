@@ -1,8 +1,8 @@
 const INTRO_DESCRIPTION =
-  "An illustrated timeline of how Greta Thunberg rose from a solo campaigner to the leader of a global movement in 2019.";
+  "Frontend Developer with 3+ years building scalable, high-performance web applications with React, Next.js and Vue 3.";
 
 const INTRO_RIGHT_TEXT =
-  "With her urgent appeals for climate protection Greta Thunberg has quickly become one of the most visible spokespeople of the climate movement.";
+  "Mai Hoang Phuc is a Frontend Developer based in Ho Chi Minh City, focused on performance, clean component architecture and exceptional user experiences.";
 
 export default function ExperienceIntro() {
   return (
@@ -40,12 +40,12 @@ export default function ExperienceIntro() {
       </div>
 
       <div id="intro-right">
+        <div id="intro-rule-right-track">
+          <div id="intro-rule-right" className="bg-web-white" />
+        </div>
         <div id="intro-right-text" className="text-web-soft">
           {INTRO_RIGHT_TEXT}
         </div>
-        <button id="read-more" className="text-web-label" type="button">
-          Read More
-        </button>
       </div>
 
       <div id="drag-hint">

@@ -1,4 +1,9 @@
-export const N = 40;
+import { PANELS } from "@/constants/panels";
+
+// One scene panel per CV chapter — no repeats. Per-panel spacing/tilt/opacity is
+// pinned to the original layout via LAYOUT_SPAN in panels.ts, so fewer panels
+// still sit and move exactly like the original 40-panel helix.
+export const N = PANELS.length;
 export const C = 7;
 
 export const PW = 4.5;

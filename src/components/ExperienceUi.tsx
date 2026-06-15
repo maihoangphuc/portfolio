@@ -17,11 +17,11 @@ export default function ExperienceUi() {
       </button>
 
       <div id="timeline">
-        <span>JAN</span>
+        <span>Now</span>
         <div id="tl-bar" className="bg-web-tl-track">
           <div id="tl-progress" className="bg-web-accent" />
         </div>
-        <span>DEC</span>
+        <span>2017</span>
       </div>
 
       <div id="social">
@@ -40,14 +40,17 @@ export default function ExperienceUi() {
         ))}
       </div>
 
+      {/* #year-lbl = small top label, month + year (e.g. "Jul 2025").
+          #month-lbl = big bottom label, the CV section, with the slide swap.
+          Ids kept for the existing CSS/animation. */}
       <div id="year-lbl" className="text-web-white">
-        2019
+        Jul 2025
       </div>
       <div id="month-lbl" className="text-web-white">
-        Jan
+        Exp
       </div>
       <div id="month-lbl-ghost" className="text-web-white" aria-hidden="true">
-        Jan
+        Exp
       </div>
 
       <div

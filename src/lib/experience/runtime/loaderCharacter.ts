@@ -32,8 +32,8 @@ const LAYER_OPACITY_FALLOFF = 0.2;
 // Show: short delay then a slow, clearly visible ramp (opacity 0→1, noise
 // intensity 1.4→0.4, scale 1→1.2). Hide mirrors it when loading completes
 // (opacity →0, intensity →0.8), dissolving while the scene canvases fade in.
-const SHOW_DELAY_MS = 300;
-const SHOW_DURATION_MS = 1800;
+const SHOW_DELAY_MS = 0;
+const SHOW_DURATION_MS = 1200;
 const HIDE_DELAY_MS = 100;
 const HIDE_DURATION_MS = 1300;
 
