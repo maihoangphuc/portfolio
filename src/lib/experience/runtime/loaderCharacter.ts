@@ -299,10 +299,10 @@ export function createLoaderCharacter(canvas: HTMLCanvasElement): LoaderCharacte
         cam.aspect = lastW / lastH;
         cam.updateProjectionMatrix();
         renderer.setSize(lastW, lastH, false);
-        // Match the reference: the fully-shown letter (plane × SCALE_SHOWN)
-        // spans ~31% of the viewport height, clamped on narrow viewports.
+        // The fully-shown letter (plane × SCALE_SHOWN) spans ~36% of the
+        // viewport height, clamped on narrow viewports.
         const visibleH = 2 * cam.position.z * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
-        const target = Math.min(visibleH * 0.31, visibleH * cam.aspect * 0.5);
+        const target = Math.min(visibleH * 0.36, visibleH * cam.aspect * 0.5);
         group.scale.setScalar(target / SCALE_SHOWN);
       }
 
