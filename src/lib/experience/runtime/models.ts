@@ -130,7 +130,7 @@ const SIMPLEX_2D_GLSL = `
   }
 `;
 
-// Render the "Hoang Phuc" heading to a canvas in the brand serif (Fraunces)
+// Render the "Hoang Phuc" heading to a canvas in the brand serif (Blaak Bold)
 // instead of shipping a baked image. theyearofgreta.com sets its heading in
 // clean, level, evenly-tracked brand type (the previous baked image had the
 // text slanted and unevenly spaced). Two left-aligned lines, the block
@@ -145,23 +145,16 @@ async function makeNameTexture(): Promise<THREE.CanvasTexture> {
   canvas.height = H;
   const c = canvas.getContext("2d")!;
 
-  // Brand serif family (next/font exposes it via --font-brand), with a serif
-  // fallback for the canvas measure/draw.
-  const brandFont =
-    getComputedStyle(document.documentElement)
-      .getPropertyValue("--font-brand")
-      .trim() || "serif";
-
   // Ensure the brand serif is loaded before measuring/drawing — otherwise the
   // canvas falls back to a default serif and the metrics are wrong.
   try {
-    await document.fonts.load(`700 400px ${brandFont}`);
+    await document.fonts.load('700 400px "Blaak"');
     await document.fonts.ready;
   } catch {
     /* fall back to the generic serif below */
   }
 
-  const fontAt = (px: number) => `700 ${px}px ${brandFont}, serif`;
+  const fontAt = (px: number) => `700 ${px}px "Blaak", serif`;
   c.font = fontAt(100);
   const widthsAt100 = lines.map((l) => c.measureText(l).width);
   const maxW100 = Math.max(...widthsAt100);

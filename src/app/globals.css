@@ -323,9 +323,16 @@ html.experience-loading #model-load-pct {
   animation-delay: calc(1s + var(--char-index) * 0.07s);
 }
 
+@font-face {
+  font-family: "Blaak";
+  src: url("@/assets/fonts/BlaakBold_PERSONAL.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+}
+
 #explore-btn {
   display: inline-block;
-  font-family: var(--font-brand), serif;
+  font-family: "US Blaak", serif;
   font-weight: 700;
   font-style: normal;
   font-size: 0.75rem;
@@ -398,6 +405,14 @@ html.experience-loading #model-load-pct {
 
 #intro-right.outro-show {
   pointer-events: auto;
+}
+
+/* lg only (1024–1280px): pull the block slightly closer to the right edge than
+   on xl, where the wider 10rem gutter is kept. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  #intro-right {
+    right: 5rem;
+  }
 }
 
 #intro-rule-right-track {
@@ -642,7 +657,7 @@ html.experience-loading #model-load-pct {
   left: 50%;
   transform: translateX(-50%) translateY(calc(100% + 2.5rem));
   bottom: 0;
-  font-family: var(--font-brand), var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(46px, 6.6vw, 84px);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -692,7 +707,7 @@ html.experience-loading #model-load-pct {
   left: 50%;
   transform: translateX(-50%) translateY(35%);
   bottom: 0;
-  font-family: var(--font-brand), var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(46px, 6.6vw, 84px);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -999,7 +1014,7 @@ html.experience-loading #model-load-pct {
 }
 
 .drag-text {
-  font-family: var(--font-brand), var(--font-roboto), ui-sans-serif, sans-serif;
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
   font-size: clamp(80px, 15vw, 120px);
   font-weight: 700;
   line-height: 1.15;
@@ -1048,10 +1063,11 @@ html.experience-loading #model-load-pct {
   animation-delay: calc(0.7s + var(--drag-subchar-index) * 0.015s);
 }
 
-/* Below xl: intro-right centers horizontally, but stays anchored a FIXED
+/* Below lg: intro-right centers horizontally, but stays anchored a FIXED
    distance from the bottom (rem, like #social) so it follows the bottom edge on
-   resize instead of drifting to the middle (which a %-based `bottom` would). */
-@media (max-width: 1279.98px) {
+   resize instead of drifting to the middle (which a %-based `bottom` would).
+   On lg (1024–1280px) it keeps the xl bottom-right side layout. */
+@media (max-width: 1023.98px) {
   #intro-right {
     left: 50%;
     right: auto;
@@ -1071,11 +1087,12 @@ html.experience-loading #model-load-pct {
 }
 
 /* ------------------------------------------------------------------ */
-/* Responsive: < xl (< 1280px)                                         */
+/* Responsive: < lg (< 1024px)                                         */
 /* - Center the intro-left block while keeping its PC internal layout. */
-/*   (The < lg query below further tightens its sizing.)               */
+/*   (The < lg sizing query below further tightens it.) On lg the block */
+/*   keeps the xl bottom-left side layout, mirroring intro-right.       */
 /* ------------------------------------------------------------------ */
-@media (max-width: 1279.98px) {
+@media (max-width: 1023.98px) {
   #intro-left {
     left: 50%;
     top: 50%;
@@ -1084,17 +1101,12 @@ html.experience-loading #model-load-pct {
     padding-left: 0;
     margin-top: 3rem;
   }
+}
 
-  /* Once the block is centered, drop the desktop desc indent so the text
-     column sits flush with the rule/Explore — otherwise the 2rem indent
-     pushes the description right and the centered block reads as off-center.
-     (Below 1024px this is already zeroed in the < lg query.) */
-  #intro-desc {
-    padding-left: 0;
-  }
-
-  /* Hide the year label below xl. !important wins over the .date-show /
-     lbl-up / lbl-down animated states which carry higher specificity. */
+/* Hide the year label below xl. The intro-left/right blocks keep the desktop
+   side layout down to lg, but the year label still only shows on xl.
+   !important wins over the .date-show / lbl-up / lbl-down animated states. */
+@media (max-width: 1279.98px) {
   #year-lbl {
     display: none !important;
   }
@@ -1233,29 +1245,10 @@ html.experience-loading #model-load-pct {
   cursor: pointer;
 }
 
-/* Scrim mask over the top band: scrolling content fades out under it instead of
-   overlapping the close button. Sits above the card content (z 5) but below the
-   close button (z 10); the card's top padding keeps content clear of it at rest. */
-#panel-modal::before {
-  content: "";
-  position: absolute;
-  /* Right inset clears the card's scrollbar so it isn't covered/cut off. The
-     content sits inside a 2.5rem gutter, so this still fully masks it. */
-  inset: 0 1.5rem auto 0;
-  height: 5.5rem;
-  z-index: 5;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    var(--color-web-modal-scrim) 3.5rem,
-    transparent 5.5rem
-  );
-}
-
 #panel-modal-close {
   position: absolute;
-  top: 2.5rem;
-  right: 2.5rem;
+  top: 1.5rem;
+  right: 1.5rem;
   z-index: 10;
   width: 44px;
   height: 44px;
@@ -1302,14 +1295,43 @@ html.experience-loading #model-load-pct {
   align-items: flex-start;
   gap: clamp(2rem, 5vw, 5rem);
   /* Full-width scroll container on every screen, so the scrollbar always sits on
-     the viewport's right edge. Inline padding keeps the content readable, and is
-     widened on xl to re-center it (see the xl media query). */
+     the viewport's right edge. The inline padding matches the main page's edge
+     gutter (5rem on desktop, 2.5rem < lg — see the brand/social/sound insets),
+     and is widened on xl to re-center it (see the xl media query). */
   width: 100%;
   max-height: 100vh;
-  padding: 6rem 2.5rem 3rem;
+  padding: 6rem 5rem 3rem;
   /* The whole card scrolls as one unit (image + text together) on every screen,
      not the text block on its own. */
   overflow-y: auto;
+  /* Hide content well before it reaches the edge: a fully-transparent band at
+     the top (clears the close button) and bottom, then a short fade into solid.
+     The mask is fixed to the card box, so scrolling content disappears inside
+     these bands instead of touching the edge.
+
+     Two layers, unioned (mask-composite: add): the vertical fade, plus a solid
+     strip down the right 12px so the scrollbar (Chrome renders `thin` at 10px)
+     is never faded — the content's 5rem right padding keeps it clear of it. */
+  -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 5rem,
+      #000 6rem,
+      #000 calc(100% - 2.5rem),
+      transparent calc(100% - 1.5rem)
+    ),
+    linear-gradient(to left, #000 12px, transparent 12px);
+  -webkit-mask-composite: source-over;
+  mask-image: linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 5rem,
+      #000 6rem,
+      #000 calc(100% - 2.5rem),
+      transparent calc(100% - 1.5rem)
+    ),
+    linear-gradient(to left, #000 12px, transparent 12px);
+  mask-composite: add;
   /* Lift + fade in, settling on the same ease as the backdrop. */
   opacity: 0;
   transform: translateY(40px) scale(0.97);
@@ -1378,7 +1400,7 @@ html.experience-loading #model-load-pct {
 }
 
 #panel-modal-title {
-  font-family: var(--font-brand), var(--font-roboto), ui-sans-serif, sans-serif;
+  font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
   font-size: clamp(34px, 4.5vw, 64px);
   font-weight: 700;
   line-height: 1.02;
@@ -1420,7 +1442,7 @@ html.experience-loading #model-load-pct {
    edge, same as the smaller breakpoints). Smaller image, wider full-width text. */
 @media (min-width: 1280px) {
   #panel-modal-card {
-    padding-inline: max(2.5rem, calc((100vw - 1280px) / 2));
+    padding-inline: max(5rem, calc((100vw - 1280px) / 2));
   }
 
   /* Smaller image, leaving more room for the text column. */
@@ -1473,6 +1495,14 @@ html.experience-loading #model-load-pct {
 
   #panel-modal-title {
     margin-bottom: 1rem;
+  }
+}
+
+/* < lg: drop the edge gutter from 5rem to 2.5rem, matching the main page's
+   global insets (brand/timeline/social/sound all shift to 2.5rem here). */
+@media (max-width: 1023.98px) {
+  #panel-modal-card {
+    padding-inline: 2.5rem;
   }
 }
 

@@ -203,16 +203,6 @@ const TITLE_CANVAS_H = Math.round(
 const TITLE_FONT_PX = Math.round(64 * (TITLE_CANVAS_H / 256));
 const TITLE_LINE_H = Math.round(72 * (TITLE_CANVAS_H / 256));
 
-// Brand serif family (next/font exposes it via --font-brand). Read at draw
-// time so the canvas uses the same font as the DOM, with a serif fallback.
-function brandFontFamily(): string {
-  return (
-    getComputedStyle(document.documentElement)
-      .getPropertyValue("--font-brand")
-      .trim() || "serif"
-  );
-}
-
 function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
   const ctx2d = canvas.getContext("2d")!;
   const W = canvas.width;
@@ -223,7 +213,7 @@ function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-roboto")
       .trim() || "sans-serif";
-  ctx2d.font = `700 ${TITLE_FONT_PX}px ${brandFontFamily()}, ${fontStack}, ui-sans-serif, sans-serif`;
+  ctx2d.font = `700 ${TITLE_FONT_PX}px "Blaak", ${fontStack}, ui-sans-serif, sans-serif`;
   ctx2d.textAlign = "center";
   ctx2d.textBaseline = "middle";
   const lines = title.split("\n");
@@ -244,7 +234,7 @@ function createTitleTexture(title: string): THREE.CanvasTexture {
   tex.anisotropy = 4;
 
   if (typeof document !== "undefined" && "fonts" in document) {
-    document.fonts.load(`700 ${TITLE_FONT_PX}px ${brandFontFamily()}`).then(() => {
+    document.fonts.load(`700 ${TITLE_FONT_PX}px "Blaak"`).then(() => {
       drawTitleOnCanvas(canvas, title);
       tex.needsUpdate = true;
     });

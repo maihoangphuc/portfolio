@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Fredoka, Roboto } from "next/font/google";
+import { Fredoka, Roboto } from "next/font/google";
 import "@/app/globals.css";
 import "@/app/animations.css";
 import { SOCIAL_LINKS } from "@/constants/socialLinks";
@@ -8,17 +8,6 @@ const roboto = Roboto({
   weight: "variable",
   subsets: ["latin"],
   variable: "--font-roboto",
-  display: "swap",
-});
-
-// Brand serif for the rendered name heading and panel titles. Replaces the
-// trial "Blaak" font (its PERSONAL-USE build injected a "personal use only"
-// watermark into rendered text). Fraunces is a contemporary high-contrast
-// serif, free for commercial use, with no watermark.
-const fraunces = Fraunces({
-  weight: "variable",
-  subsets: ["latin"],
-  variable: "--font-brand",
   display: "swap",
 });
 
@@ -140,7 +129,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${roboto.variable} ${roboto.className} ${fraunces.variable} ${fredoka.variable} h-full antialiased experience-loading`}
+      className={`${roboto.variable} ${roboto.className} ${fredoka.variable} h-full antialiased experience-loading`}
     >
       <head>
         {/* Kick off GLB downloads in parallel with JS bundle parsing — they're
