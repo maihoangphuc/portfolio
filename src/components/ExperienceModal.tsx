@@ -9,7 +9,7 @@ export default function ExperienceModal() {
         id="panel-modal-close"
         type="button"
         aria-label="Close"
-        className="text-web-white"
+        className="text-web-accent"
       >
         <span />
         <span />

@@ -330,6 +330,15 @@ html.experience-loading #model-load-pct {
   font-style: normal;
 }
 
+/* Heavier cut for the WebGL panel titles — matches the thicker "US Blaak Bold"
+   weight theyearofgreta.com renders for its editorial titles. */
+@font-face {
+  font-family: "Blaak";
+  src: url("@/assets/fonts/BlaakExtraBold_PERSONAL.woff") format("woff");
+  font-weight: 800;
+  font-style: normal;
+}
+
 #explore-btn {
   display: inline-block;
   font-family: "US Blaak", serif;
@@ -1269,7 +1278,7 @@ html.experience-loading #model-load-pct {
 #panel-modal-close:hover {
   opacity: 1;
   transform: rotate(90deg);
-  border-color: var(--color-web-line-hover);
+  border-color: var(--color-web-accent);
 }
 
 #panel-modal-close span {

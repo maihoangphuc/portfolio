@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { N, PW, PH, LG_BREAKPOINT } from "@/constants/experience";
-import { PANELS } from "@/constants/panels";
+import { PANELS, PanelItem } from "@/constants/panels";
 import { DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
 
 const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
@@ -144,18 +144,14 @@ const FRAGMENT_SHADER = `
 const RAMP_MIN_WIDTH = 480; // narrowest width — ramp is fully applied at/below it
 const GROUP_X_BASE = 0.25; // desktop ring-balance offset
 const GROUP_X_YAW_FIX = 0.072; // fixed world-space nudge that re-centres below lg
-const TITLE_POS = {
-  // Desktop: hangs off the left edge, vertically centred.
-  desktop: { x: -0.5, y: 0 },
-  // Below lg: sits on the bottom edge toward the right, half on / half off.
-  narrow: { x: 0.28, y: -0.5 },
-} as const;
+// Title hangs half off the panel's left edge (plane is 0.6 wide → left edge at
+// x-0.3; at x=-0.25 that's -0.55, ~5% off-panel). Same on every viewport — the
+// vertical slot comes from each panel's `placement` (see TITLE_PLACEMENT_Y).
+const TITLE_X = -0.25;
 
 type ResponsiveLayout = {
   panelScale: number; // multiplier on PW/PH so the panel fits the viewport
   groupX: number; // panelGroup.position.x
-  titleX: number; // titleMesh.position.x (panel-local)
-  titleY: number; // titleMesh.position.y (panel-local)
 };
 
 // Fit the active panel within (viewport width − global 5rem padding), never
@@ -175,8 +171,6 @@ function getResponsiveLayout(): ResponsiveLayout {
   const desktop: ResponsiveLayout = {
     panelScale: 1,
     groupX: GROUP_X_BASE,
-    titleX: TITLE_POS.desktop.x,
-    titleY: TITLE_POS.desktop.y,
   };
   if (typeof window === "undefined") return desktop;
   const w = window.innerWidth;
@@ -187,10 +181,16 @@ function getResponsiveLayout(): ResponsiveLayout {
   return {
     panelScale: panelFitScale(w, window.innerHeight),
     groupX: GROUP_X_BASE + ramp * GROUP_X_YAW_FIX,
-    titleX: TITLE_POS.narrow.x,
-    titleY: TITLE_POS.narrow.y,
   };
 }
+
+// Maps a panel's `placement` to the title's panel-local y. ±0.2 keeps the
+// title (half-height 0.15) clear of the [-0.5, 0.5] panel edges.
+const TITLE_PLACEMENT_Y: Record<NonNullable<PanelItem["placement"]>, number> = {
+  top: 0.2,
+  center: 0,
+  bottom: -0.2,
+};
 
 // Title plane local size, used to match canvas aspect to world plane aspect
 // so the rasterized text isn't stretched.
@@ -200,8 +200,8 @@ const TITLE_CANVAS_W = 1024;
 const TITLE_CANVAS_H = Math.round(
   (TITLE_CANVAS_W * TITLE_PLANE_H * PH) / (TITLE_PLANE_W * PW)
 );
-const TITLE_FONT_PX = Math.round(64 * (TITLE_CANVAS_H / 256));
-const TITLE_LINE_H = Math.round(72 * (TITLE_CANVAS_H / 256));
+const TITLE_FONT_PX = Math.round(88 * (TITLE_CANVAS_H / 256));
+const TITLE_LINE_H = Math.round(100 * (TITLE_CANVAS_H / 256));
 
 function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
   const ctx2d = canvas.getContext("2d")!;
@@ -213,13 +213,16 @@ function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-roboto")
       .trim() || "sans-serif";
-  ctx2d.font = `700 ${TITLE_FONT_PX}px "Blaak", ${fontStack}, ui-sans-serif, sans-serif`;
-  ctx2d.textAlign = "center";
+  // "Blaak" is the serif display face theyearofgreta.com uses for panel titles
+  // (their "US Blaak"); it's bundled and loaded via @font-face in globals.css.
+  // Weight 800 (ExtraBold cut) matches their thicker editorial title weight.
+  ctx2d.font = `800 ${TITLE_FONT_PX}px "Blaak", ${fontStack}, serif`;
+  ctx2d.textAlign = "left";
   ctx2d.textBaseline = "middle";
   const lines = title.split("\n");
   const blockH = (lines.length - 1) * TITLE_LINE_H;
   lines.forEach((line, i) =>
-    ctx2d.fillText(line, W / 2, H / 2 - blockH / 2 + i * TITLE_LINE_H)
+    ctx2d.fillText(line, 0, H / 2 - blockH / 2 + i * TITLE_LINE_H)
   );
 }
 
@@ -234,7 +237,7 @@ function createTitleTexture(title: string): THREE.CanvasTexture {
   tex.anisotropy = 4;
 
   if (typeof document !== "undefined" && "fonts" in document) {
-    document.fonts.load(`700 ${TITLE_FONT_PX}px "Blaak"`).then(() => {
+    document.fonts.load(`800 ${TITLE_FONT_PX}px "Blaak"`).then(() => {
       drawTitleOnCanvas(canvas, title);
       tex.needsUpdate = true;
     });
@@ -249,9 +252,9 @@ const TITLE_VERTEX_SHADER = `
     vUv = uv;
     vec3 d = position;
     // Follow the panel's curve at this title's panel-local x.
-    // Title is positioned at panel-local x = -0.5 with scale.x = 0.6,
-    // so panel_local_x = 0.6 * position.x - 0.5  ->  curveU = 1.2*position.x - 1.0
-    float panelCurveU = 1.2 * position.x - 1.0;
+    // Title is positioned at panel-local x = -0.25 with scale.x = 0.6,
+    // so panel_local_x = 0.6 * position.x - 0.25  ->  curveU = 1.2*position.x - 0.5
+    float panelCurveU = 1.2 * position.x - 0.5;
     d.z += (1.0 - panelCurveU * panelCurveU) * 0.04;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(d, 1.0);
   }
@@ -340,10 +343,18 @@ export function createPanels(ctx: RuntimeContext) {
       new THREE.PlaneGeometry(1, 1, 32, 8),
       titleMat
     );
-    // Title centered vertically on the panel, half over the left edge.
+    // Per-panel vertical anchor (Greta-style), driven by `placement` in PANELS:
+    // the title sits near the top, centered, or near the bottom — but always
+    // fully ON the panel (it only hangs half off the *left* edge horizontally,
+    // never off the top/bottom). Half-height of the title plane is 0.15, so ±0.2
+    // keeps a comfortable margin from the [-0.5, 0.5] panel edges.
+    const titleAlignY = TITLE_PLACEMENT_Y[item.placement ?? "center"];
+    mesh.userData.titleAlignY = titleAlignY;
+
+    // Title sits half over the left edge; vertical anchor picked above.
     // Canvas aspect is 2:1 (512x256), so scale matches that ratio.
     titleMesh.scale.set(TITLE_PLANE_W, TITLE_PLANE_H, 1);
-    titleMesh.position.set(-0.5, 0, 0.015);
+    titleMesh.position.set(TITLE_X, titleAlignY, 0.015);
     titleMesh.renderOrder = 5;
     mesh.userData.titleMesh = titleMesh;
     mesh.add(titleMesh);
@@ -389,7 +400,7 @@ export function updatePanels(ctx: RuntimeContext) {
   panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
 
   // All viewport-dependent layout in one read (see getResponsiveLayout).
-  const { panelScale: ps, groupX, titleX, titleY } = getResponsiveLayout();
+  const { panelScale: ps, groupX } = getResponsiveLayout();
   panelGroup.position.x = groupX;
 
   // Pass 1: write each panel's transform.
@@ -409,8 +420,10 @@ export function updatePanels(ctx: RuntimeContext) {
     const titleMesh = mesh.userData.titleMesh as THREE.Mesh | undefined;
     if (titleMesh) {
       titleMesh.scale.set(TITLE_PLANE_W, TITLE_PLANE_H, 1);
-      titleMesh.position.x = titleX;
-      titleMesh.position.y = titleY;
+      titleMesh.position.x = TITLE_X;
+      // Per-panel top/center/bottom anchor from `placement`, kept on-panel
+      // (only the left edge overlaps). Identical on desktop and narrow.
+      titleMesh.position.y = mesh.userData.titleAlignY as number;
     }
 
     const belowBoost = a > 0 ? THREE.MathUtils.smoothstep(a, 0, 0.1) * 4.0 : 0;

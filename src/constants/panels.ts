@@ -19,6 +19,10 @@ export type PanelItem = {
    *  (the modal desc uses `white-space: pre-line`), so use them to separate
    *  the period, the highlights and the tech stack. */
   description?: string;
+  /** Vertical placement of the title label on the panel (it always hangs half
+   *  off the left edge). "top" / "center" / "bottom" — defaults to "center".
+   *  Greta-style: vary it per panel so titles don't all sit at the same height. */
+  placement?: "top" | "center" | "bottom";
 };
 
 // One panel per major chapter/section of the CV — the projects, achievements
@@ -29,6 +33,7 @@ export const PANELS: PanelItem[] = [
     url: "/images/exp-fastboy.png",
     title: "Fastboy Marketing\nCompany",
     label: "Experience",
+    placement: "bottom",
     year: "2025",
     month: "Jul",
     description:
@@ -38,6 +43,7 @@ export const PANELS: PanelItem[] = [
     url: "https://picsum.photos/seed/126/800/464",
     title: "IES\nCompany",
     label: "Experience",
+    placement: "center",
     year: "2024",
     month: "Jan",
     endMonth: "May",
@@ -49,6 +55,7 @@ export const PANELS: PanelItem[] = [
     url: "https://picsum.photos/seed/129/800/464",
     title: "TESO\nCompany",
     label: "Experience",
+    placement: "bottom",
     year: "2022",
     month: "Sep",
     endMonth: "Dec",
@@ -60,6 +67,7 @@ export const PANELS: PanelItem[] = [
     url: "/images/edu-binhduong.png",
     title: "Binh Duong\nUniversity",
     label: "Education",
+    placement: "top",
     year: "2017",
     month: "Aug",
     endMonth: "Jul",
@@ -70,6 +78,7 @@ export const PANELS: PanelItem[] = [
     url: "https://picsum.photos/seed/138/800/464",
     title: "Frontend\ncraft",
     label: "Skills",
+    placement: "center",
     year: "2025",
     description:
       "Core: HTML/CSS, JavaScript (ES6+), TypeScript.\n\nFrameworks: ReactJS 18+, Next.js 14+, Vue 3.\n\nState & data: Zustand, Pinia, React Query.",
@@ -78,6 +87,7 @@ export const PANELS: PanelItem[] = [
     url: "https://picsum.photos/seed/141/800/464",
     title: "Styling\n& UI",
     label: "Skills",
+    placement: "bottom",
     year: "2025",
     description:
       "Design systems and pixel-accurate interfaces.\n\nTailwind CSS, Ant Design, Material UI, Chakra UI, SCSS.",
@@ -86,6 +96,7 @@ export const PANELS: PanelItem[] = [
     url: "https://picsum.photos/seed/145/800/464",
     title: "Tools\n& workflow",
     label: "Skills",
+    placement: "top",
     year: "2025",
     description:
       "Git, Vite, ESLint, Prettier, Postman — with Claude AI woven into the daily workflow.\n\nDatabase: PostgreSQL, SQL Server.",
@@ -94,6 +105,7 @@ export const PANELS: PanelItem[] = [
     url: "https://picsum.photos/seed/148/800/464",
     title: "Design",
     label: "Skills",
+    placement: "center",
     year: "2025",
     description:
       "Bridging the gap between design and development.\n\nAdobe Photoshop, Figma, Blender.",
