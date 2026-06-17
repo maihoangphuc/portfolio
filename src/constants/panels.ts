@@ -26,8 +26,8 @@ export type PanelItem = {
 // click-to-open modal), not as separate panels.
 export const PANELS: PanelItem[] = [
   {
-    url: "https://picsum.photos/seed/124/800/464",
-    title: "Fastboy\nMarketing",
+    url: "/images/exp-fastboy.png",
+    title: "Fastboy Marketing\nCompany",
     label: "Experience",
     year: "2025",
     month: "Jul",
@@ -57,7 +57,7 @@ export const PANELS: PanelItem[] = [
       "Frontend Developer (Fresher) · Sep 2022 – Dec 2023\n\nBuilt and maintained the CleverTube admin dashboard for video-based English lessons, vocabulary, quizzes and pronunciation-learning features.\n\nDesigned 15+ reusable components on a component-driven architecture and optimized data fetching with React Query, improving maintainability and UI consistency across the platform.\n\nStack: TypeScript, ReactJS, React Query, Vue 3, Pinia, Chakra UI.",
   },
   {
-    url: "https://picsum.photos/seed/133/800/464",
+    url: "/images/edu-binhduong.png",
     title: "Binh Duong\nUniversity",
     label: "Education",
     year: "2017",

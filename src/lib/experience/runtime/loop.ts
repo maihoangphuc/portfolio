@@ -14,6 +14,11 @@ import { updatePanels } from "@/lib/experience/runtime/panels";
 const SECTION_LABELS = ["Objective", "Experience", "Education", "Skills"];
 const SECTION_ABBR = ["Obj", "Exp", "Edu", "Skl"];
 
+// How long the intro-right reverse runs before the block is fully hidden — the
+// line sweeps right (1s, the time-mirror of the entry), and the text fades out
+// (0.7s delay + 0.3s = 1s), so the sequence ends at 1s in globals.css.
+const INTRO_RIGHT_EXIT_MS = 1050;
+
 // First panel of the Skills section — once the scroll reaches it, the timeline
 // and the month/year scrubber hide (Skills isn't tied to the date axis).
 const _skillsIdx = PANELS.findIndex((p) => p.label === "Skills");
@@ -105,6 +110,8 @@ export function createAnimateLoop(ctx: RuntimeContext) {
   let monthHidden = false;
   // Whether the right-side outro statement block is currently revealed.
   let introRightShown = false;
+  // Pending removal of the `outro-exit` class once the reverse animation ends.
+  let introRightExitTimer: number | undefined;
 
   // Once a reappear slide finishes, drop `lbl-up` so the section swap animations
   // (and the date-show entrance) aren't permanently overridden by its !important.
@@ -275,10 +282,28 @@ export function createAnimateLoop(ctx: RuntimeContext) {
     const showIntroRight = !introActiveOrTransition && outroProgress > 0;
     if (showIntroRight !== introRightShown) {
       introRightShown = showIntroRight;
-      // Match intro-left: the line settles to a fixed 15px dash, so scale the
-      // 100%-wide rule by 15/trackWidth (see runIntroPageLineEffects).
-      if (showIntroRight) setIntroRightRuleScale();
-      dom.introRight.classList.toggle("outro-show", showIntroRight);
+      if (showIntroRight) {
+        // Entering the outro: cancel any in-flight exit and replay the reveal.
+        // Match intro-left: the line settles to a fixed 15px dash, so scale the
+        // 100%-wide rule by 15/trackWidth (see runIntroPageLineEffects).
+        if (introRightExitTimer !== undefined) {
+          clearTimeout(introRightExitTimer);
+          introRightExitTimer = undefined;
+        }
+        setIntroRightRuleScale();
+        dom.introRight.classList.remove("outro-exit");
+        dom.introRight.classList.add("outro-show");
+      } else {
+        // Scrolling back up: retract the line + fade the text (the reverse of
+        // the reveal) BEFORE hiding, instead of snapping to opacity 0.
+        dom.introRight.classList.remove("outro-show");
+        dom.introRight.classList.add("outro-exit");
+        if (introRightExitTimer !== undefined) clearTimeout(introRightExitTimer);
+        introRightExitTimer = window.setTimeout(() => {
+          introRightExitTimer = undefined;
+          dom.introRight.classList.remove("outro-exit");
+        }, INTRO_RIGHT_EXIT_MS);
+      }
     }
 
     if (introActiveOrTransition) {
@@ -473,6 +498,7 @@ export function createAnimateLoop(ctx: RuntimeContext) {
 
   return () => {
     cancelAnimationFrame(raf);
+    if (introRightExitTimer !== undefined) clearTimeout(introRightExitTimer);
     dom.month.removeEventListener("animationend", onMonthAnimEnd);
     dom.yearLbl.removeEventListener("animationend", onYearAnimEnd);
   };

@@ -43,8 +43,10 @@ export function bindEvents(
   });
 
   const onWheel = (e: WheelEvent) => {
-    e.preventDefault();
+    // While the modal is open, let the wheel scroll it natively — don't
+    // preventDefault, or the modal's own scroll area would be frozen too.
     if (state.modalOpen) return;
+    e.preventDefault();
     if (!state.scrolled) state.scrolled = true;
     if (state.introActive || state.experienceExitActive || state.experienceEntryActive) return;
     state.scrollVel += e.deltaY * 0.00045;

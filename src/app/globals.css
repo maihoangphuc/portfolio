@@ -50,14 +50,6 @@
   --color-web-modal-scrim: var(--palette-web-modal-scrim);
 }
 
-@font-face {
-  font-family: "Blaak";
-  src: url("@/assets/fonts/BlaakBold_PERSONAL.woff") format("woff");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -333,7 +325,7 @@ html.experience-loading #model-load-pct {
 
 #explore-btn {
   display: inline-block;
-  font-family: "US Blaak", serif;
+  font-family: var(--font-brand), serif;
   font-weight: 700;
   font-style: normal;
   font-size: 0.75rem;
@@ -440,9 +432,10 @@ html.experience-loading #model-load-pct {
   transition: opacity 0.6s ease;
 }
 
-/* Hidden until revealed. */
-#intro-right:not(.outro-show) #intro-rule-right,
-#intro-right:not(.outro-show) #intro-right-text {
+/* Hidden until revealed. The exit state keeps them visible while the reverse
+   animation plays (see below), so exclude it here too. */
+#intro-right:not(.outro-show):not(.outro-exit) #intro-rule-right,
+#intro-right:not(.outro-show):not(.outro-exit) #intro-right-text {
   opacity: 0;
 }
 
@@ -456,6 +449,18 @@ html.experience-loading #model-load-pct {
 #intro-right.outro-show #intro-right-text {
   opacity: 1;
   animation: text-fade-in 0.3s 0.5s both;
+}
+
+/* Exit (scrolling back up): the line first sweeps back out to the right (the
+   reverse of how it entered), THEN the text fades out. */
+#intro-right.outro-exit #intro-rule-right {
+  width: 100%;
+  opacity: 1;
+  animation: intro-rule-exit-right 1s both;
+}
+#intro-right.outro-exit #intro-right-text {
+  opacity: 1;
+  animation: intro-text-exit 0.3s 0.7s cubic-bezier(0.32, 0, 0.67, 0) forwards;
 }
 
 #ui {
@@ -637,7 +642,7 @@ html.experience-loading #model-load-pct {
   left: 50%;
   transform: translateX(-50%) translateY(calc(100% + 2.5rem));
   bottom: 0;
-  font-family: "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-brand), var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(46px, 6.6vw, 84px);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -687,7 +692,7 @@ html.experience-loading #model-load-pct {
   left: 50%;
   transform: translateX(-50%) translateY(35%);
   bottom: 0;
-  font-family: "Blaak", var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-brand), var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(46px, 6.6vw, 84px);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -836,16 +841,13 @@ html.experience-loading #model-load-pct {
   justify-content: center;
   cursor: pointer;
   pointer-events: all;
-  opacity: 0.7;
-  transition:
-    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.19, 1, 0.22, 1),
-    border-color 0.3s ease;
+  color: var(--color-web-accent) !important;
   transform: scale(1);
 }
 
 #sound-btn:hover {
   opacity: 1;
+  color: var(--color-web-accent) !important;
   border-color: var(--color-web-accent) !important;
 }
 
@@ -997,7 +999,7 @@ html.experience-loading #model-load-pct {
 }
 
 .drag-text {
-  font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
+  font-family: var(--font-brand), var(--font-roboto), ui-sans-serif, sans-serif;
   font-size: clamp(80px, 15vw, 120px);
   font-weight: 700;
   line-height: 1.15;
@@ -1231,10 +1233,30 @@ html.experience-loading #model-load-pct {
   cursor: pointer;
 }
 
+/* Scrim mask over the top band: scrolling content fades out under it instead of
+   overlapping the close button. Sits above the card content (z 5) but below the
+   close button (z 10); the card's top padding keeps content clear of it at rest. */
+#panel-modal::before {
+  content: "";
+  position: absolute;
+  /* Right inset clears the card's scrollbar so it isn't covered/cut off. The
+     content sits inside a 2.5rem gutter, so this still fully masks it. */
+  inset: 0 1.5rem auto 0;
+  height: 5.5rem;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--color-web-modal-scrim) 3.5rem,
+    transparent 5.5rem
+  );
+}
+
 #panel-modal-close {
   position: absolute;
   top: 2.5rem;
   right: 2.5rem;
+  z-index: 10;
   width: 44px;
   height: 44px;
   border: 1px solid var(--color-web-border);
@@ -1275,10 +1297,19 @@ html.experience-loading #model-load-pct {
 #panel-modal-card {
   position: relative;
   display: flex;
-  align-items: center;
+  /* flex-start (not center): when the whole card scrolls, centering would push
+     overflowing content above the scroll area where it can't be reached. */
+  align-items: flex-start;
   gap: clamp(2rem, 5vw, 5rem);
-  width: min(1100px, calc(100vw - 8rem));
-  max-height: calc(100vh - 8rem);
+  /* Full-width scroll container on every screen, so the scrollbar always sits on
+     the viewport's right edge. Inline padding keeps the content readable, and is
+     widened on xl to re-center it (see the xl media query). */
+  width: 100%;
+  max-height: 100vh;
+  padding: 6rem 2.5rem 3rem;
+  /* The whole card scrolls as one unit (image + text together) on every screen,
+     not the text block on its own. */
+  overflow-y: auto;
   /* Lift + fade in, settling on the same ease as the backdrop. */
   opacity: 0;
   transform: translateY(40px) scale(0.97);
@@ -1314,26 +1345,40 @@ html.experience-loading #model-load-pct {
 }
 
 #panel-modal-index {
-  position: absolute;
-  top: -1.4rem;
-  left: 0;
-  font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
-  font-size: clamp(36px, 5vw, 64px);
-  font-weight: 700;
-  line-height: 1;
-  opacity: 0.25;
-  pointer-events: none;
+  display: none;
 }
 
 #panel-modal-text {
   flex: 1 1 42%;
   min-width: 0;
-  max-height: calc(100vh - 8rem);
-  overflow-y: auto;
+}
+
+/* Thin, subtle scrollbar for the card (the single scroll area on every screen).
+   Firefox uses scrollbar-* ; WebKit uses ::-webkit-scrollbar. */
+#panel-modal-card {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-web-border) transparent;
+}
+
+#panel-modal-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+#panel-modal-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#panel-modal-card::-webkit-scrollbar-thumb {
+  background: var(--color-web-border);
+  border-radius: 999px;
+}
+
+#panel-modal-card::-webkit-scrollbar-thumb:hover {
+  background: var(--color-web-line-hover);
 }
 
 #panel-modal-title {
-  font-family: "Blaak", var(--font-roboto), ui-sans-serif, sans-serif;
+  font-family: var(--font-brand), var(--font-roboto), ui-sans-serif, sans-serif;
   font-size: clamp(34px, 4.5vw, 64px);
   font-weight: 700;
   line-height: 1.02;
@@ -1342,6 +1387,7 @@ html.experience-loading #model-load-pct {
   margin-bottom: 1.5rem;
 }
 
+#panel-modal-meta,
 #panel-modal-desc {
   font-size: clamp(14px, 1.1vw, 17px);
   font-weight: 400;
@@ -1352,24 +1398,103 @@ html.experience-loading #model-load-pct {
   white-space: pre-line;
 }
 
-@media (max-width: 1023.98px) {
+/* Gap between the time line (in the head, with the title) and the body below.
+   Collapse it entirely when there is no body (e.g. the education panel). */
+#panel-modal-desc {
+  margin-top: 1.25rem;
+}
+
+#panel-modal-desc:empty {
+  display: none;
+}
+
+/* "·" between the role and the date when they sit on one line (all breakpoints
+   except sm→xl, where they're pushed to opposite ends). Omitted if no date. */
+#panel-modal-meta-date:not(:empty)::before {
+  content: "·";
+  margin: 0 0.5em;
+}
+
+/* xl and up: keep the two-column content centered to a readable width while the
+   card still spans full width (so the scrollbar stays on the viewport's right
+   edge, same as the smaller breakpoints). Smaller image, wider full-width text. */
+@media (min-width: 1280px) {
+  #panel-modal-card {
+    padding-inline: max(2.5rem, calc((100vw - 1280px) / 2));
+  }
+
+  /* Smaller image, leaving more room for the text column. */
+  #panel-modal-figure {
+    flex: 0 1 44%;
+  }
+
+  #panel-modal-text {
+    flex: 1 1 56%;
+  }
+
+  /* Text runs the full width of its column (no 46ch cap). */
+  #panel-modal-meta,
+  #panel-modal-desc {
+    max-width: none;
+  }
+}
+
+/* Below xl: single-column layout (image above text) with full-width detail text,
+   and a slightly smaller — but still top-right — close button. */
+@media (max-width: 1279.98px) {
   #panel-modal-close {
-    top: 1.5rem;
-    right: 1.5rem;
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
+  }
+
+  #panel-modal-close span {
+    width: 12px;
   }
 
   #panel-modal-card {
     flex-direction: column;
     align-items: stretch;
     gap: 1.75rem;
-    width: calc(100vw - 3rem);
-    max-height: calc(100vh - 6rem);
-    overflow-y: auto;
+  }
+
+  #panel-modal-figure {
+    flex: none;
+  }
+
+  #panel-modal-text {
+    flex: none;
+  }
+
+  /* Detail text spans the full width. */
+  #panel-modal-meta,
+  #panel-modal-desc {
+    max-width: none;
   }
 
   #panel-modal-title {
     margin-bottom: 1rem;
+  }
+}
+
+/* sm → xl: a smaller, horizontally centered image (below sm the image stays full
+   width). All text is stacked below it by the single-column rule above. */
+@media (min-width: 640px) and (max-width: 1279.98px) {
+  #panel-modal-figure {
+    align-self: center;
+    width: min(420px, 100%);
+  }
+}
+
+/* sm and up: role and date sit at opposite ends of the meta line (title stays
+   above). Below sm they stay on one line, joined by the "·" separator. */
+@media (min-width: 640px) {
+  #panel-modal-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  #panel-modal-meta-date:not(:empty)::before {
+    content: none;
   }
 }

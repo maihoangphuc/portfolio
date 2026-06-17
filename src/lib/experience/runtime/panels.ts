@@ -99,9 +99,20 @@ const FRAGMENT_SHADER = `
   uniform float uOpacity;
   uniform float uHoverProgress;
   uniform vec3 uColor;
+  uniform float uImageAspect;
+  uniform float uPlaneAspect;
 
   void main() {
-    vec4 tex = texture2D(uTexture, vUv);
+    // object-fit: cover — fill the panel without distorting the image,
+    // cropping the overflowing axis. ratio compares image vs panel aspect.
+    float ratio = uImageAspect / uPlaneAspect;
+    vec2 coverUv = vUv;
+    if (ratio > 1.0) {
+      coverUv.x = (vUv.x - 0.5) / ratio + 0.5;
+    } else {
+      coverUv.y = (vUv.y - 0.5) * ratio + 0.5;
+    }
+    vec4 tex = texture2D(uTexture, coverUv);
     
     // Matching the grayscale/tint blend from JS 118/120
     vec3 grayscaleTexture = mix(vec3(dot(tex.rgb, vec3(0.299, 0.587, 0.114))) * 0.95, uColor, 0.35);
@@ -192,6 +203,16 @@ const TITLE_CANVAS_H = Math.round(
 const TITLE_FONT_PX = Math.round(64 * (TITLE_CANVAS_H / 256));
 const TITLE_LINE_H = Math.round(72 * (TITLE_CANVAS_H / 256));
 
+// Brand serif family (next/font exposes it via --font-brand). Read at draw
+// time so the canvas uses the same font as the DOM, with a serif fallback.
+function brandFontFamily(): string {
+  return (
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--font-brand")
+      .trim() || "serif"
+  );
+}
+
 function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
   const ctx2d = canvas.getContext("2d")!;
   const W = canvas.width;
@@ -202,7 +223,7 @@ function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-roboto")
       .trim() || "sans-serif";
-  ctx2d.font = `700 ${TITLE_FONT_PX}px "Blaak", ${fontStack}, ui-sans-serif, sans-serif`;
+  ctx2d.font = `700 ${TITLE_FONT_PX}px ${brandFontFamily()}, ${fontStack}, ui-sans-serif, sans-serif`;
   ctx2d.textAlign = "center";
   ctx2d.textBaseline = "middle";
   const lines = title.split("\n");
@@ -223,7 +244,7 @@ function createTitleTexture(title: string): THREE.CanvasTexture {
   tex.anisotropy = 4;
 
   if (typeof document !== "undefined" && "fonts" in document) {
-    document.fonts.load(`700 ${TITLE_FONT_PX}px "Blaak"`).then(() => {
+    document.fonts.load(`700 ${TITLE_FONT_PX}px ${brandFontFamily()}`).then(() => {
       drawTitleOnCanvas(canvas, title);
       tex.needsUpdate = true;
     });
@@ -262,13 +283,16 @@ export function createPanels(ctx: RuntimeContext) {
 
   const panels: THREE.Mesh[] = [];
 
+  // World aspect of every panel plane (PW × PH). Shared by all panels; the
+  // per-panel image aspect is filled in once each texture finishes loading.
+  const planeAspect = PW / PH;
+
   for (let i = 0; i < N; i++) {
     const item = PANELS[i % PANELS.length];
-    const texture = textureLoader.load(item.url);
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
-        uTexture: { value: texture },
+        uTexture: { value: null as THREE.Texture | null },
         uOpacity: { value: 0 },
         uHoverProgress: { value: 0 },
         uDirection: { value: 0 },
@@ -277,6 +301,10 @@ export function createPanels(ctx: RuntimeContext) {
         uLimitShear: { value: 0.25 },
         uOffsetNoise: { value: new THREE.Vector2(0, 1) },
         uColor: { value: new THREE.Color(0x2d3e34) }, // Fixed color: 2965556 -> 0x2d3e34
+        // Default to the plane aspect so there's no crop until the real image
+        // dimensions arrive (avoids a one-frame stretch on first paint).
+        uImageAspect: { value: planeAspect },
+        uPlaneAspect: { value: planeAspect },
       },
       vertexShader: VERTEX_SHADER,
       fragmentShader: FRAGMENT_SHADER,
@@ -284,7 +312,18 @@ export function createPanels(ctx: RuntimeContext) {
       depthWrite: false,
       side: THREE.DoubleSide,
     });
-    
+
+    // Load async so we can read the real pixel dimensions and feed the true
+    // image aspect into the cover-fit shader (otherwise it'd guess and stretch).
+    textureLoader.load(item.url, (texture) => {
+      const img = texture.image as { width: number; height: number };
+      if (img?.width && img?.height) {
+        material.uniforms.uImageAspect.value = img.width / img.height;
+      }
+      material.uniforms.uTexture.value = texture;
+      material.uniforms.uTexture.value.needsUpdate = true;
+    });
+
     const mesh = new THREE.Mesh(PANEL_GEOMETRY, material);
     mesh.userData.index = i;
     // Set scale to match aspect ratio and PW

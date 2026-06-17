@@ -100,7 +100,18 @@ function openModal(ctx: RuntimeContext, index: number) {
   }
   // \n in titles renders as a line break via `white-space: pre-line` in CSS.
   dom.panelModalTitle.textContent = item.title;
-  dom.panelModalDesc.textContent = item.description ?? "";
+  // Split the body copy: the first paragraph is the role/period "time" line, the
+  // rest is the body ("text phụ", shown below).
+  const description = item.description ?? "";
+  const sep = description.indexOf("\n\n");
+  const metaText = sep === -1 ? description : description.slice(0, sep);
+  dom.panelModalDesc.textContent = sep === -1 ? "" : description.slice(sep + 2);
+  // The meta line is "Role · Dates" — split on the middot so the role and the
+  // date can sit at opposite ends in the sm→xl layout (the "·" separator between
+  // them is re-added via CSS for the other breakpoints).
+  const dot = metaText.indexOf(" · ");
+  dom.panelModalMetaRole.textContent = dot === -1 ? metaText : metaText.slice(0, dot);
+  dom.panelModalMetaDate.textContent = dot === -1 ? "" : metaText.slice(dot + 3);
   dom.panelModalIndex.textContent = String((index % PANELS.length) + 1).padStart(2, "0");
 
   dom.panelModal.classList.add("open");

@@ -26,6 +26,9 @@ export type Dom = {
   panelModalClose: HTMLElement;
   panelModalImg: HTMLImageElement;
   panelModalTitle: HTMLElement;
+  panelModalMeta: HTMLElement;
+  panelModalMetaRole: HTMLElement;
+  panelModalMetaDate: HTMLElement;
   panelModalDesc: HTMLElement;
   panelModalIndex: HTMLElement;
 };

@@ -35,6 +35,9 @@ export function getDom(): Dom {
     panelModalClose: must("panel-modal-close"),
     panelModalImg: must<HTMLImageElement>("panel-modal-img"),
     panelModalTitle: must("panel-modal-title"),
+    panelModalMeta: must("panel-modal-meta"),
+    panelModalMetaRole: must("panel-modal-meta-role"),
+    panelModalMetaDate: must("panel-modal-meta-date"),
     panelModalDesc: must("panel-modal-desc"),
     panelModalIndex: must("panel-modal-index"),
   };
