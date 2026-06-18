@@ -2,7 +2,7 @@ const INTRO_DESCRIPTION =
   "Frontend Developer with 3+ years building scalable, high-performance web applications with React, Next.js and Vue 3.";
 
 const INTRO_RIGHT_TEXT =
-  "Mai Hoang Phuc is a Frontend Developer based in Ho Chi Minh City, focused on performance, clean component architecture and exceptional user experiences.";
+  "Thanks for scrolling all the way here. I hope you enjoyed the journey — and I'd love the chance to build something great together.";
 
 export default function ExperienceIntro() {
   return (

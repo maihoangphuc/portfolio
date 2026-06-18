@@ -284,20 +284,25 @@ async function addNamePlane(scene: THREE.Scene) {
 
   // Per-mode world-Y deltas. All constants so screen position depends only on
   // viewport, not innerHeight (no resize drift). The intro text-bg is a wide
-  // element, so it lifts up below xl (bottom margin) to clear the UI. The name
-  // only ever shows in the intro (theyearofgreta.com's outro has no background
-  // name), so these are all intro tuning.
+  // element, so it lifts up below xl (bottom margin) to clear the UI. The outro
+  // is uniform across breakpoints — same scale and Y at every width, with no
+  // extra top margin. It stays horizontally centred (x=0).
   const BASE_POS_Y = mesh.position.y;
   const XL_BREAKPOINT = 1280;
   const SM_BREAKPOINT = 640;
   const XS_BREAKPOINT = 480;
   const NARROW_Y_DELTA = 1.0; // intro: lift up below xl so it clears the bottom (lower = a bit more top margin)
   const SM_Y_DELTA = 1.8; // intro: at sm and below lift higher (more bottom margin) so the heading reaches the figure's neck
+  const OUTRO_Y_DELTA = -0.3;
   const NARROW_SCALE_MULT = 0.82; // intro: extra shrink below xl for breathing room
   const SM_SCALE_MULT = 0.78; // intro: shrink more at sm and below
   const XS_SCALE_MULT = 0.92; // intro: bump back up at xs and below (narrow fit makes it read small)
-  // Global shrink applied to the name scale — keeps the text a touch smaller
-  // than the full padding-fit.
+  // Outro: scale tracks scroll — larger as the outro begins (progress 0) and
+  // settling back to the normal fit size as you scroll further down (progress 1);
+  // reverses scrolling up. Multiplier on the fit size at the outro start.
+  const OUTRO_SCALE_START = 1.05;
+  // Global shrink applied to both intro and outro name scale — keeps the text
+  // a touch smaller than the full padding-fit.
   const NAME_SCALE_MULT = 0.9;
   const FOV_HALF_TAN = Math.tan((50 * Math.PI) / 180 / 2);
 
@@ -306,6 +311,7 @@ async function addNamePlane(scene: THREE.Scene) {
   const clock = new THREE.Clock();
   let cachedFrac = 1;
   let cachedWidth = -1;
+  let outroMode = false;
   // Reveal animation state — matches theyearofgreta.com's GSAP timeline:
   //   wipe-in:  direction=-1, uReveal tweens 0→1 over 1.6s, sine.out
   //   wipe-out: direction= 1, uReveal tweens 0→1 over 0.8s, sine.in
@@ -318,6 +324,9 @@ async function addNamePlane(scene: THREE.Scene) {
   let revealStartMs: number | null = null;
   let revealDurationMs = WIPE_IN_MS;
   let revealEaseFn: (t: number) => number = (t) => Math.sin((t * Math.PI) / 2);
+  // Outro reveal driven directly by scroll progress; bypasses the timed lerp.
+  let outroRevealValue = 1;
+  let outroT = 0; // smoothed outro progress (0 = just entered, 1 = scrolled out)
   const easeOutSine = (t: number) => Math.sin((t * Math.PI) / 2);
   const easeInSine = (t: number) => 1 - Math.cos((t * Math.PI) / 2);
 
@@ -337,7 +346,13 @@ async function addNamePlane(scene: THREE.Scene) {
     const belowXl = innerWidth < XL_BREAKPOINT;
     const belowSm = innerWidth < SM_BREAKPOINT;
     const belowXs = innerWidth < XS_BREAKPOINT;
-    const yDelta = belowSm ? SM_Y_DELTA : belowXl ? NARROW_Y_DELTA : 0;
+    const yDelta = outroMode
+      ? OUTRO_Y_DELTA
+      : belowSm
+        ? SM_Y_DELTA
+        : belowXl
+          ? NARROW_Y_DELTA
+          : 0;
     mesh.position.y = BASE_POS_Y + yDelta;
 
     // Horizontal centre: world x=0 doesn't project to screen centre because the
@@ -369,25 +384,41 @@ async function addNamePlane(scene: THREE.Scene) {
           : belowXl
             ? NARROW_SCALE_MULT
             : 1);
-    const s = baseScale * NAME_SCALE_MULT;
+    // Outro starts larger and settles back to baseScale as you scroll out
+    // (outroT 0→1): mult goes OUTRO_SCALE_START → 1. Intro/scroll stays at base.
+    const outroMult = outroMode
+      ? OUTRO_SCALE_START + (1 - OUTRO_SCALE_START) * outroT
+      : 1;
+    // The outro name fills the full width within the global L/R padding at
+    // every breakpoint: it sits at the exact padding-fit (fitScale) when the
+    // outro begins (outroT=0 → outroMult=OUTRO_SCALE_START) and scales down
+    // from there — so it reaches but never exceeds the global L/R padding.
+    const s = (outroMode
+      ? fitScale * (outroMult / OUTRO_SCALE_START)
+      : baseScale * outroMult) * NAME_SCALE_MULT;
     // Keep scale.z at 1 so the simplex-noise vertex displacement (local Z)
     // isn't squashed when the plane is fit to a narrow viewport.
     mesh.scale.set(s, s, 1);
 
     mat.uniforms.uTime.value = clock.getElapsedTime();
 
-    if (revealStartMs !== null) {
-      const t = Math.min(1, (performance.now() - revealStartMs) / revealDurationMs);
-      revealCurrent = revealFrom + (revealTarget - revealFrom) * revealEaseFn(t);
-      if (t >= 1) {
-        revealStartMs = null;
-        revealCurrent = revealTarget;
+    if (outroMode) {
+      mat.uniforms.uReveal.value = outroRevealValue;
+    } else {
+      if (revealStartMs !== null) {
+        const t = Math.min(1, (performance.now() - revealStartMs) / revealDurationMs);
+        revealCurrent = revealFrom + (revealTarget - revealFrom) * revealEaseFn(t);
+        if (t >= 1) {
+          revealStartMs = null;
+          revealCurrent = revealTarget;
+        }
       }
+      mat.uniforms.uReveal.value = revealCurrent;
     }
-    mat.uniforms.uReveal.value = revealCurrent;
   };
 
   scene.userData.setNameIntroShown = (shown: boolean) => {
+    if (shown) outroMode = false;
     if (shown) {
       // Wipe IN: direction=-1, tween uReveal 0→1, sine.out, 1.6s
       mat.uniforms.uDirection.value = -1;
@@ -407,17 +438,27 @@ async function addNamePlane(scene: THREE.Scene) {
     }
     revealStartMs = performance.now();
   };
-  // theyearofgreta.com's outro shows ONLY the figure plus the right-side
-  // statement block on a clean background — the big background name belongs to
-  // the intro and never returns. So the name plane stays hidden throughout the
-  // outro (the loop still calls this on every outro frame; we just keep it out).
-  // With direction=1 + uReveal=1 the wipe gradient collapses to 0 → fully
-  // hidden, the same resting state `setNameIntroShown(false)` leaves it in.
-  scene.userData.setOutroReveal = () => {
-    mat.uniforms.uDirection.value = 1;
-    revealCurrent = 1;
-    revealTarget = 1;
-    revealStartMs = null;
+  // Outro reveal: the big background name fades back in behind the figure as
+  // you scroll past the last panel, driven directly by scroll `progress`.
+  scene.userData.setOutroReveal = (progress: number) => {
+    outroMode = progress > 0;
+    if (outroMode) {
+      // Outro wipes right-to-left (direction=1); uReveal 1→0 = hidden→visible.
+      mat.uniforms.uDirection.value = 1;
+    }
+    // smoothstep eases the wipe at both ends — matches the gentle reveal feel.
+    const u = progress * progress * (3 - 2 * progress);
+    outroRevealValue = 1 - u;
+    outroT = u;
+    if (!outroMode) {
+      // Returning to intro/scroll zone — keep the plane hidden. With
+      // direction=1, uReveal=1 = hidden, so it stays out until
+      // `setNameIntroShown(true)` triggers the intro wipe-in.
+      mat.uniforms.uDirection.value = 1;
+      revealCurrent = 1;
+      revealTarget = 1;
+      revealStartMs = null;
+    }
   };
 }
 
