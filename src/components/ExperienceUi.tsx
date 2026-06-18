@@ -53,6 +53,12 @@ export default function ExperienceUi() {
         Exp
       </div>
 
+      <div id="load-tagline" className="text-web-soft" aria-hidden="true">
+        Change is coming,
+        <br />
+        Whether you like it or not.
+      </div>
+
       <div
         id="model-load-pct"
         className="text-web-white model-loading"

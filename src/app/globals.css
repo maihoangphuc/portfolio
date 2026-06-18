@@ -113,7 +113,7 @@ html.experience-loading #c {
    animation is triggered by runIntroPageLineEffects after loading completes,
    so the user actually sees it (otherwise it plays silently behind the load
    HUD and the text is already in its final state by the time loading ends). */
-html.experience-loading #ui > *:not(#model-load-pct):not(#brand),
+html.experience-loading #ui > *:not(#model-load-pct):not(#brand):not(#load-tagline),
 html.experience-loading #bg-name {
   opacity: 0.01 !important;
   pointer-events: none !important;
@@ -124,6 +124,10 @@ html.experience-loading #intro-right {
 }
 
 html.experience-loading #model-load-pct {
+  opacity: 1;
+}
+
+html.experience-loading #load-tagline {
   opacity: 1;
 }
 
@@ -778,6 +782,49 @@ html.experience-loading #model-load-pct {
 }
 #year-lbl.lbl-up {
   animation: year-lbl-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
+/* Tagline sitting just above the loading number, sharing its baseline. */
+#load-tagline {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(72px, 8vw, 110px);
+  font-size: clamp(11px, 1vw, 13px);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  transition:
+    opacity 0.7s cubic-bezier(0.32, 0, 0.2, 1),
+    transform 0.7s cubic-bezier(0.32, 0, 0.2, 1);
+}
+
+/* No slide on entrance — opacity ramps up gradually so the text becomes
+   clear over time instead of popping in. */
+@keyframes load-tagline-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+html.experience-loading #load-tagline {
+  animation: load-tagline-fade 1.3s 1s ease-in backwards;
+}
+
+/* Leaves in step with the number's slide-down exit. */
+#ui:has(#model-load-pct.model-load-exit) #load-tagline {
+  opacity: 0;
+  transform: translateX(-50%) translateY(1.5rem);
 }
 
 #model-load-pct {
