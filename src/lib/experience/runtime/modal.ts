@@ -73,6 +73,23 @@ function pickPanelIndex(
   return (hits[0].object.userData.index as number) ?? null;
 }
 
+// Render a paragraph into `el`, turning `**bold**` spans into <strong> nodes so
+// the CV's emphasised terms read as bold (CLAUDE.md: runtime owns the DOM, so we
+// build text nodes rather than set innerHTML).
+function appendRichText(el: HTMLElement, text: string) {
+  const parts = text.split("**");
+  for (let i = 0; i < parts.length; i++) {
+    if (!parts[i]) continue;
+    if (i % 2 === 1) {
+      const strong = document.createElement("strong");
+      strong.textContent = parts[i];
+      el.appendChild(strong);
+    } else {
+      el.appendChild(document.createTextNode(parts[i]));
+    }
+  }
+}
+
 function openModal(ctx: RuntimeContext, index: number) {
   const { dom, state } = ctx;
   const item = PANELS[index % PANELS.length];
@@ -105,7 +122,18 @@ function openModal(ctx: RuntimeContext, index: number) {
   const description = item.description ?? "";
   const sep = description.indexOf("\n\n");
   const metaText = sep === -1 ? description : description.slice(0, sep);
-  dom.panelModalDesc.textContent = sep === -1 ? "" : description.slice(sep + 2);
+  // Render the body as a bulleted list (CV-style): each \n\n-separated paragraph
+  // becomes one <li> with its own dot, so highlights and the tech stack read as
+  // discrete points instead of one run-on block.
+  dom.panelModalDesc.replaceChildren();
+  const body = sep === -1 ? "" : description.slice(sep + 2);
+  for (const para of body.split("\n\n")) {
+    const text = para.trim();
+    if (!text) continue;
+    const li = document.createElement("li");
+    appendRichText(li, text);
+    dom.panelModalDesc.appendChild(li);
+  }
   // The meta line is "Role · Dates" — split on the middot so the role and the
   // date can sit at opposite ends in the sm→xl layout (the "·" separator between
   // them is re-added via CSS for the other breakpoints).

@@ -33,7 +33,7 @@ export default function ExperienceModal() {
               <span id="panel-modal-meta-date" />
             </p>
           </div>
-          <p id="panel-modal-desc" className="text-web-soft" />
+          <ul id="panel-modal-desc" className="text-web-soft" />
         </div>
       </div>
     </div>
