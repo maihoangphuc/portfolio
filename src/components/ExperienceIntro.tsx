@@ -2,7 +2,7 @@ const INTRO_DESCRIPTION =
   "Frontend Developer with 3+ years building scalable, high-performance web applications with React, Next.js and Vue 3.";
 
 const INTRO_RIGHT_TEXT =
-  "Thanks for scrolling all the way here. I hope you enjoyed the journey — and I'd love the chance to build something great together.";
+  "Thank you for taking the time to explore my work. I would welcome the opportunity to bring this same dedication to your team and build something exceptional together.";
 
 export default function ExperienceIntro() {
   return (

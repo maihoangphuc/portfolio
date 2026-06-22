@@ -3,6 +3,7 @@ import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { N, PW, PH, LG_BREAKPOINT } from "@/constants/experience";
 import { PANELS, PanelItem } from "@/constants/panels";
 import { DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
+import { rootCssVarToHexInt } from "@/utils/rootCssColor";
 
 const PANEL_GEOMETRY = new THREE.PlaneGeometry(1, 1, 64, 64);
 
@@ -177,7 +178,10 @@ function getResponsiveLayout(): ResponsiveLayout {
   if (w >= LG_BREAKPOINT) return desktop;
 
   // ramp: 0 just under lg → 1 at/below RAMP_MIN_WIDTH.
-  const ramp = Math.min(1, (LG_BREAKPOINT - w) / (LG_BREAKPOINT - RAMP_MIN_WIDTH));
+  const ramp = Math.min(
+    1,
+    (LG_BREAKPOINT - w) / (LG_BREAKPOINT - RAMP_MIN_WIDTH),
+  );
   return {
     panelScale: panelFitScale(w, window.innerHeight),
     groupX: GROUP_X_BASE + ramp * GROUP_X_YAW_FIX,
@@ -198,7 +202,7 @@ const TITLE_PLANE_W = 0.6;
 const TITLE_PLANE_H = 0.3;
 const TITLE_CANVAS_W = 1024;
 const TITLE_CANVAS_H = Math.round(
-  (TITLE_CANVAS_W * TITLE_PLANE_H * PH) / (TITLE_PLANE_W * PW)
+  (TITLE_CANVAS_W * TITLE_PLANE_H * PH) / (TITLE_PLANE_W * PW),
 );
 const TITLE_FONT_PX = Math.round(88 * (TITLE_CANVAS_H / 256));
 const TITLE_LINE_H = Math.round(100 * (TITLE_CANVAS_H / 256));
@@ -216,13 +220,29 @@ function drawTitleOnCanvas(canvas: HTMLCanvasElement, title: string) {
   // "Blaak" is the serif display face theyearofgreta.com uses for panel titles
   // (their "US Blaak"); it's bundled and loaded via @font-face in globals.css.
   // Weight 800 (ExtraBold cut) matches their thicker editorial title weight.
-  ctx2d.font = `800 ${TITLE_FONT_PX}px "Blaak", ${fontStack}, serif`;
   ctx2d.textAlign = "left";
   ctx2d.textBaseline = "middle";
   const lines = title.split("\n");
-  const blockH = (lines.length - 1) * TITLE_LINE_H;
+
+  // Titles are drawn left-aligned at x=0 and bleed off the panel's right edge,
+  // but must never clip mid-word. Shrink the font so the widest line fits the
+  // canvas (never enlarge past the base size). Width scales linearly with font
+  // px, so measuring at the base size and scaling is exact.
+  const RIGHT_PAD = 12;
+  const setFont = (px: number) =>
+    (ctx2d.font = `800 ${px}px "Blaak", ${fontStack}, serif`);
+  setFont(TITLE_FONT_PX);
+  let widest = 0;
+  for (const line of lines)
+    widest = Math.max(widest, ctx2d.measureText(line).width);
+  const scale = widest > 0 ? Math.min(1, (W - RIGHT_PAD) / widest) : 1;
+  const fontPx = TITLE_FONT_PX * scale;
+  const lineH = TITLE_LINE_H * scale;
+  setFont(fontPx);
+
+  const blockH = (lines.length - 1) * lineH;
   lines.forEach((line, i) =>
-    ctx2d.fillText(line, 0, H / 2 - blockH / 2 + i * TITLE_LINE_H)
+    ctx2d.fillText(line, 0, H / 2 - blockH / 2 + i * lineH),
   );
 }
 
@@ -264,9 +284,14 @@ const TITLE_FRAGMENT_SHADER = `
   varying vec2 vUv;
   uniform sampler2D uTitleTex;
   uniform float uTitleOpacity;
+  uniform float uHover;        // 0 = idle, 1 = panel hovered
+  uniform vec3 uHoverColor;    // on-theme accent the title shifts to on hover
   void main() {
     vec4 t = texture2D(uTitleTex, vUv);
-    gl_FragColor = vec4(t.rgb, t.a * uTitleOpacity);
+    // Idle title stays white; on hover it eases to the accent tone so it reads
+    // against the lightened panel art instead of blending into it.
+    vec3 col = mix(t.rgb, uHoverColor, uHover);
+    gl_FragColor = vec4(col, t.a * uTitleOpacity);
   }
 `;
 
@@ -332,6 +357,12 @@ export function createPanels(ctx: RuntimeContext) {
       uniforms: {
         uTitleTex: { value: createTitleTexture(item.title) },
         uTitleOpacity: { value: 0 },
+        uHover: { value: 0 },
+        uHoverColor: {
+          value: new THREE.Color(
+            rootCssVarToHexInt("--palette-web-label-hover-pannel"),
+          ),
+        },
       },
       vertexShader: TITLE_VERTEX_SHADER,
       fragmentShader: TITLE_FRAGMENT_SHADER,
@@ -341,7 +372,7 @@ export function createPanels(ctx: RuntimeContext) {
     });
     const titleMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1, 32, 8),
-      titleMat
+      titleMat,
     );
     // Per-panel vertical anchor (Greta-style), driven by `placement` in PANELS:
     // the title sits near the top, centered, or near the bottom — but always
@@ -362,7 +393,7 @@ export function createPanels(ctx: RuntimeContext) {
     panelGroup.add(mesh);
     panels.push(mesh);
   }
-  
+
   panelGroup.position.z = -2.5;
   // Nudge the whole ring right so the off-center side panels read as evenly
   // balanced (paired with the small `pt` left-offset in updatePanels, which
@@ -374,7 +405,15 @@ export function createPanels(ctx: RuntimeContext) {
 
 export function updatePanels(ctx: RuntimeContext) {
   const { state, panelGroup, raycaster, cam, mouse } = ctx;
-  const { scrollForLayoutLast, scrollVelVis, introActive, experienceEntryActive, experienceExitActive, experienceExitStartMs, exitReverseMode } = state;
+  const {
+    scrollForLayoutLast,
+    scrollVelVis,
+    introActive,
+    experienceEntryActive,
+    experienceExitActive,
+    experienceExitStartMs,
+    exitReverseMode,
+  } = state;
 
   const yDistance = 2.8;
   const baseRadius = 5.5;
@@ -388,16 +427,24 @@ export function updatePanels(ctx: RuntimeContext) {
 
   const progress = scrollForLayoutLast / (N - 1);
   const edgeBuffer = 0.6;
-  const distFromEdge = Math.min(scrollForLayoutLast, (N - 1) - scrollForLayoutLast);
+  const distFromEdge = Math.min(
+    scrollForLayoutLast,
+    N - 1 - scrollForLayoutLast,
+  );
   const edgeFade = Math.min(1, Math.max(0, distFromEdge / edgeBuffer));
   const intensity = Math.abs(scrollVelVis) * 18.0 * edgeFade;
   const direction = Math.sign(scrollVelVis);
-  const inExperience = !introActive && !experienceEntryActive && !experienceExitActive && !state.modalOpen;
+  const inExperience =
+    !introActive &&
+    !experienceEntryActive &&
+    !experienceExitActive &&
+    !state.modalOpen;
 
   // Panels keep their natural helix motion past the last panel (rising and
   // rotating); only the timeline UI hides at progress = 1.
   panelGroup.position.y = progress * yDistance * (N - 1) + 0.3;
-  panelGroup.rotation.y = pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
+  panelGroup.rotation.y =
+    pt + -2 * progress * Math.PI * ((N - 1) / panelsPerTurn);
 
   // All viewport-dependent layout in one read (see getResponsiveLayout).
   const { panelScale: ps, groupX } = getResponsiveLayout();
@@ -427,18 +474,21 @@ export function updatePanels(ctx: RuntimeContext) {
     }
 
     const belowBoost = a > 0 ? THREE.MathUtils.smoothstep(a, 0, 0.1) * 4.0 : 0;
-    const aboveBoost = a < 0 ? THREE.MathUtils.smoothstep(-a, 0, 0.1) * -2.0 : 0;
-    const centerBoost = a >= 0
-      ? Math.exp(-Math.pow(a * 10, 2)) * 0.8
-      : Math.exp(-Math.pow(a * 30, 2)) * 0.8;
+    const aboveBoost =
+      a < 0 ? THREE.MathUtils.smoothstep(-a, 0, 0.1) * -2.0 : 0;
+    const centerBoost =
+      a >= 0
+        ? Math.exp(-Math.pow(a * 10, 2)) * 0.8
+        : Math.exp(-Math.pow(a * 30, 2)) * 0.8;
     const rightSideCos = Math.cos(angle - panelGroup.rotation.y);
     const rightBoost = Math.max(0, rightSideCos) * 1.5;
-    const radius = baseRadius + belowBoost + aboveBoost + centerBoost + rightBoost + 5 * a;
+    const radius =
+      baseRadius + belowBoost + aboveBoost + centerBoost + rightBoost + 5 * a;
 
     mesh.position.set(
       Math.cos(angle) * radius,
       -1 * index * yDistance,
-      Math.sin(angle) * radius
+      Math.sin(angle) * radius,
     );
 
     mesh.rotation.z = THREE.MathUtils.degToRad(-170 * Math.abs(a));
@@ -495,7 +545,11 @@ export function updatePanels(ctx: RuntimeContext) {
 
     const isHovered = hoveredMesh === mesh;
     const targetHover = isHovered ? 1.0 : 0.0;
-    material.uniforms.uHoverProgress.value = THREE.MathUtils.lerp(material.uniforms.uHoverProgress.value, targetHover, 0.07);
+    material.uniforms.uHoverProgress.value = THREE.MathUtils.lerp(
+      material.uniforms.uHoverProgress.value,
+      targetHover,
+      0.07,
+    );
 
     let opacityMultiplier = 1.0;
     if (introActive) {
@@ -504,9 +558,8 @@ export function updatePanels(ctx: RuntimeContext) {
       // Hold panels invisible while the drag hint is fading out, then fade them in
       const elapsed = performance.now() - state.experienceEntryStartMs;
       const start = DRAG_HINT_FADE_OUT_MS;
-      opacityMultiplier = elapsed < start
-        ? 0
-        : Math.min(1, (elapsed - start) / 1000);
+      opacityMultiplier =
+        elapsed < start ? 0 : Math.min(1, (elapsed - start) / 1000);
     } else if (experienceExitActive) {
       opacityMultiplier = exitReverseMode
         ? 0
@@ -531,8 +584,11 @@ export function updatePanels(ctx: RuntimeContext) {
       titleMat.uniforms.uTitleOpacity.value = THREE.MathUtils.lerp(
         titleMat.uniforms.uTitleOpacity.value,
         target,
-        0.12
+        0.12,
       );
+      // Tint the title to the accent only while its panel is hovered (shares
+      // the panel's eased hover progress, so it fades in/out in lockstep).
+      titleMat.uniforms.uHover.value = hp;
       titleMesh.visible = titleMat.uniforms.uTitleOpacity.value > 0.01;
     }
   });

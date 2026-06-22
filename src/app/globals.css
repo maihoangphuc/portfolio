@@ -5,6 +5,7 @@
   --palette-web-bg: #352d40;
   --palette-web-accent: #b88ef1;
   --palette-web-accent-icon: #ffffffe6;
+  --palette-web-label-hover-pannel: #c8cdd8;
   --palette-web-shader-highlight: #c4a8e8;
   --palette-web-name: #352d40cc;
   --palette-web-white: #ffffff;
@@ -33,6 +34,7 @@
   --color-web-accent: var(--palette-web-accent);
   --color-web-accent-icon: var(--palette-web-accent-icon);
   --color-web-shader-highlight: var(--palette-web-shader-highlight);
+  --color-web-label-hover-pannel: var(--palette-web-label-hover-pannel);
   --color-web-name: var(--palette-web-name);
   --color-web-white: var(--palette-web-white);
   --color-web-muted: var(--palette-web-muted);
@@ -450,7 +452,7 @@ html.experience-loading #load-tagline {
 
 #intro-right-text {
   font-size: 13px;
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.6;
   margin-bottom: 25px;
   width: 100%;
@@ -1491,13 +1493,13 @@ html.experience-loading #load-tagline {
 #panel-modal-desc li {
   position: relative;
   padding-left: 1.1rem;
-  font-weight: 500;
+  font-weight: 300;
 }
 
-/* CV-style emphasis: key terms bolded a touch brighter than the body. */
+/* CV-style emphasis: bold, but same color as the body. */
 #panel-modal-desc li strong {
-  font-weight: 700;
-  color: var(--palette-web-white);
+  font-weight: 600;
+  color: inherit;
 }
 
 #panel-modal-desc li::before {

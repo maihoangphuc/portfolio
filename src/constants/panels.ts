@@ -30,8 +30,8 @@ export type PanelItem = {
 // click-to-open modal), not as separate panels.
 export const PANELS: PanelItem[] = [
   {
-    url: "/images/exp-fastboy.png",
-    title: "Fastboy Marketing\nCompany",
+    url: "/images/panel-fastboy.webp",
+    title: "Fastboy\nMarketing Company",
     label: "Experience",
     placement: "bottom",
     year: "2025",
@@ -40,10 +40,10 @@ export const PANELS: PanelItem[] = [
       "Frontend Developer (Middle) · Jul 2025 – Present\n\nDeveloping a **Social Media Automation Tool** for **multi-platform publishing** and **post scheduling** — improving **content-management efficiency 3×** over native platform workflows.\n\nBuilt reusable **Claude Code agents**, **skills**, **rules** and **project conventions** that streamlined engineering workflows and accelerated feature development.\n\n**Stack:** Vue 3, TailwindCSS, Element Plus, Claude AI.",
   },
   {
-    url: "https://picsum.photos/seed/126/800/464",
+    url: "/images/panel-ies.webp",
     title: "IES\nCompany",
     label: "Experience",
-    placement: "center",
+    placement: "bottom",
     year: "2024",
     month: "Jan",
     endMonth: "May",
@@ -52,7 +52,7 @@ export const PANELS: PanelItem[] = [
       "Frontend Developer (Junior) · Jan 2024 – May 2025\n\nBuilt **20+ modules** for **Magichands Admin**, reaching a **92+ Lighthouse Performance score** by optimizing **rendering flow**, **reducing bundle size** and implementing **lazy loading**.\n\nDeveloped and integrated **RESTful APIs** with **AdonisJS** for the **Transfer Airport** service — **one-way** and **round-trip** airport-transfer booking and scheduling.\n\n**Stack:** Next.js 14, AdonisJS, TypeScript, Ant Design, Zustand, TailwindCSS 3.",
   },
   {
-    url: "https://picsum.photos/seed/129/800/464",
+    url: "/images/panel-teso.webp",
     title: "TESO\nCompany",
     label: "Experience",
     placement: "bottom",
@@ -64,10 +64,10 @@ export const PANELS: PanelItem[] = [
       "Frontend Developer (Fresher) · Sep 2022 – Dec 2023\n\nBuilt and maintained the **CleverTube admin dashboard** for **video-based English lessons**, **vocabulary**, **quizzes** and **pronunciation-learning** features.\n\nDesigned **15+ reusable components** on a **component-driven architecture** and optimized **data fetching with React Query**, improving **maintainability and UI consistency** across the platform.\n\n**Stack:** TypeScript, ReactJS, React Query, Vue 3, Pinia, Chakra UI.",
   },
   {
-    url: "/images/edu-binhduong.png",
+    url: "/images/panel-binhduong.webp",
     title: "Binh Duong\nUniversity",
     label: "Education",
-    placement: "top",
+    placement: "bottom",
     year: "2017",
     month: "Aug",
     endMonth: "Jul",
@@ -75,39 +75,39 @@ export const PANELS: PanelItem[] = [
     description: "BSc in Software Technology · Aug 2017 – Jul 2022",
   },
   {
-    url: "https://picsum.photos/seed/138/800/464",
-    title: "Frontend\ncraft",
+    url: "/images/panel-frontend.webp",
+    title: "Frontend",
     label: "Skills",
     placement: "center",
     year: "2025",
     description:
-      "**Core:** HTML/CSS, JavaScript (ES6+), TypeScript.\n\n**Frameworks:** ReactJS 18+, Next.js 14+, Vue 3.\n\n**State & data:** Zustand, Pinia, React Query.",
+      "**Core:** HTML/CSS, JavaScript (ES6+), TypeScript.\n\n**Frameworks:** ReactJS 18+, Next.js 14+, Vue 3.\n\n**State & data:** Zustand, Pinia, React Query.\n\n**Styling:** Tailwind CSS, Ant Design, Material UI, SCSS.",
   },
   {
-    url: "https://picsum.photos/seed/141/800/464",
-    title: "Styling\n& UI",
+    url: "/images/panel-backend.webp",
+    title: "Backend",
     label: "Skills",
     placement: "bottom",
     year: "2025",
     description:
-      "**Design systems** and **pixel-accurate** interfaces.\n\n**Styling:** Tailwind CSS, Ant Design, Material UI, Chakra UI, SCSS.",
+      "**APIs:** RESTful API design and integration.\n\n**Runtime:** Node.js, AdonisJS.\n\nBuilt and integrated **booking & scheduling** services end-to-end.",
   },
   {
-    url: "https://picsum.photos/seed/145/800/464",
-    title: "Tools\n& workflow",
+    url: "/images/panel-database.webp",
+    title: "Database",
     label: "Skills",
     placement: "top",
     year: "2025",
     description:
-      "**Tools:** Git, Vite, ESLint, Prettier, Postman — with **Claude AI** woven into the daily workflow.\n\n**Database:** PostgreSQL, SQL Server.",
+      "**Databases:** PostgreSQL, SQL Server.\n\nSchema design, queries and data modeling for production apps.",
   },
   {
-    url: "https://picsum.photos/seed/148/800/464",
-    title: "Design",
+    url: "/images/panel-ai.webp",
+    title: "AI",
     label: "Skills",
     placement: "center",
     year: "2025",
     description:
-      "Bridging the gap between **design** and **development**.\n\n**Design:** Adobe Photoshop, Figma, Blender.",
+      "**AI-assisted development:** Claude AI woven into the daily workflow.\n\nBuilt reusable **Claude Code agents**, **skills**, **rules** and **project conventions** that streamlined engineering and accelerated delivery.",
   },
 ];
