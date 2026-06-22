@@ -78,7 +78,7 @@ export const PANELS: PanelItem[] = [
     url: "/images/panel-frontend.webp",
     title: "Frontend",
     label: "Skills",
-    placement: "center",
+    placement: "bottom",
     year: "2025",
     description:
       "**Core:** HTML/CSS, JavaScript (ES6+), TypeScript.\n\n**Frameworks:** ReactJS 18+, Next.js 14+, Vue 3.\n\n**State & data:** Zustand, Pinia, React Query.\n\n**Styling:** Tailwind CSS, Ant Design, Material UI, SCSS.",
@@ -96,7 +96,7 @@ export const PANELS: PanelItem[] = [
     url: "/images/panel-database.webp",
     title: "Database",
     label: "Skills",
-    placement: "top",
+    placement: "bottom",
     year: "2025",
     description:
       "**Databases:** PostgreSQL, SQL Server.\n\nSchema design, queries and data modeling for production apps.",
@@ -105,7 +105,7 @@ export const PANELS: PanelItem[] = [
     url: "/images/panel-ai.webp",
     title: "AI",
     label: "Skills",
-    placement: "center",
+    placement: "bottom",
     year: "2025",
     description:
       "**AI-assisted development:** Claude AI woven into the daily workflow.\n\nBuilt reusable **Claude Code agents**, **skills**, **rules** and **project conventions** that streamlined engineering and accelerated delivery.",
