@@ -188,12 +188,12 @@ function getResponsiveLayout(): ResponsiveLayout {
   };
 }
 
-// Maps a panel's `placement` to the title's panel-local y. ±0.2 keeps the
+// Maps a panel's `placement` to the title's panel-local y. ±0.3 keeps the
 // title (half-height 0.15) clear of the [-0.5, 0.5] panel edges.
 const TITLE_PLACEMENT_Y: Record<NonNullable<PanelItem["placement"]>, number> = {
-  top: 0.2,
+  top: 0.3,
   center: 0,
-  bottom: -0.2,
+  bottom: -0.3,
 };
 
 // Title plane local size, used to match canvas aspect to world plane aspect
