@@ -121,12 +121,18 @@ function openModal(ctx: RuntimeContext, index: number) {
   // rest is the body ("text phụ", shown below).
   const description = item.description ?? "";
   const sep = description.indexOf("\n\n");
-  const metaText = sep === -1 ? description : description.slice(0, sep);
+  const firstPara = sep === -1 ? description : description.slice(0, sep);
+  // Only the "Role · Dates" line is a meta line. Experience/Education panels lead
+  // with it; Skills panels have no such line, so their first paragraph is real
+  // body copy and must keep rendering its **bold** spans (otherwise the literal
+  // asterisks leak into the plain-text meta slot).
+  const hasMeta = firstPara.includes(" · ");
+  const metaText = hasMeta ? firstPara : "";
   // Render the body as a bulleted list (CV-style): each \n\n-separated paragraph
   // becomes one <li> with its own dot, so highlights and the tech stack read as
   // discrete points instead of one run-on block.
   dom.panelModalDesc.replaceChildren();
-  const body = sep === -1 ? "" : description.slice(sep + 2);
+  const body = hasMeta ? (sep === -1 ? "" : description.slice(sep + 2)) : description;
   for (const para of body.split("\n\n")) {
     const text = para.trim();
     if (!text) continue;

@@ -6,7 +6,9 @@ import { rootCssVarToHexInt } from "@/utils/rootCssColor";
  * 50 tiny white gl.POINTS whose positions are fully shader-driven —
  * each seed orbits a vertical cylinder hugging the model (radius pulsing
  * between uRange.x and uRange.y), drifts upward on a looping `fract` ramp,
- * and twinkles with a depth-keyed sine on alpha (max 0.5).
+ * and twinkles with a depth-keyed sine on alpha (max 0.5). The whole cloud
+ * fades in (uOpacity 0 -> 1, sine.out over 2s) the first time it renders,
+ * matching the reference's "Landing/In" opacity tween.
  *
  * The reference tuned its cylinder for a ~1-unit-tall figure (radius
  * 0.3–0.41, height 1, base at the feet); here everything is scaled by the
@@ -25,6 +27,10 @@ const RANGE_MAX = 0.41;
 // reference's update loop.
 const ORBIT_STEP = 0.005;
 const RISE_STEP = 0.0015;
+// Opacity fade-in. The reference starts the dust at uOpacity 0 and ramps it to 1
+// with a `sine.out` ease over 2s when the figure flies in (its "Landing/In"
+// gsap timeline). We reproduce that on the first frame the cloud renders.
+const FADE_IN_MS = 2000;
 // gl_PointSize in CSS pixels. The reference sets gl_PointSize=2 on a renderer
 // with a FIXED pixelRatio of 2 — i.e. 1 CSS px specks.
 const SIZE_PX = 1;
@@ -96,7 +102,8 @@ export function createFigureParticles(
     uRange: { value: new THREE.Vector2(RANGE_MIN * height, RANGE_MAX * height) },
     uColor: { value: new THREE.Color(rootCssVarToHexInt("--color-web-white")) },
     uSize: { value: SIZE_PX * pixelRatio },
-    uOpacity: { value: 1 },
+    // Starts invisible; ramps to 1 over FADE_IN_MS — see update().
+    uOpacity: { value: 0 },
     uBaseY: { value: figureBox.min.y },
     uHeight: { value: height },
   };
@@ -122,11 +129,20 @@ export function createFigureParticles(
   const points = new THREE.Points(geometry, material);
   points.frustumCulled = false;
 
+  // Stamped on the first update() so the fade-in starts when the cloud first
+  // renders (the reference fades in as the figure flies into the landing).
+  let fadeStartMs: number | null = null;
+
   return {
     object: points,
     update() {
       uniforms.uTime.value.x += ORBIT_STEP;
       uniforms.uTime.value.y += RISE_STEP;
+
+      if (fadeStartMs === null) fadeStartMs = performance.now();
+      const t = Math.min(1, (performance.now() - fadeStartMs) / FADE_IN_MS);
+      // sine.out ease, matching the reference's gsap tween.
+      uniforms.uOpacity.value = Math.sin((t * Math.PI) / 2);
     },
     dispose() {
       geometry.dispose();

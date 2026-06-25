@@ -269,6 +269,8 @@ html.experience-loading #load-tagline {
 }
 
 #intro-desc {
+  font-family: "GE Inspira Sans", var(--font-roboto), ui-sans-serif, system-ui,
+    sans-serif;
   font-size: 13px;
   font-weight: 400;
   line-height: 1.6;
@@ -345,6 +347,27 @@ html.experience-loading #load-tagline {
   font-style: normal;
 }
 
+/* GE Inspira Sans — the sans-serif theyearofgreta.com uses for its statement /
+   descriptive paragraphs (the intro-left/right body copy). */
+@font-face {
+  font-family: "GE Inspira Sans";
+  src:
+    url("@/assets/fonts/ge-inspira-sans-regular.woff2") format("woff2"),
+    url("@/assets/fonts/ge-inspira-sans-regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "GE Inspira Sans";
+  src:
+    url("@/assets/fonts/ge-inspira-sans-bold.woff2") format("woff2"),
+    url("@/assets/fonts/ge-inspira-sans-bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 #explore-btn {
   display: inline-block;
   font-family: "US Blaak", serif;
@@ -399,6 +422,17 @@ html.experience-loading #load-tagline {
   transform: translateX(0) scaleX(1);
 }
 
+/* In the steady revealed state, the explore-underline-draw fill (fill: both,
+   ending at opacity 0.45) outranks the normal hover rule, so force full-opacity
+   accent on hover here — matching the play/pause (#sound-btn) hover border.
+   Scoped to .intro-lines-reveal ONLY: during the exit (.intro-lines-exit, which
+   drops .intro-lines-reveal) this !important must NOT apply, or it would pin the
+   line solid and block the exit fade — the line must stay thin / fade out as it
+   did before the click. */
+#intro-left.intro-lines-reveal #explore-btn:hover::after {
+  opacity: 1 !important;
+}
+
 /* Right-side statement block, shown at the end of the scroll (outro). Sits on
    the right of the screen but its line + text are aligned EXACTLY like
    #intro-left (left-anchored line, left-aligned text, same line-draw reveal).
@@ -451,6 +485,8 @@ html.experience-loading #load-tagline {
 }
 
 #intro-right-text {
+  font-family: "GE Inspira Sans", var(--font-roboto), ui-sans-serif, system-ui,
+    sans-serif;
   font-size: 13px;
   font-weight: 300;
   line-height: 1.6;
@@ -1152,12 +1188,21 @@ html.experience-loading #load-tagline {
 /* ------------------------------------------------------------------ */
 @media (max-width: 1023.98px) {
   #intro-left {
-    left: 50%;
-    top: 50%;
-    bottom: auto;
-    transform: translate(-50%, -50%);
+    /* Center via pure layout (inset + margin:auto) with NO transform. A
+       translate()-centered element rasterizes in its own transformed layer that
+       isn't snapped to the device-pixel grid, so the 1px Explore underline lands
+       on a half pixel and renders ~2px/blurry. Layout positions ARE pixel-snapped
+       during paint, keeping the hairline crisp. top:6rem reproduces the previous
+       3rem-below-center nudge (was top:50% + margin-top:3rem). width/max-width
+       come from the sizing rule below. */
+    left: 0;
+    right: 0;
+    top: 6rem;
+    bottom: 0;
+    height: max-content;
+    margin: auto;
+    transform: none;
     padding-left: 0;
-    margin-top: 3rem;
   }
 }
 
