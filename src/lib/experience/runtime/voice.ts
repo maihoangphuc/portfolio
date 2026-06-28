@@ -1,7 +1,8 @@
 import { Dom } from "@/lib/experience/runtime/types";
 
 /**
- * Background voice track ("/voice.mp3") + the sound-permission gate.
+ * Background audio (looping voice "/voice_proc.mp3" + continuous music
+ * "/bgm.mp3", with real-time ducking) + the sound-permission gate.
  *
  * Flow (mirrors theyearofgreta.com): once the load screen finishes, the
  * experience is held behind a centered play button + "enable sound" prompt
@@ -45,20 +46,98 @@ const AUTO_ENTER_MS = 4500;
 const SOUND_START_DELAY_MS = 1400;
 
 export function createVoice(dom: Dom): VoiceController {
-  const audio = new Audio("/voice.mp3");
+  // Two INDEPENDENT tracks: the looping VOICE (widened pauses, no music baked
+  // in) and a CONTINUOUS background MUSIC bed that loops on its own cycle — so
+  // the music plays on forever and never restarts in step with the voice loop.
+  const audio = new Audio("/voice_proc.mp3"); // the looping voice
   audio.loop = true;
   audio.preload = "auto";
   // Start downloading immediately so the file is buffered before the gate
   // appears (drives the loading ring on the gate button below).
   audio.load();
 
-  // Icon contract (globals.css): no `.paused` class = pause icon (playing),
-  // `.paused` = play icon (stopped). Mirror the real element state.
-  const syncIcon = () => {
-    dom.soundBtn.classList.toggle("paused", audio.paused);
+  const music = new Audio("/bgm.mp3"); // the continuous music bed
+  music.loop = true;
+  music.preload = "auto";
+  music.load();
+
+  // Real-time ducking via Web Audio (built lazily on first play — needs a user
+  // gesture). The music's gain is driven from the voice's live level: it dips
+  // under speech and swells back up in the voice's pauses. If Web Audio isn't
+  // available we fall back to a fixed low music volume (no dynamic ducking).
+  const BASE_VOL = 0.4; // music level in the voice's pauses
+  const DUCK_VOL = 0.12; // music level under speech
+  let ctx: AudioContext | null = null;
+  let musicGain: GainNode | null = null;
+  let analyser: AnalyserNode | null = null;
+  let duckData: Float32Array<ArrayBuffer> | null = null;
+  let duckRaf = 0;
+  let graphBuilt = false;
+
+  const buildGraph = () => {
+    if (graphBuilt) return;
+    graphBuilt = true;
+    try {
+      const AC =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      ctx = new AC();
+      const vSrc = ctx.createMediaElementSource(audio);
+      const mSrc = ctx.createMediaElementSource(music);
+      musicGain = ctx.createGain();
+      musicGain.gain.value = 0; // fade up from silence when playback starts
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      duckData = new Float32Array(analyser.fftSize);
+      vSrc.connect(ctx.destination); // voice -> speakers (full)
+      vSrc.connect(analyser); //         voice -> ducking key
+      mSrc.connect(musicGain).connect(ctx.destination); // music -> gain -> out
+    } catch {
+      ctx = null;
+      musicGain = null;
+      analyser = null;
+      music.volume = BASE_VOL; // graceful fallback: steady low music
+    }
   };
-  audio.addEventListener("play", syncIcon);
-  audio.addEventListener("pause", syncIcon);
+
+  // Per-frame envelope follower: measure the voice's RMS and steer the music
+  // gain toward DUCK_VOL while speaking / BASE_VOL in the gaps. Fast attack
+  // (duck down quickly), gentler release (let it breathe back up).
+  const duckTick = () => {
+    if (ctx && musicGain && analyser && duckData) {
+      analyser.getFloatTimeDomainData(duckData);
+      let sum = 0;
+      for (let i = 0; i < duckData.length; i++) sum += duckData[i] * duckData[i];
+      const rms = Math.sqrt(sum / duckData.length);
+      const speaking = rms > 0.015;
+      musicGain.gain.setTargetAtTime(
+        speaking ? DUCK_VOL : BASE_VOL,
+        ctx.currentTime,
+        speaking ? 0.05 : 0.28,
+      );
+    }
+    duckRaf = requestAnimationFrame(duckTick);
+  };
+  const startDuck = () => {
+    if (!duckRaf) duckTick();
+  };
+  const stopDuck = () => {
+    if (duckRaf) {
+      cancelAnimationFrame(duckRaf);
+      duckRaf = 0;
+    }
+  };
+
+  // Icon contract (globals.css): no `.paused` class = pause icon (playing),
+  // `.paused` = play icon (stopped). Mirror the MUSIC element — it represents
+  // "sound is on", and it starts before the voice (which leads in a few seconds
+  // later), so the button must read as playing during that lead.
+  const syncIcon = () => {
+    dom.soundBtn.classList.toggle("paused", music.paused);
+  };
+  music.addEventListener("play", syncIcon);
+  music.addEventListener("pause", syncIcon);
 
   // Loading ring (globals.css): `.loading` spins an accent arc around the
   // button (icons hidden), like the Greta site. Both the gate's play button and
@@ -74,6 +153,13 @@ export function createVoice(dom: Dom): VoiceController {
   audio.addEventListener("canplaythrough", markReady);
   audio.addEventListener("playing", markReady);
   audio.addEventListener("error", markReady);
+  music.addEventListener("playing", markReady);
+
+  // Lead-in: on the FIRST start, the music plays alone for this long before the
+  // voice comes in. A manual resume after a pause starts the voice immediately.
+  const INTRO_LEAD_MS = 5000;
+  let firstStart = true;
+  let voiceLeadTimer: number | undefined;
 
   let gateEntered = false;
   let onGateEnter: (() => void) | null = null;
@@ -85,13 +171,31 @@ export function createVoice(dom: Dom): VoiceController {
     // A manual press (or anything that starts the track) pre-empts the pending
     // post-gate start delay.
     window.clearTimeout(startTimer);
+    buildGraph();
     try {
-      await audio.play();
+      await ctx?.resume();
+    } catch {
+      /* resume may reject if not yet allowed; play() below still tries */
+    }
+    try {
+      // MUSIC starts first and runs continuously; the duck follower kicks in.
+      await music.play();
+      startDuck();
     } catch {
       // Blocked (e.g. autoplay policy, since this can fire a few seconds after
       // the click) — clear the loading arc and leave the button in its stopped
       // (play-icon) state so the visitor can start it manually.
       markReady();
+    }
+    // VOICE leads in a few seconds after the music on the FIRST start (so the
+    // music plays alone up front); a manual resume brings it back right away.
+    window.clearTimeout(voiceLeadTimer);
+    const startVoice = () => void audio.play().catch(() => {});
+    if (firstStart) {
+      firstStart = false;
+      voiceLeadTimer = window.setTimeout(startVoice, INTRO_LEAD_MS);
+    } else {
+      startVoice();
     }
     syncIcon();
   };
@@ -188,8 +292,15 @@ export function createVoice(dom: Dom): VoiceController {
   };
 
   const toggle = () => {
-    if (audio.paused) void play();
-    else audio.pause();
+    // Music represents "sound on" — it leads the voice, so key the toggle off it.
+    if (music.paused) {
+      void play();
+    } else {
+      window.clearTimeout(voiceLeadTimer);
+      audio.pause();
+      music.pause();
+      stopDuck();
+    }
   };
 
   return {
@@ -199,14 +310,24 @@ export function createVoice(dom: Dom): VoiceController {
       window.clearTimeout(autoEnterTimer);
       window.clearTimeout(doneTimer);
       window.clearTimeout(startTimer);
+      window.clearTimeout(voiceLeadTimer);
+      stopDuck();
       dom.soundPermissionBtn.removeEventListener("click", onPlayClick);
       audio.pause();
-      audio.removeEventListener("play", syncIcon);
-      audio.removeEventListener("pause", syncIcon);
+      music.pause();
+      music.removeEventListener("play", syncIcon);
+      music.removeEventListener("pause", syncIcon);
       audio.removeEventListener("canplaythrough", markReady);
       audio.removeEventListener("playing", markReady);
       audio.removeEventListener("error", markReady);
+      music.removeEventListener("playing", markReady);
       audio.src = "";
+      music.src = "";
+      try {
+        void ctx?.close();
+      } catch {
+        /* already closed */
+      }
     },
   };
 }

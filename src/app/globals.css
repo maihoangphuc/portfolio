@@ -567,7 +567,9 @@ html.experience-loading #load-tagline {
   font-weight: 700;
   font-size: 0.75rem;
   line-height: 1;
-  padding-bottom: 0.6rem;
+  /* Gap between the text and its underline (which sits at bottom: 0) — a touch
+     more breathing room above the line. */
+  padding-bottom: 0.75rem;
   letter-spacing: 0.02em;
   color: #dbdbdb;
   text-decoration: none;
