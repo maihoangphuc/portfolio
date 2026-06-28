@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { rootCssVarToHexInt } from "@/utils/rootCssColor";
 import { LG_BREAKPOINT } from "@/constants/experience";
-import { FigureParticles, createFigureParticles } from "@/lib/experience/runtime/particles";
+import { FigureParticles } from "@/lib/experience/runtime/particles";
 
 export const clayMaterial = new THREE.MeshPhysicalMaterial({
   color: 0xffffff,
@@ -465,7 +465,6 @@ async function addNamePlane(scene: THREE.Scene) {
 export async function loadModels(
   scene: THREE.Scene,
   onProgress: (pct: number) => void,
-  pixelRatio: number,
 ): Promise<{ group: THREE.Group; particles: FigureParticles | null }> {
   const loader = await makeGltfLoader();
   const tracker = makeProgressTracker(onProgress);
@@ -504,21 +503,11 @@ export async function loadModels(
   group.add(figure.scene);
   group.add(rock.scene);
 
-  // Dust cloud hugging the figure (ported from theyearofgreta.com). Size the
-  // cylinder from the figure's bounding box, measured here in group-local space
-  // (figure.scene's scale/position are baked in, but the outer `group` transform
-  // is not yet applied), so the Points — parented to `group` below — follow the
-  // model through intro/scroll/exit at the right scale and position.
-  figure.scene.updateMatrixWorld(true);
-  const figureBox = new THREE.Box3().setFromObject(figure.scene);
-  const particles = createFigureParticles(figureBox, pixelRatio);
-  group.add(particles.object);
-
   await addNamePlane(scene);
 
   group.position.set(0, -0.8, 0);
   group.scale.setScalar(2.6);
   scene.add(group);
 
-  return { group, particles };
+  return { group, particles: null };
 }

@@ -1297,6 +1297,17 @@ html.experience-loading #load-tagline {
   transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+/* Click-locked while the countdown ring draws its first lap (set by voice.ts,
+   cleared when lap 1 finishes). The button is on screen but not yet pressable —
+   default cursor + a dimmed play icon read as "not ready yet"; the icon eases up
+   to full opacity (its 0.4s transition above) the moment the lock lifts. */
+#sound-permission-btn.ring-locked {
+  cursor: default;
+}
+#sound-permission-btn.ring-locked svg.icon-play {
+  opacity: 0.4;
+}
+
 /* Loading ring around the play button while the mp3 downloads — reuses the
    #sound-btn spinner arc + keyframes (sound-btn-rotate / sound-btn-dash). */
 #sound-permission-btn .sound-btn-spinner {
@@ -1464,8 +1475,8 @@ html.experience-loading #load-tagline {
    hard pop. `both` fill holds the full-visible pose through the stagger so
    nothing flashes. Timing mirrors GATE_EXIT_MS in runtime/voice.ts. */
 #sound-permission.leaving #sound-permission-btn {
-  /* Hold until the ring has drawn up to top center (~0.5s), THEN ease away. */
-  animation: perm-btn-out 0.24s cubic-bezier(0.4, 0, 0.2, 1) 0.46s both;
+  /* Hold until the ring has drawn up to top center (~1s), THEN ease away. */
+  animation: perm-btn-out 0.24s cubic-bezier(0.4, 0, 0.2, 1) 0.92s both;
 }
 
 /* Play icon glides out to the left and fades — accelerating ease-in so it
@@ -1484,7 +1495,7 @@ html.experience-loading #load-tagline {
 }
 #sound-permission.leaving #sound-permission-btn .sound-btn-countdown circle {
   /* Decelerates into the stop at top center. Target offset set inline by JS. */
-  transition: stroke-dashoffset 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #sound-permission.leaving .perm-line-inner {

@@ -1,5 +1,5 @@
 const INTRO_DESCRIPTION =
-  "Frontend Developer with ~4 years building performant admin systems, internal tools and automation platforms in React.js and Vue.js — accelerated by AI-assisted workflows.";
+  "Frontend Developer, ~4 years building admin systems, internal tools and automation platforms with React and Vue.";
 
 const INTRO_RIGHT_TEXT =
   "Thank you for taking the time to explore my work. I would welcome the opportunity to bring this same dedication to your team and build something exceptional together.";

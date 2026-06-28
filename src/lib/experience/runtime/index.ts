@@ -71,7 +71,7 @@ export function startExperience() {
   const cleanupLoop = createAnimateLoop(ctx);
 
   const loadStartMs = performance.now();
-  void loadModels(scene, (pct) => { state.modelLoadTargetPct = pct; }, renderer.getPixelRatio())
+  void loadModels(scene, (pct) => { state.modelLoadTargetPct = pct; })
     .then(({ group, particles }) => {
       // Phase B — runs only after the loader letter has fully dissolved:
       // nothing else (scene canvases, model, intro UI) appears before it.

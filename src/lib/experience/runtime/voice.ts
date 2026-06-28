@@ -30,13 +30,20 @@ export type VoiceController = {
 // text lines + play button fade out / drift up over ~0.5s (perm-line-out in
 // globals.css); this is that plus a small breath, so the prompt is fully gone
 // BEFORE the intro starts easing in — hide first, then reveal, never both at
-// once. Keep this ≥ the perm-line-out (delay + duration).
-const GATE_EXIT_MS = 700;
+// once. Keep this ≥ the slowest exit animation (ring sweep ~1s + the button's
+// 0.92s hold + 0.24s fade); the ring sweep is the long pole now.
+const GATE_EXIT_MS = 1250;
 
 // How long the gate stays up before auto-advancing into the intro with no
 // gesture. MUST match the perm-countdown ring duration in globals.css so the
 // ring finishes filling exactly as the gate auto-advances (~4.5s).
 const AUTO_ENTER_MS = 4500;
+
+// The countdown ring's LAP 1 — the fast initial draw (0→20% of perm-countdown in
+// globals.css) that fills the ring once. The play button stays click-LOCKED
+// until this lap completes, so pressing it can only dismiss the gate AFTER the
+// ring has drawn fully round once. Must match the 20% split of perm-countdown.
+const RING_LAP1_MS = AUTO_ENTER_MS * 0.2;
 
 // After the visitor enables sound and the intro is in, an inchworm ("sâu đo")
 // arc crawls HALF the #sound-btn border (center-bottom → center-top) before the
@@ -149,6 +156,9 @@ export function createVoice(dom: Dom): VoiceController {
   const markReady = () => {
     dom.soundBtn.classList.remove("loading", "sound-starting");
     dom.soundPermissionBtn.classList.remove("loading");
+    // If the gate is already up, the countdown ring starts drawing the instant
+    // `.loading` clears — begin the lap-1 click lock from this moment.
+    if (document.documentElement.classList.contains("sound-gate")) startRingLock();
   };
   audio.addEventListener("canplaythrough", markReady);
   audio.addEventListener("playing", markReady);
@@ -166,6 +176,24 @@ export function createVoice(dom: Dom): VoiceController {
   let autoEnterTimer: number | undefined;
   let doneTimer: number | undefined;
   let startTimer: number | undefined;
+
+  // Click lock for the gate's play button: it ignores presses until the
+  // countdown ring's first lap has drawn (RING_LAP1_MS). `startRingLock` arms the
+  // timer from when the ring actually begins (gate visible AND not buffering);
+  // it's called from both beginGate and markReady so it fires whichever happens
+  // last, and is guarded to run only once per gate.
+  let clickArmed = false;
+  let lockStarted = false;
+  let armTimer: number | undefined;
+  const armClick = () => {
+    clickArmed = true;
+    dom.soundPermissionBtn.classList.remove("ring-locked");
+  };
+  const startRingLock = () => {
+    if (lockStarted || clickArmed) return;
+    lockStarted = true;
+    armTimer = window.setTimeout(armClick, RING_LAP1_MS);
+  };
 
   const play = async () => {
     // A manual press (or anything that starts the track) pre-empts the pending
@@ -268,8 +296,13 @@ export function createVoice(dom: Dom): VoiceController {
     }, GATE_EXIT_MS);
   }
 
-  // Click the play button → dismiss WITH sound.
-  const onPlayClick = () => enterFromGate(true);
+  // Click the play button → dismiss WITH sound, but only once the ring's first
+  // lap has drawn (clickArmed). Earlier presses are ignored so the lap always
+  // completes before the gate can leave.
+  const onPlayClick = () => {
+    if (!clickArmed) return;
+    enterFromGate(true);
+  };
 
   const beginGate = (onEnter: () => void) => {
     onGateEnter = onEnter;
@@ -283,7 +316,16 @@ export function createVoice(dom: Dom): VoiceController {
     void dom.soundPermission.offsetHeight;
     dom.soundPermission.classList.add("visible");
 
+    // Lock the play button until the ring's first lap has drawn (RING_LAP1_MS).
+    clickArmed = false;
+    lockStarted = false;
+    window.clearTimeout(armTimer);
+    dom.soundPermissionBtn.classList.add("ring-locked");
     dom.soundPermissionBtn.addEventListener("click", onPlayClick);
+    // The track is usually already buffered by now, so the countdown starts the
+    // instant the gate is visible — arm the lock here. If it's still buffering,
+    // markReady arms it when `.loading` clears (whichever happens last wins).
+    if (!dom.soundPermissionBtn.classList.contains("loading")) startRingLock();
 
     // Auto-advance into the intro once the ring completes, even if nobody
     // interacts (Greta flow) — MUTED. A play-button click before this fires
@@ -310,6 +352,7 @@ export function createVoice(dom: Dom): VoiceController {
       window.clearTimeout(autoEnterTimer);
       window.clearTimeout(doneTimer);
       window.clearTimeout(startTimer);
+      window.clearTimeout(armTimer);
       window.clearTimeout(voiceLeadTimer);
       stopDuck();
       dom.soundPermissionBtn.removeEventListener("click", onPlayClick);
