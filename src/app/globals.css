@@ -1143,7 +1143,7 @@ html.experience-loading #load-tagline {
      comet feel. It begins oriented so distance 0 sits at center-bottom
      (rotate 90°) and adds exactly +360°, so it comes to rest at the same
      orientation — i.e. the resting arc ends at center-top. */
-  animation: sound-btn-starting-spin 1.4s linear 1 forwards;
+  animation: sound-btn-starting-spin 1.8s linear 1 forwards;
 }
 
 /* Greta inchworm ("sâu đo"): the lead races ahead so the arc lengthens, then the
@@ -1154,7 +1154,7 @@ html.experience-loading #load-tagline {
 #sound-btn.sound-starting .sound-btn-spinner circle {
   stroke-dasharray: 3 91.1;
   stroke-dashoffset: 0;
-  animation: sound-btn-starting-dash 1.4s ease-in-out 1 forwards;
+  animation: sound-btn-starting-dash 1.8s ease-in-out 1 forwards;
 }
 
 @keyframes sound-btn-starting-spin {

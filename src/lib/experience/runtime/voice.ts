@@ -43,7 +43,7 @@ const AUTO_ENTER_MS = 4500;
 // mp3 starts — a quick warm-up beat, not instant playback. Must match the
 // inchworm duration of `.sound-starting` in globals.css so playback begins as
 // the arc reaches the top.
-const SOUND_START_DELAY_MS = 1400;
+const SOUND_START_DELAY_MS = 1800;
 
 export function createVoice(dom: Dom): VoiceController {
   // Two INDEPENDENT tracks: the looping VOICE (widened pauses, no music baked
