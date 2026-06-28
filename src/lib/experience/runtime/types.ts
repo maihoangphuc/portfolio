@@ -16,6 +16,8 @@ export type Dom = {
   introRight: HTMLElement;
   bgName: HTMLElement;
   soundBtn: HTMLElement;
+  soundPermission: HTMLElement;
+  soundPermissionBtn: HTMLElement;
   social: HTMLElement;
   sline: HTMLElement;
   exploreBtn: HTMLElement;

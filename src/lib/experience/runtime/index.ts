@@ -12,6 +12,7 @@ import { createAnimateLoop } from "@/lib/experience/runtime/loop";
 import { createPanels } from "@/lib/experience/runtime/panels";
 import { initModal } from "@/lib/experience/runtime/modal";
 import { createLoaderCharacter, LOADER_CHAR_HIDE_MS } from "@/lib/experience/runtime/loaderCharacter";
+import { createVoice } from "@/lib/experience/runtime/voice";
 
 export function startExperience() {
   const dom = getDom();
@@ -52,11 +53,12 @@ export function startExperience() {
     events: null,
   };
   createPanels(ctx);
+
+  // #sound-btn controls only this voice track — nothing in the runtime.
+  const voice = createVoice(dom);
+
   ctx.events = bindEvents(dom, state, {
-    onTogglePaused: () => {
-      state.isPaused = !state.isPaused;
-      dom.soundBtn.classList.toggle("paused", state.isPaused);
-    },
+    onTogglePaused: () => voice.toggle(),
     runIntroPageLineEffects: () => runIntroPageLineEffects(ctx),
     replaySocialLineEffect: () => replaySocialLineEffect(ctx),
   });
@@ -76,17 +78,25 @@ export function startExperience() {
       const reveal = () => {
         ctx.figureGroup.value = group;
         ctx.particles = particles;
-        document.documentElement.classList.remove("experience-loading");
-        dom.bgName.classList.add("model-ready");
 
         // Pre-warm the GPU before the intro wipe-in. Without this, the figure's
         // clay material and the bg-name plane's heavy simplex-noise shader both
         // compile (and upload) on the first frame they render — which is the
         // exact frame the 1.6s wipe-in starts, so the reveal stutters ("giật").
-        // Compiling here pays that cost once while everything is still hidden.
+        // The figure renders into the still-hidden (#c opacity 0) canvas while
+        // the gate is up, so compiling here pays that cost while it's hidden.
         renderer.compile(scene, cam);
 
-        completeExploreReturnToIntroUi(ctx);
+        // The sound gate lives ON the loading screen (Greta flow): keep
+        // `experience-loading` on so the scene + bg-name stay hidden over the
+        // dark loading background while the gate's 3s countdown runs. Only once
+        // the gate is dismissed (click, or the ring winding down) do we drop the
+        // loading screen and reveal the intro.
+        voice.beginGate(() => {
+          document.documentElement.classList.remove("experience-loading");
+          dom.bgName.classList.add("model-ready");
+          completeExploreReturnToIntroUi(ctx);
+        });
       };
 
       // Phase A — the loading screen exits as a unit: letter fades out while
@@ -120,19 +130,22 @@ export function startExperience() {
     .catch((err) => {
       console.error(err);
       ctx.loaderChar?.startHide();
-      // Same sequencing as the success path: reveal the page only after the
-      // loader letter has fully dissolved.
+      // Same sequencing as the success path: show the gate on the loading
+      // screen, then reveal the page only once the gate is dismissed.
       ctx.timers.loadReveal = window.setTimeout(() => {
-        document.documentElement.classList.remove("experience-loading");
         dom.modelLoadPct.setAttribute("aria-busy", "false");
         dom.modelLoadPct.classList.remove("model-loading", "model-load-exit");
-        scheduleIntroLinesWhenUiVisible(ctx);
+        voice.beginGate(() => {
+          document.documentElement.classList.remove("experience-loading");
+          scheduleIntroLinesWhenUiVisible(ctx);
+        });
       }, LOADER_CHAR_HIDE_MS);
     });
 
   return () => {
     cleanupLoop();
     modal.teardown();
+    voice.teardown();
     ctx.events.teardown();
     window.clearTimeout(ctx.timers.loadComplete);
     window.clearTimeout(ctx.timers.loadReveal);

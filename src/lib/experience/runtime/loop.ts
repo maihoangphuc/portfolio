@@ -14,10 +14,11 @@ import { updatePanels } from "@/lib/experience/runtime/panels";
 const SECTION_LABELS = ["Objective", "Experience", "Education", "Skills"];
 const SECTION_ABBR = ["Obj", "Exp", "Edu", "Skl"];
 
-// How long the intro-right reverse runs before the block is fully hidden — the
-// line sweeps right (1s, the time-mirror of the entry), and the text fades out
-// (0.7s delay + 0.3s = 1s), so the sequence ends at 1s in globals.css.
-const INTRO_RIGHT_EXIT_MS = 1050;
+// How long the intro-right reverse runs before the block is fully hidden.
+// Mirrors #intro-left's exit: the line collapses to the left (0.6s) and the
+// text fades (0.8s), while the CV button's chars drop out staggered — the last
+// "Download CV" char ends at ~0.3s delay + 0.6s = ~0.9s, the latest event.
+const INTRO_RIGHT_EXIT_MS = 950;
 
 // First panel of the Skills section — once the scroll reaches it, the timeline
 // and the month/year scrubber hide (Skills isn't tied to the date axis).

@@ -1,5 +1,5 @@
 const INTRO_DESCRIPTION =
-  "Frontend Developer with 3+ years building scalable, high-performance web applications with React, Next.js and Vue 3.";
+  "Frontend Developer with ~4 years building performant admin systems, internal tools and automation platforms in React.js and Vue.js — accelerated by AI-assisted workflows.";
 
 const INTRO_RIGHT_TEXT =
   "Thank you for taking the time to explore my work. I would welcome the opportunity to bring this same dedication to your team and build something exceptional together.";
@@ -46,6 +46,24 @@ export default function ExperienceIntro() {
         <div id="intro-right-text" className="text-web-soft">
           {INTRO_RIGHT_TEXT}
         </div>
+        <a
+          id="cv-btn"
+          className="text-web-white"
+          href="/maihoangphuc.pdf"
+          download
+        >
+          <span className="cv-text-wrapper">
+            {"Download CV".split("").map((char, i) => (
+              <span
+                key={i}
+                className="char"
+                style={{ "--char-index": i } as React.CSSProperties}
+              >
+                {char === " " ? " " : char}
+              </span>
+            ))}
+          </span>
+        </a>
       </div>
 
       <div id="drag-hint">

@@ -5,7 +5,7 @@
   --palette-web-bg: #352d40;
   --palette-web-accent: #b88ef1;
   --palette-web-accent-icon: #ffffffe6;
-  --palette-web-label-hover-pannel: #c9cacc;
+  --palette-web-label-hover-pannel: #cfd5df;
   --palette-web-shader-highlight: #c4a8e8;
   --palette-web-name: #352d40cc;
   --palette-web-white: #ffffff;
@@ -108,6 +108,10 @@ html.experience-loading #c {
   width: 100%;
   height: 100%;
   z-index: 2;
+  /* Fade the main scene in (matches #bg) when `experience-loading` is dropped,
+     so the figure eases in instead of snapping on — no hard pop when the sound
+     gate hands off to the intro. */
+  transition: opacity 0.85s ease;
 }
 
 /* Until models finish loading, the UI buttons and bg-name stay hidden so the
@@ -115,7 +119,7 @@ html.experience-loading #c {
    animation is triggered by runIntroPageLineEffects after loading completes,
    so the user actually sees it (otherwise it plays silently behind the load
    HUD and the text is already in its final state by the time loading ends). */
-html.experience-loading #ui > *:not(#model-load-pct):not(#brand):not(#load-tagline),
+html.experience-loading #ui > *:not(#model-load-pct):not(#brand):not(#load-tagline):not(#sound-permission),
 html.experience-loading #bg-name {
   opacity: 0.01 !important;
   pointer-events: none !important;
@@ -501,7 +505,9 @@ html.experience-loading #load-tagline {
 /* Hidden until revealed. The exit state keeps them visible while the reverse
    animation plays (see below), so exclude it here too. */
 #intro-right:not(.outro-show):not(.outro-exit) #intro-rule-right,
-#intro-right:not(.outro-show):not(.outro-exit) #intro-right-text {
+#intro-right:not(.outro-show):not(.outro-exit) #intro-right-text,
+#intro-right:not(.outro-show):not(.outro-exit) #cv-btn .char,
+#intro-right:not(.outro-show):not(.outro-exit) #cv-btn::after {
   opacity: 0;
 }
 
@@ -516,17 +522,96 @@ html.experience-loading #load-tagline {
   opacity: 1;
   animation: text-fade-in 0.3s 0.5s both;
 }
+/* CV button reveals exactly like #explore-btn: chars fade in staggered, the
+   underline sweeps in — just sequenced after the intro-right text. */
+#intro-right.outro-show #cv-btn .char {
+  animation: char-reveal 0.4s both;
+  animation-delay: calc(0.7s + var(--char-index) * 0.07s);
+}
+#intro-right.outro-show #cv-btn::after {
+  animation: explore-underline-draw 1s 0.7s both;
+}
 
-/* Exit (scrolling back up): the line first sweeps back out to the right (the
-   reverse of how it entered), THEN the text fades out. */
+/* Exit (scrolling back up): the top line just hides — no sweep/collapse
+   animation — like #intro-left. The text fades and the CV button drops out. */
 #intro-right.outro-exit #intro-rule-right {
-  width: 100%;
-  opacity: 1;
-  animation: intro-rule-exit-right 1s both;
+  opacity: 0;
 }
 #intro-right.outro-exit #intro-right-text {
   opacity: 1;
-  animation: intro-text-exit 0.3s 0.7s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  animation: intro-text-exit 0.8s cubic-bezier(0.32, 0, 0.67, 0) forwards !important;
+}
+/* CV button exit mirrors #explore-btn's exit: chars drop out staggered while
+   the underline sweeps back out to the side. */
+#intro-right.outro-exit #cv-btn .char {
+  opacity: 1;
+  animation: char-exit 0.6s both;
+  animation-delay: calc(var(--char-index) * 0.03s);
+}
+#intro-right.outro-exit #cv-btn::after {
+  opacity: 1;
+  animation: explore-underline-exit 0.6s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+
+/* Download-CV link: an underline-sweep button identical to #explore-btn —
+   right-anchored, same font / underline geometry / hover sweep. Only
+   interactive once the outro block is shown (the parent enables
+   pointer-events then). */
+#cv-btn {
+  /* No fixed height: the box hugs the text and a small padding-bottom sets the
+     gap to the underline (bottom: 0), so the line sits right under the text. */
+  display: inline-block;
+  align-self: flex-end;
+  text-align: right;
+  font-family: "US Blaak", serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding-bottom: 0.6rem;
+  letter-spacing: 0.02em;
+  color: #dbdbdb;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: visible;
+}
+
+#cv-btn .char {
+  display: inline-block;
+  white-space: pre;
+  font-family: inherit;
+}
+
+#cv-btn::after {
+  content: "";
+  display: block;
+  width: calc(100% + 5.5rem);
+  height: 1px;
+  background: var(--color-web-label);
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: auto;
+  opacity: 0.45;
+  transform-origin: left bottom;
+  clip-path: inset(0 0 0 2.75rem);
+  transition:
+    clip-path 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease,
+    background-color 0.3s ease;
+}
+
+#cv-btn:hover::after {
+  clip-path: inset(0 0 0 0);
+  background: var(--color-web-accent);
+  opacity: 1;
+}
+
+/* In the steady revealed state the explore-underline-draw fill ends at opacity
+   0.45 and outranks the normal hover rule, so force full-opacity accent on
+   hover here — same workaround as #explore-btn. */
+#intro-right.outro-show #cv-btn:hover::after {
+  opacity: 1 !important;
 }
 
 #ui {
@@ -960,6 +1045,129 @@ html.experience-loading #load-tagline {
   border-color: var(--color-web-accent) !important;
 }
 
+/* Loading spinner (like theyearofgreta.com's play button): a single accent
+   stroke arc that rotates while its length grows and shrinks — no static
+   track. Hidden unless the button carries `.loading`. */
+#sound-btn .sound-btn-spinner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  /* The containing block for this absolute svg is the button's PADDING box
+     (inside the 1px border), so inset:0 would drop the full-size svg 1px down +
+     right of the border-box and the arc would ride a ring 1px off-centre.
+     Offset by the border width so the svg covers the BORDER box and the arc
+     sits dead-centre ON the default border ring. */
+  inset: -1px;
+  opacity: 0;
+  pointer-events: none;
+  color: var(--color-web-accent);
+  transform-origin: 50% 50%;
+  transition: none;
+}
+
+#sound-btn .sound-btn-spinner circle {
+  fill: none;
+  stroke: currentColor;
+  /* Hairline loading arc — thinner than the kept 1px static border so the
+     travelling accent reads as a fine line riding the ring, not a chunky stroke
+     (viewBox is 30 on a 30px element, so this value is px-for-px). */
+  stroke-width: 0.6;
+  stroke-linecap: round;
+}
+
+#sound-btn.loading .sound-btn-spinner {
+  opacity: 1;
+  animation: sound-btn-rotate 1.4s linear infinite;
+}
+
+#sound-btn.loading .sound-btn-spinner circle {
+  animation: sound-btn-dash 1.4s ease-in-out infinite;
+}
+
+/* While loading, the arc rides ON the static border (same radius), so KEEP the
+   border ring — only the play/pause glyphs are hidden, letting the rotating arc
+   read as a bright segment sweeping the existing ring (not a second circle). */
+#sound-btn.loading .icon-play,
+#sound-btn.loading .icon-pause {
+  opacity: 0 !important;
+}
+
+/* "Starting" state: unlike `.loading`, this KEEPS the static border ring and
+   the play/pause icon — the arc rides ON the border (same r=14.5 radius), so it
+   reads as a bright segment travelling the existing ring up to center-top, not a
+   second circle. A quick "warming up" cue before the track begins; the sweep
+   duration must match SOUND_START_DELAY_MS in runtime/voice.ts so playback
+   starts right as the arc reaches the top. */
+#sound-btn.sound-starting .sound-btn-spinner {
+  opacity: 1;
+  /* Like theyearofgreta.com, the arc is ALIVE: the whole spinner spins one full
+     clockwise turn (same cadence as the `.loading` spinner) while the dash below
+     grows then shrinks — that combined motion is what gives the smooth inchworm
+     comet feel. It begins oriented so distance 0 sits at center-bottom
+     (rotate 90°) and adds exactly +360°, so it comes to rest at the same
+     orientation — i.e. the resting arc ends at center-top. */
+  animation: sound-btn-starting-spin 1.4s linear 1 forwards;
+}
+
+/* Greta inchworm ("sâu đo"): the lead races ahead so the arc lengthens, then the
+   tail catches up so it shortens — finishing as a short segment resting at
+   center-top (mid ≈ 45.55, half of the 91.1 circumference: r=14.5 → 2πr ≈ 91.1).
+   Pairs with the full spin above; both run over SOUND_START_DELAY_MS
+   (runtime/voice.ts). */
+#sound-btn.sound-starting .sound-btn-spinner circle {
+  stroke-dasharray: 3 91.1;
+  stroke-dashoffset: 0;
+  animation: sound-btn-starting-dash 1.4s ease-in-out 1 forwards;
+}
+
+@keyframes sound-btn-starting-spin {
+  from {
+    transform: rotate(90deg);
+  }
+  to {
+    transform: rotate(450deg);
+  }
+}
+
+@keyframes sound-btn-starting-dash {
+  /* short segment at center-bottom */
+  0% {
+    stroke-dasharray: 3 91.1;
+    stroke-dashoffset: 0;
+  }
+  /* lengthened comet mid-flight as the lead races ahead */
+  50% {
+    stroke-dasharray: 30 91.1;
+    stroke-dashoffset: -8;
+  }
+  /* tail has caught up; short segment comes to rest at center-top */
+  100% {
+    stroke-dasharray: 4 91.1;
+    stroke-dashoffset: -43.55;
+  }
+}
+
+@keyframes sound-btn-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sound-btn-dash {
+  0% {
+    stroke-dasharray: 1 82;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 55 82;
+    stroke-dashoffset: -10;
+  }
+  100% {
+    stroke-dasharray: 55 82;
+    stroke-dashoffset: -80;
+  }
+}
+
 #sound-btn svg {
   position: absolute;
   width: 12px;
@@ -987,6 +1195,294 @@ html.experience-loading #load-tagline {
 #sound-btn.paused .icon-pause {
   opacity: 0;
   transform: translateX(12px) scale(0.85);
+}
+
+/* ── Sound-permission gate (theyearofgreta.com flow) ──────────────────────────
+   Full-screen centered prompt held over the 3D scene after load: a play button
+   + a two-line message. The first gesture (handled in runtime/voice.ts) enables
+   sound, fades this out, then the intro reveals. */
+#sound-permission {
+  position: fixed;
+  inset: 0;
+  z-index: 130; /* above intro UI (102), below the panel modal */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  pointer-events: all;
+  /* Default cursor over the overlay — only the play button is interactive now,
+     so the pointer cursor lives on #sound-permission-btn alone. */
+  cursor: default;
+  opacity: 1;
+  /* The overlay never fades as a block on exit. Like theyearofgreta.com,
+     `page-permissions` stays fully opaque while only its text lines (and the
+     play button) drift up + fade out on top of the experience that's revealed
+     underneath the instant the gate is dismissed — see the `.leaving` rules. */
+}
+
+/* Removed from layout once shown-then-dismissed (and its initial state). */
+#sound-permission.done {
+  display: none;
+}
+
+/* Dismissal: the overlay stays opaque but goes non-interactive so the revealed
+   experience underneath takes all input; only its lines + button dissolve. */
+#sound-permission.leaving {
+  pointer-events: none;
+}
+
+#sound-permission-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Static faint ring like the footer #sound-btn — always present so the button
+     never looks border-less; the accent countdown/loading arcs ride ON it (same
+     r=14.66 → 21.5px centreline) rather than as a separate inner circle. */
+  border: 1px solid var(--color-web-border);
+  background: transparent;
+  border-radius: 50%;
+  color: var(--color-web-white);
+  cursor: pointer;
+  pointer-events: all;
+  /* Hidden until `.visible`, then springs in (see keyframes below). */
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+#sound-permission-btn svg.icon-play {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Loading ring around the play button while the mp3 downloads — reuses the
+   #sound-btn spinner arc + keyframes (sound-btn-rotate / sound-btn-dash). */
+#sound-permission-btn .sound-btn-spinner {
+  position: absolute;
+  /* Offset by the 1px border (the absolute containing block is the padding box,
+     inside the border) so the svg covers the BORDER box and the arc sits
+     centred ON the default border ring instead of 1px down + right of it. */
+  inset: -1px;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  pointer-events: none;
+  color: var(--color-web-accent);
+  transform-origin: 50% 50%;
+}
+
+#sound-permission-btn .sound-btn-spinner circle {
+  fill: none;
+  stroke: currentColor;
+  /* Hairline arc matching the footer (0.6px): the 30-unit viewBox is scaled onto
+     a 44px button (~1.47×), so 0.6 × 30/44 ≈ 0.41 user units renders ~0.6px. */
+  stroke-width: 0.41;
+  stroke-linecap: round;
+}
+
+#sound-permission-btn.loading .sound-btn-spinner {
+  opacity: 1;
+  animation: sound-btn-rotate 1.4s linear infinite;
+}
+
+#sound-permission-btn.loading .sound-btn-spinner circle {
+  animation: sound-btn-dash 1.4s ease-in-out infinite;
+}
+
+#sound-permission-btn.loading svg.icon-play {
+  opacity: 0;
+}
+
+/* Countdown ring: a stroke that DRAWS clockwise from a FIXED start point at 12
+   o'clock — the <svg> is rotated -90deg once (static) to anchor that start, and
+   only the leading edge sweeps around; the start point never moves. It fills
+   fast at first then eases to a crawl, stretching the wait out (~4.5s). The fill
+   animates stroke-dashoffset, which only affects the stroked <circle>, so the
+   animation lives there (not the svg). r=14.66 → circumference ≈ 92.11. Hidden
+   while buffering (.loading). Duration MUST match AUTO_ENTER_MS in
+   runtime/voice.ts. */
+#sound-permission-btn .sound-btn-countdown {
+  position: absolute;
+  /* Same border-width offset as the spinner so the countdown ring is centred ON
+     the default border ring, not 1px off it. */
+  inset: -1px;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  pointer-events: none;
+  color: var(--color-web-accent);
+  /* Anchor the draw's start at 12 o'clock; plain rotation (no scaleX flip) so
+     the leading edge sweeps clockwise (12 → 3 → 6 → 9). */
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+#sound-permission-btn .sound-btn-countdown circle {
+  fill: none;
+  stroke: currentColor;
+  /* Same hairline as the spinner (0.41 user units ≈ 0.6px on the 44px button). */
+  stroke-width: 0.41;
+  stroke-linecap: round;
+  stroke-dasharray: 92.11;
+  /* start empty — the ring fills in over the countdown */
+  stroke-dashoffset: 92.11;
+}
+
+#sound-permission.visible #sound-permission-btn:not(.loading) .sound-btn-countdown {
+  opacity: 1;
+}
+
+#sound-permission.visible
+  #sound-permission-btn:not(.loading)
+  .sound-btn-countdown
+  circle {
+  animation: perm-countdown 4.5s linear forwards;
+}
+
+/* Two clockwise laps from the fixed 12 o'clock start: lap 1 DRAWS the ring in
+   fast (offset 92.11 → 0, ~0.9s), lap 2 sweeps a second clockwise pass slowly
+   (offset 0 → -92.11, ~3.6s). The 20% split is what makes the first lap quick
+   and the second lap drag out the wait. */
+@keyframes perm-countdown {
+  0% {
+    stroke-dashoffset: 92.11;
+  }
+  20% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -92.11;
+  }
+}
+
+#sound-permission-text {
+  margin: 0;
+  max-width: 260px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  /* The prompt is real, selectable copy — show the I-beam cursor over it so it
+     reads as text you can highlight, not part of the (default-cursor) overlay. */
+  cursor: text;
+  user-select: text;
+}
+
+/* Greta doesn't clip these lines — each one simply drifts a few px and fades
+   (no overflow mask), both on the way in and on the way out. */
+.perm-line {
+  display: block;
+}
+
+.perm-line-inner {
+  display: block;
+  transform: translateY(12px);
+  opacity: 0;
+}
+
+/* Entrance, triggered when voice.ts adds `.visible`. */
+#sound-permission.visible #sound-permission-btn {
+  animation: perm-btn-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+#sound-permission.visible .perm-line-inner {
+  animation: perm-line-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+#sound-permission.visible .perm-line:nth-child(1) .perm-line-inner {
+  animation-delay: 0.18s;
+}
+
+#sound-permission.visible .perm-line:nth-child(2) .perm-line-inner {
+  animation-delay: 0.28s;
+}
+
+@keyframes perm-btn-in {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes perm-line-in {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Exit, triggered when voice.ts swaps `.visible` for `.leaving`: the prompt
+   leaves QUICKLY and cleanly — both lines fade out while drifting up a touch
+   (~8px), the second line just a hair behind the first, and the play button
+   fades out on the same beat. The intro is revealed underneath at the same time
+   and eases in via the #c / #bg opacity transition, so there's no hard pop and
+   no text left lingering. A decelerating ease-out lets each line glide to a
+   stop. `both` fill + an explicit `from` keyframe holds the full-visible pose
+   through the small stagger so nothing flashes when `.visible` (and its
+   entrance hold) is removed. Timing mirrors GATE_EXIT_MS in runtime/voice.ts. */
+#sound-permission.leaving #sound-permission-btn {
+  animation: perm-btn-out 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+#sound-permission.leaving .perm-line-inner {
+  animation: perm-line-out 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+/* Line 2 follows line 1 by a hair — quick, not seconds apart. */
+#sound-permission.leaving .perm-line:nth-child(2) .perm-line-inner {
+  animation-delay: 0.08s;
+}
+
+@keyframes perm-btn-out {
+  from {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1) translateY(-8px);
+    opacity: 0;
+  }
+}
+
+@keyframes perm-line-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+}
+
+/* While the gate is up, the centered sound prompt is the ONLY thing visible
+   over the live background — the entire intro UI stays hidden so the gate reads
+   as its own pre-intro screen (like Greta), not as text laid over the intro.
+   #sound-permission (the gate) and #brand (the logo) are the two #ui children
+   kept visible; the rest of the intro reveals via completeExploreReturnToIntroUi
+   only after the gate has faded out. */
+html.sound-gate #ui > *:not(#sound-permission):not(#brand),
+html.sound-gate #bg-name,
+html.sound-gate #intro-left,
+html.sound-gate #intro-right,
+html.sound-gate #drag-hint {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perm-line-inner {
+    transform: none;
+    opacity: 1;
+  }
+  #sound-permission-btn {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 #caption {

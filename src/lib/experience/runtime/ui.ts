@@ -25,6 +25,8 @@ export function getDom(): Dom {
     introRight: must("intro-right"),
     bgName: must("bg-name"),
     soundBtn: must("sound-btn"),
+    soundPermission: must("sound-permission"),
+    soundPermissionBtn: must("sound-permission-btn"),
     social: must("social"),
     sline: must("sline"),
     exploreBtn: must("explore-btn"),

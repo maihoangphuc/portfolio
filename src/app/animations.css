@@ -174,31 +174,6 @@
   }
 }
 
-/* Reverse of intro-rule-draw, played backward so the exit mirrors the entry
-   sweep exactly (used by #intro-right.outro-exit): the settled dash expands
-   back to the long line, then slides out to the right where it entered.
-   Keyframe stops + easings are the time-mirror of intro-rule-draw (each
-   segment's cubic-bezier reversed via (1-x2, 1-y2, 1-x1, 1-y1)). */
-@keyframes intro-rule-exit-right {
-  0% {
-    transform: translate3d(0, 0, 0) scaleX(var(--intro-rule-final-scale));
-    transform-origin: 0 50%;
-    opacity: 1;
-    animation-timing-function: cubic-bezier(0.645, 0, 0.785, 0.39);
-  }
-  55.56% {
-    transform: translate3d(0, 0, 0) scaleX(0.4);
-    transform-origin: 0 50%;
-    opacity: 1;
-    animation-timing-function: cubic-bezier(0.32, 0.47, 0.45, 0.915);
-  }
-  100% {
-    transform: translate3d(100%, 0, 0) scaleX(0);
-    transform-origin: 0 50%;
-    opacity: 1;
-  }
-}
-
 @keyframes explore-underline-exit {
   0% {
     transform: translate3d(0, 0, 0);
