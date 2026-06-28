@@ -105,10 +105,40 @@ export function createVoice(dom: Dom): VoiceController {
     window.clearTimeout(autoEnterTimer);
     dom.soundPermissionBtn.removeEventListener("click", onPlayClick);
 
-    // Step 1 — HIDE the prompt: `.leaving` fades the two lines + button out and
-    // drifts them up. The intro stays hidden behind the gate while this plays.
+    // Step 1 — HIDE the prompt: `.leaving` slides the play icon out left, draws
+    // the countdown ring on to top center, then eases the button + lines away.
+    // The intro stays hidden behind the gate while this plays.
+    //
+    // The ring's CSS keyframe was filling stroke-dashoffset; once we drop
+    // `.visible` that animation is gone and the offset would snap back to empty.
+    // Pin the LIVE offset inline so the `.leaving` transition (→ 0) carries the
+    // leading edge on from exactly where it stood, settling at top center.
+    const ringCircle = dom.soundPermissionBtn.querySelector<SVGCircleElement>(
+      ".sound-btn-countdown circle",
+    );
+    // The ring keeps sweeping CLOCKWISE from exactly where its leading edge
+    // stood when clicked, on to the next top-center anchor, then settles + fades
+    // with the button. The countdown fills clockwise as stroke-dashoffset
+    // DECREASES (92.11 → 0), so to carry that same clockwise motion we drop the
+    // offset to the next lower multiple of the circumference (the nearest
+    // top-center point in the clockwise direction). It runs two laps so the live
+    // offset can be negative; flooring handles that, so the direction is
+    // clockwise whatever the click timing — no normalisation jump.
+    const C = 92.11; // circumference, must match the CSS stroke-dasharray
+    let ringTarget = 0;
+    if (ringCircle) {
+      const o = parseFloat(getComputedStyle(ringCircle).strokeDashoffset) || 0;
+      ringTarget = Math.floor(o / C) * C;
+      ringCircle.style.strokeDashoffset = `${o}px`; // pin the exact live edge
+    }
     dom.soundPermission.classList.remove("visible");
     dom.soundPermission.classList.add("leaving");
+    if (ringCircle) {
+      // Commit the pinned offset, then ease it to the clockwise anchor so the
+      // transition runs from the real position instead of snapping.
+      void ringCircle.getBoundingClientRect();
+      ringCircle.style.strokeDashoffset = `${ringTarget}px`;
+    }
 
     // Step 2 — only ONCE the prompt has fully hidden do we hand off to the
     // intro: remove the (now-empty) overlay, drop the gate + loading screen, and

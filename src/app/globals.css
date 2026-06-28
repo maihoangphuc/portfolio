@@ -920,8 +920,17 @@ html.experience-loading #load-tagline {
   letter-spacing: 0.01em;
   text-align: center;
   white-space: nowrap;
-  user-select: none;
+  /* Real, selectable copy: show the I-beam on hover and allow highlighting,
+     like #sound-permission-text — but ONLY while it is actually on screen.
+     `visibility: hidden` is the guarantee: a hidden element captures no hover
+     and shows no cursor at all, so the I-beam can't appear over empty space
+     during the 1s animation delay (backwards fill holds this `from` state) or
+     after the tagline has faded out. The fade keyframe flips it to `visible` +
+     interactive only once the text is really showing. */
+  cursor: text;
+  user-select: text;
   pointer-events: none;
+  visibility: hidden;
   opacity: 0;
   z-index: 2;
   transition:
@@ -934,19 +943,43 @@ html.experience-loading #load-tagline {
 @keyframes load-tagline-fade {
   from {
     opacity: 0;
+    /* Invisible behind the 3s delay (backwards fill) → not hoverable, no cursor. */
+    visibility: hidden;
+    pointer-events: none;
   }
   to {
     opacity: 1;
+    /* On screen → hoverable + selectable (I-beam cursor). */
+    visibility: visible;
+    pointer-events: auto;
   }
 }
 
+/* Shares the loading number's 3s delay so the tagline fades in together with it,
+   a beat after the wavy "p". */
 html.experience-loading #load-tagline {
-  animation: load-tagline-fade 1.3s 1s ease-in backwards;
+  animation: load-tagline-fade 1.3s 3s ease-in backwards;
 }
 
-/* Leaves in step with the number's slide-down exit. */
+/* Steady on-screen state: stay visible for the WHOLE count-up — keyed on the
+   loading number itself (counting, not yet exiting) so the tagline lives and
+   dies in lockstep with it, not on the animation's own clock. The entrance
+   animation above overrides this while it plays (animations beat normal rules);
+   once it ends at 2.3s this rule HOLDS the tagline visible instead of letting
+   `backwards` fill snap it back to hidden mid-load. It stops matching the moment
+   `.model-load-exit` lands, handing off to the exit rule below. */
+#ui:has(#model-load-pct.model-loading:not(.model-load-exit)) #load-tagline {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Leaves in step with the number's slide-down exit. `visibility: visible` keeps
+   it on screen through the fade+slide; once the number's classes are stripped,
+   neither this nor the steady rule matches, so it returns to the hidden base. */
 #ui:has(#model-load-pct.model-load-exit) #load-tagline {
   opacity: 0;
+  visibility: visible;
   transform: translateX(-50%) translateY(1.5rem);
 }
 
@@ -971,20 +1004,22 @@ html.experience-loading #load-tagline {
   opacity: 1;
 }
 
-/* Loading number slides up into place when loading starts. */
-@keyframes model-load-slide-up {
+/* Loading number fades in (no slide) 3s AFTER the wavy "p" — the letter fades in
+   first (its own ~1.2s ramp), then 3s in the number simply fades up in place,
+   together with the #load-tagline (which shares the same 3s delay). The delay
+   (`both` fill holds the hidden `from` pose through it) stages the "p first,
+   number + tagline 3s later" entrance. */
+@keyframes model-load-fade-in {
   from {
     opacity: 0;
-    transform: translateX(-50%) translateY(calc(100% + 2.5rem));
   }
   to {
     opacity: 1;
-    transform: translateX(-50%) translateY(30%);
   }
 }
 
 #model-load-pct.model-loading:not(.model-load-exit) {
-  animation: model-load-slide-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: model-load-fade-in 0.8s ease-out 3s both;
 }
 
 @keyframes model-load-slide-down {
@@ -1416,17 +1451,38 @@ html.experience-loading #load-tagline {
   }
 }
 
-/* Exit, triggered when voice.ts swaps `.visible` for `.leaving`: the prompt
-   leaves QUICKLY and cleanly — both lines fade out while drifting up a touch
-   (~8px), the second line just a hair behind the first, and the play button
-   fades out on the same beat. The intro is revealed underneath at the same time
-   and eases in via the #c / #bg opacity transition, so there's no hard pop and
-   no text left lingering. A decelerating ease-out lets each line glide to a
-   stop. `both` fill + an explicit `from` keyframe holds the full-visible pose
-   through the small stagger so nothing flashes when `.visible` (and its
-   entrance hold) is removed. Timing mirrors GATE_EXIT_MS in runtime/voice.ts. */
+/* Exit, triggered when voice.ts swaps `.visible` for `.leaving`. Instead of the
+   button sinking + fading as a block (which read as a flat, ugly pop), the play
+   ICON glides out to the LEFT and fades while the ring KEEPS SPINNING clockwise
+   — it picks up from the 12-o'clock start the countdown was anchored to and
+   carries the motion on rather than freezing. Once the icon has left, the whole
+   button (static border + spinning ring) eases away with a small scale-down.
+   The two text lines drift up + fade just behind it. The intro is revealed
+   underneath and eases in via the #c / #bg opacity transition, so there's no
+   hard pop. `both` fill holds the full-visible pose through the stagger so
+   nothing flashes. Timing mirrors GATE_EXIT_MS in runtime/voice.ts. */
 #sound-permission.leaving #sound-permission-btn {
-  animation: perm-btn-out 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+  /* Hold until the ring has drawn up to top center (~0.5s), THEN ease away. */
+  animation: perm-btn-out 0.24s cubic-bezier(0.4, 0, 0.2, 1) 0.46s both;
+}
+
+/* Play icon glides out to the left and fades — accelerating ease-in so it
+   leaves the ring decisively. */
+#sound-permission.leaving #sound-permission-btn svg.icon-play {
+  animation: perm-icon-slide 0.4s cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+
+/* The countdown ring keeps sweeping CLOCKWISE from wherever its leading edge had
+   reached when clicked, on to the next top-center anchor, then settles and fades
+   with the button. voice.ts pins the live stroke-dashoffset inline at click time
+   and eases it to the clockwise anchor; this only supplies the timing/easing of
+   that transition. */
+#sound-permission.leaving #sound-permission-btn .sound-btn-countdown {
+  opacity: 1;
+}
+#sound-permission.leaving #sound-permission-btn .sound-btn-countdown circle {
+  /* Decelerates into the stop at top center. Target offset set inline by JS. */
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #sound-permission.leaving .perm-line-inner {
@@ -1437,13 +1493,20 @@ html.experience-loading #load-tagline {
   animation-delay: 0.08s;
 }
 
+@keyframes perm-icon-slide {
+  to {
+    transform: translateX(-12px);
+    opacity: 0;
+  }
+}
+
 @keyframes perm-btn-out {
   from {
-    transform: scale(1) translateY(0);
+    transform: scale(1);
     opacity: 1;
   }
   to {
-    transform: scale(1) translateY(-8px);
+    transform: scale(0.9);
     opacity: 0;
   }
 }
@@ -1482,6 +1545,15 @@ html.sound-gate #drag-hint {
   #sound-permission-btn {
     opacity: 1;
     transform: none;
+  }
+  /* No ring sweep / sliding icon on exit — just let them fade. */
+  #sound-permission.leaving #sound-permission-btn .sound-btn-countdown circle {
+    transition: none;
+  }
+  #sound-permission.leaving #sound-permission-btn svg.icon-play {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
   }
 }
 
