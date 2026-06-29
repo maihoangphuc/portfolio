@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { RuntimeContext } from "@/lib/experience/runtime/types";
 import { N, PW, PH, LG_BREAKPOINT } from "@/constants/experience";
-import { PANELS, PanelItem } from "@/constants/panels";
+import { PANELS } from "@/constants/panels";
+import type { PanelItem } from "@/types/panel";
 import { DRAG_HINT_FADE_OUT_MS } from "@/lib/experience/runtime/world";
 import { rootCssVarToHexInt } from "@/utils/rootCssColor";
 

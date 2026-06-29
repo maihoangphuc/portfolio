@@ -13,10 +13,9 @@ export default function Home() {
       <header className="sr-only">
         <h1>Mai Hoang Phuc — Frontend Developer</h1>
         <p>
-          Frontend Developer with 3+ years of experience building scalable,
-          high-performance web applications with ReactJS, Next.js and Vue 3. I
-          craft intuitive, visually appealing user interfaces and interactive 3D
-          web experiences with Three.js, WebGL and React.
+          Frontend Developer with nearly 4 years of experience in React.js and
+          Vue.js, building performant admin systems and internal tools while
+          leveraging AI-assisted workflows to accelerate delivery.
         </p>
       </header>
       <ExperienceCanvases />

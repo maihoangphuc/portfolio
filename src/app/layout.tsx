@@ -21,10 +21,10 @@ const fredoka = Fredoka({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://maihoangphuc.site";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://maihoangphuc.click";
 const SITE_NAME = "Mai Hoang Phuc — Frontend Developer";
 const SITE_DESCRIPTION =
-  "Frontend Developer with 3+ years of experience building scalable, high-performance web applications with ReactJS, Next.js and Vue 3. Passionate about crafting intuitive, visually appealing interfaces and interactive 3D web experiences with Three.js.";
+  "Frontend Developer with nearly 4 years of experience in React.js and Vue.js, building performant admin systems and internal tools while leveraging AI-assisted workflows to accelerate delivery.";
 
 // Person + WebSite structured data for rich results. sameAs links the verified
 // social profiles, which strengthens entity recognition.
